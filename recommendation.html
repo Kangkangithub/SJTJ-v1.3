@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能推荐 - 兵智视界</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/recommendation.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">兵智视界</div>
+            <div class="user-status">
+                <!-- 用户状态将由auth.js动态更新 -->
+                <a href="login.html" class="btn">登录</a>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
+                <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="recommendation.html" class="active"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
+                <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
+                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <div class="card">
+                <h1>智能推荐</h1>
+                <p>根据您的兴趣和浏览历史，我们为您推荐以下文章内容：</p>
+            </div>
+            
+            <div class="recommendation-list">
+                <div class="recommendation-card">
+                    <div class="recommendation-title">现代无人机技术的发展与应用</div>
+                    <div class="recommendation-tags">
+                        <span class="tag">无人机</span>
+                        <span class="tag">军事技术</span>
+                        <span class="tag">自动化</span>
+                    </div>
+                    <div class="recommendation-description">
+                        本文详细介绍了现代无人机技术的发展历程、应用场景以及未来趋势。从军事侦察到民用物流，无人机技术正在改变我们的生活方式。文章还分析了全球主要国家在无人机技术方面的竞争格局和最新突破。
+                    </div>
+                    <div class="recommendation-footer">
+                        <span>评分：4.8/5</span>
+                        <span>阅读人数：1200+</span>
+                    </div>
+                    <a href="#" class="read-more">阅读全文</a>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="recommendation-title">坦克发展史：从一战到现代装甲力量</div>
+                    <div class="recommendation-tags">
+                        <span class="tag">坦克</span>
+                        <span class="tag">军事历史</span>
+                        <span class="tag">装甲车辆</span>
+                    </div>
+                    <div class="recommendation-description">
+                        本文回顾了坦克从第一次世界大战到现代的发展历程，分析了不同国家坦克设计的特点和优劣势。文章还详细介绍了现代主战坦克的关键技术指标和性能参数，以及未来装甲力量的发展方向。
+                    </div>
+                    <div class="recommendation-footer">
+                        <span>评分：4.7/5</span>
+                        <span>阅读人数：900+</span>
+                    </div>
+                    <a href="#" class="read-more">阅读全文</a>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="recommendation-title">现代导弹防御系统：技术与挑战</div>
+                    <div class="recommendation-tags">
+                        <span class="tag">导弹</span>
+                        <span class="tag">防御系统</span>
+                        <span class="tag">反导技术</span>
+                    </div>
+                    <div class="recommendation-description">
+                        本文介绍了现代导弹防御系统的工作原理和技术挑战，探讨了不同国家在这一领域的最新进展。文章分析了从早期的爱国者系统到现代的萨德系统的技术演进，以及未来反导系统面临的关键技术挑战。
+                    </div>
+                    <div class="recommendation-footer">
+                        <span>评分：4.9/5</span>
+                        <span>阅读人数：800+</span>
+                    </div>
+                    <a href="#" class="read-more">阅读全文</a>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="recommendation-title">人工智能在军事领域的应用前景</div>
+                    <div class="recommendation-tags">
+                        <span class="tag">人工智能</span>
+                        <span class="tag">军事科技</span>
+                        <span class="tag">智能化武器</span>
+                    </div>
+                    <div class="recommendation-description">
+                        本文探讨了人工智能技术在军事领域的广泛应用，从战场态势感知到智能化决策支持系统。文章分析了AI在未来战争中的角色，以及军事AI发展面临的伦理和安全挑战。
+                    </div>
+                    <div class="recommendation-footer">
+                        <span>评分：4.6/5</span>
+                        <span>阅读人数：1500+</span>
+                    </div>
+                    <a href="#" class="read-more">阅读全文</a>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 兵智视界 - 南京理工大学紫金学院</p>
+        </footer>
+    </div>
+    
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/common.js"></script>
+</body>
+</html>

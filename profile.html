@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 兵智视界</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/profile.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">兵智视界</div>
+            <div class="user-status">
+                <!-- 用户状态将由auth.js动态更新 -->
+                <a href="login.html" class="btn">登录</a>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
+                <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
+                <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
+                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
+                <li><a href="profile.html" class="active"><i class="fas fa-user"></i> 个人中心</a></li>
+            </ul>
+        </nav>
+        <div class="content">
+            <div class="card">
+                <h1>个人中心</h1>
+                
+                <div class="profile-header">
+                    <div class="profile-avatar"></div>
+                    <h2 id="profileName">张三</h2>
+                </div>
+                
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" name="username" value="张三">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">电子邮箱</label>
+                        <input type="email" id="email" name="email" value="zhangsan@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">手机号码</label>
+                        <input type="tel" id="phone" name="phone" value="13800138000">
+                    </div>
+                    <div class="form-group">
+                        <label for="bio">个人简介</label>
+                        <textarea id="bio" name="bio" rows="4">我是一名军事武器爱好者，喜欢学习和分享关于军事的相关知识。</textarea>
+                    </div>
+                    <button type="submit">保存修改</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="scripts/auth.js"></script>
+    <script>
+        // 检查用户是否已登录
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从localStorage获取用户信息
+            const userInfoStr = localStorage.getItem('userInfo');
+            
+            if (!userInfoStr) {
+                // 如果用户未登录，重定向到登录页面
+                alert('请先登录');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                // 解析用户信息
+                const userInfo = JSON.parse(userInfoStr);
+                
+                // 检查是否登录
+                if (!userInfo || !userInfo.isLoggedIn) {
+                    alert('请先登录');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // 显示用户信息
+                document.getElementById('profileName').textContent = userInfo.username;
+                document.getElementById('username').value = userInfo.username;
+            } catch (error) {
+                console.error('解析用户信息时出错:', error);
+                alert('获取用户信息失败，请重新登录');
+                window.location.href = 'login.html';
+            }
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const bio = document.getElementById('bio').value;
+            
+            // 更新localStorage中的用户名
+            try {
+                const userInfoStr = localStorage.getItem('userInfo');
+                if (userInfoStr) {
+                    const userInfo = JSON.parse(userInfoStr);
+                    userInfo.username = username;
+                    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                }
+            } catch (error) {
+                console.error('更新用户信息时出错:', error);
+            }
+            
+            // 这里可以添加保存个人资料的逻辑，例如发送到服务器
+            alert('个人资料已保存！');
+            
+            // 更新页面显示
+            document.getElementById('profileName').textContent = username;
+        });
+    </script>
+</body>
+</html>

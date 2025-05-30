@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>军事测验 - 兵智视界</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/test.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">兵智视界</div>
+            <div class="user-status">
+                <!-- 用户状态将由auth.js动态更新 -->
+                <a href="login.html" class="btn">登录</a>
+            </div>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
+                <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
+                <li><a href="test.html" class="active"><i class="fas fa-bullseye"></i> 军事测验</a></li>
+                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
+            </ul>
+        </nav>
+        <div class="content">
+            <div class="test-header">
+                <h1>军事知识测验</h1>
+                <p>挑战您的军事知识，赢取荣誉勋章！</p>
+            </div>
+            
+            <!-- 测验选择页面 -->
+            <div id="quizSelection" class="section-container">
+                <div class="selection-card">
+                    <div class="section-header">
+                        <h2>测验类别</h2>
+                    </div>
+                    <div class="category-grid">
+                        <div class="category-item" data-category="weapons">
+                            <div class="category-icon">
+                                <i class="fas fa-gun"></i>
+                            </div>
+                            <div class="category-title">武器装备</div>
+                        </div>
+                        <div class="category-item" data-category="history">
+                            <div class="category-icon">
+                                <i class="fas fa-monument"></i>
+                            </div>
+                            <div class="category-title">军事历史</div>
+                        </div>
+                        <div class="category-item" data-category="strategy">
+                            <div class="category-icon">
+                                <i class="fas fa-chess-knight"></i>
+                            </div>
+                            <div class="category-title">战略战术</div>
+                        </div>
+                        <div class="category-item" data-category="countries">
+                            <div class="category-icon">
+                                <i class="fas fa-globe-americas"></i>
+                            </div>
+                            <div class="category-title">各国军力</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="selection-card">
+                    <div class="section-header">
+                        <h2>难度级别</h2>
+                    </div>
+                    <div class="difficulty-selector">
+                        <div class="difficulty-option" data-difficulty="easy">
+                            <div class="difficulty-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="difficulty-info">
+                                <div class="difficulty-title">新兵</div>
+                                <div class="difficulty-desc">适合初学者的基础军事知识</div>
+                            </div>
+                        </div>
+                        <div class="difficulty-option" data-difficulty="medium">
+                            <div class="difficulty-icon">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="difficulty-info">
+                                <div class="difficulty-title">军士</div>
+                                <div class="difficulty-desc">中等难度，需要一定军事知识</div>
+                            </div>
+                        </div>
+                        <div class="difficulty-option" data-difficulty="hard">
+                            <div class="difficulty-icon">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="difficulty-info">
+                                <div class="difficulty-title">将军</div>
+                                <div class="difficulty-desc">高难度，考验专业军事知识</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="start-section">
+                    <button id="startQuizButton" class="start-button" disabled>
+                        <i class="fas fa-play"></i> 开始测验
+                    </button>
+                    <div class="quiz-info">
+                        <div class="info-item">
+                            <i class="fas fa-question-circle"></i>
+                            <span id="questionCount">10个问题</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>时间限制：<span id="timeLimit">10</span>分钟</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 测验进行中页面 -->
+            <div id="quizContainer" class="quiz-container" style="display: none;">
+                <div class="quiz-top-section">
+                    <div class="quiz-info-bar">
+                        <div class="info-pill category-pill">
+                            <i class="fas fa-folder"></i>
+                            <span id="currentCategory">武器装备</span>
+                        </div>
+                        <div class="info-pill difficulty-pill">
+                            <i class="fas fa-signal"></i>
+                            <span id="currentDifficulty">新兵</span>
+                        </div>
+                        <div class="info-pill timer-pill">
+                            <i class="fas fa-clock"></i>
+                            <span id="timer">10:00</span>
+                        </div>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="progress-text">
+                            <span id="currentQuestionNum">1</span>/<span id="totalQuestions">10</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" id="progressBar"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="quizContent">
+                    <div class="quiz-question">
+                        <h3 id="questionText">问题将显示在这里</h3>
+                        <div class="question-image-container" id="questionImageContainer">
+                            <!-- 如果有图片会在这里显示 -->
+                        </div>
+                        <div class="quiz-options" id="optionsContainer">
+                            <!-- 选项将动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-actions">
+                        <button id="nextButton" class="action-button">
+                            <i class="fas fa-arrow-right"></i> 下一题
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="hint-section">
+                    <button id="hintButton" class="hint-button">
+                        <i class="fas fa-lightbulb"></i> 使用提示
+                        <span class="hint-count">3</span>
+                    </button>
+                    <div id="hintContent" class="hint-content" style="display: none;">
+                        提示将显示在这里...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 测验结果页面 -->
+            <div id="resultsContainer" class="section-container" style="display: none;">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2>测验完成!</h2>
+                        <div class="score-display">
+                            <div class="score-circle">
+                                <span id="scorePercentage">85%</span>
+                            </div>
+                            <div class="score-text">
+                                <span id="scoreText">您的得分：8/10</span>
+                                <span id="timeUsed">用时：8分32秒</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="badge-section" id="badgeSection">
+                        <div class="section-header">
+                            <h3>获得勋章</h3>
+                        </div>
+                        <div class="badges-container" id="badgesContainer">
+                            <!-- 勋章将在这里动态显示 -->
+                        </div>
+                    </div>
+                    
+                    <div class="review-section">
+                        <div class="section-header">
+                            <h3>答题回顾</h3>
+                        </div>
+                        <div class="review-list" id="reviewList">
+                            <!-- 答题回顾将在这里动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="results-actions">
+                        <button id="restartButton" class="action-button">
+                            <i class="fas fa-redo"></i> 重新测验
+                        </button>
+                        <button id="shareButton" class="action-button action-button-secondary">
+                            <i class="fas fa-share-alt"></i> 分享成绩
+                        </button>
+                        <button id="viewLeaderboardButton" class="action-button action-button-secondary">
+                            <i class="fas fa-trophy"></i> 查看排行榜
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 排行榜页面 -->
+            <div id="leaderboardContainer" class="section-container" style="display: none;">
+                <div class="leaderboard-card">
+                    <div class="section-header">
+                        <h2>测验排行榜</h2>
+                        <div class="leaderboard-tabs">
+                            <button class="tab-button active" data-tab="weekly">本周</button>
+                            <button class="tab-button" data-tab="monthly">本月</button>
+                            <button class="tab-button" data-tab="alltime">总榜</button>
+                        </div>
+                    </div>
+                    
+                    <div class="leaderboard-filters">
+                        <select id="categoryFilter">
+                            <option value="all">所有类别</option>
+                            <option value="weapons">武器装备</option>
+                            <option value="history">军事历史</option>
+                            <option value="strategy">战略战术</option>
+                            <option value="countries">各国军力</option>
+                        </select>
+                        <select id="difficultyFilter">
+                            <option value="all">所有难度</option>
+                            <option value="easy">新兵</option>
+                            <option value="medium">军士</option>
+                            <option value="hard">将军</option>
+                        </select>
+                    </div>
+                    
+                    <div class="leaderboard-table-container">
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>用户</th>
+                                    <th>分类</th>
+                                    <th>难度</th>
+                                    <th>得分</th>
+                                    <th>用时</th>
+                                    <th>日期</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardTableBody">
+                                <!-- 排行榜数据将在这里动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="leaderboard-actions">
+                        <button id="backToResultsButton" class="action-button">
+                            <i class="fas fa-arrow-left"></i> 返回结果
+                        </button>
+                        <button id="newQuizButton" class="action-button action-button-secondary">
+                            <i class="fas fa-plus"></i> 新测验
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/test.js"></script>
+</body>
+</html>

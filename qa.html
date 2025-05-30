@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能问答 - 兵智视界</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/qa.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">兵智视界</div>
+            <div class="user-status">
+                <!-- 用户状态将由auth.js动态更新 -->
+                <a href="login.html" class="btn">登录</a>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
+                <li><a href="qa.html" class="active"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
+                <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
+                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <h1>智能问答系统</h1>
+            
+            <div class="qa-container">
+                <div class="chat-window">
+                    <div class="message ai-message">
+                        您好！我是兵智视界智能助手。请问有什么关于武器装备的问题需要解答？
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <textarea placeholder="请输入您的问题..."></textarea>
+                    <button>发送</button>
+                </div>
+            </div>
+        </main>
+        
+        <!-- 引入公共底部 -->
+        <div id="footer-placeholder"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/common.js"></script>
+    <script src="scripts/qa.js"></script>
+    <script>
+        // 加载公共头部和底部
+        fetch('templates/header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-placeholder').innerHTML = data;
+                // 在头部加载后再执行common.js中的导航激活逻辑
+                const event = new Event('DOMContentLoaded');
+                document.dispatchEvent(event);
+            });
+            
+        fetch('templates/footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            });
+    </script>
+</body>
+</html>

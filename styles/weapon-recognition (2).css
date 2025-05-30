@@ -1,0 +1,312 @@
+/* 武器识别页面样式 */
+.weapon-recognition-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--grid-gap);
+    padding: 1rem;
+}
+
+@media (max-width: 1200px) {
+    .weapon-recognition-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 上传和识别部分 */
+.upload-section {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.upload-section h2 {
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.upload-area {
+    border: 2px dashed var(--secondary-color);
+    border-radius: 8px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 2rem;
+    position: relative;
+}
+
+.upload-area:hover {
+    border-color: var(--accent-color);
+    background-color: rgba(26, 188, 156, 0.05);
+}
+
+.upload-area i {
+    font-size: 3rem;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.upload-area p {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+}
+
+.upload-options {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.upload-options button {
+    padding: 0.7rem 1.5rem;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.3s;
+}
+
+.upload-options button:hover {
+    background-color: var(--accent-color);
+}
+
+#imagePreview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    margin-top: 1rem;
+    display: none;
+}
+
+/* 结果显示部分 */
+.result-section {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+}
+
+.result-section h2 {
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.loading-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(13, 17, 23, 0.8);
+    border-radius: 8px;
+    z-index: 10;
+    backdrop-filter: blur(3px);
+    display: none;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid rgba(52, 152, 219, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--secondary-color);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.result-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.weapon-info {
+    background-color: rgba(22, 27, 37, 0.7);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.weapon-name {
+    font-size: 1.8rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.weapon-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .weapon-details {
+        grid-template-columns: 1fr;
+    }
+}
+
+.detail-group {
+    margin-bottom: 1rem;
+}
+
+.detail-label {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin-bottom: 0.3rem;
+}
+
+.detail-value {
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.weapon-description {
+    line-height: 1.7;
+    margin-top: 1rem;
+    color: #ddd;
+}
+
+.confidence-bar {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 1s ease-out;
+}
+
+.related-weapons {
+    margin-top: 1.5rem;
+}
+
+.related-weapons h3 {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.related-list {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+}
+
+.related-item {
+    min-width: 150px;
+    background-color: rgba(22, 27, 37, 0.7);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.related-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.related-item-name {
+    font-size: 1rem;
+    color: var(--text-color);
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.no-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #888;
+    text-align: center;
+}
+
+.no-result i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+}
+
+/* 按钮和交互元素 */
+.action-button {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.7rem 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-button:hover {
+    background-color: var(--accent-color);
+}
+
+/* 相似度徽章 */
+.similarity-badge {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.3rem 0.7rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    margin-left: 1rem;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .weapon-recognition-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .upload-options {
+        flex-direction: column;
+    }
+    
+    .upload-options button {
+        width: 100%;
+    }
+} 

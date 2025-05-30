@@ -1,0 +1,425 @@
+.content {
+    display: flex;
+    flex: 1;
+    gap: 20px;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-section {
+    margin-bottom: 20px;
+}
+
+.sidebar-section h3 {
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-section h3 i {
+    margin-right: 8px;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+.sidebar-menu li {
+    margin-bottom: 10px;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.sidebar-menu li a:hover {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+.sidebar-menu li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    background-color: var(--card-bg);
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h2 {
+    color: var(--secondary-color);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+}
+
+.chat-header h2 i {
+    margin-right: 8px;
+}
+
+.chat-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-actions button {
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.chat-actions button:hover {
+    color: var(--secondary-color);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    max-width: 85%;
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+.user-message {
+    background-color: var(--secondary-color);
+    color: #fff;
+    align-self: flex-end;
+    margin-left: auto;
+    border-bottom-right-radius: 2px;
+}
+
+.ai-message {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+    line-height: 1.6;
+}
+
+/* AI消息打字动画效果 */
+.ai-message.typing::after {
+    content: '▌';
+    display: inline-block;
+    animation: typing 1s infinite;
+}
+
+@keyframes typing {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.message-icon {
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    font-size: 16px;
+    color: var(--text-color);
+}
+
+.chat-input {
+    display: flex;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.chat-input textarea {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    resize: none;
+    height: 60px;
+    font-size: 15px;
+}
+
+.chat-input-toolbar {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg);
+    padding: 0 10px;
+}
+
+.chat-input-toolbar button {
+    background-color: var(--secondary-color);
+    color: var(--dark-bg);
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 10px;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-input-toolbar button:hover {
+    background-color: var(--accent-color);
+}
+
+.qa-container {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 75vh;
+}
+
+.chat-window {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-area {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: auto;
+}
+
+.input-area textarea {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    resize: none;
+    height: 60px;
+    font-size: 15px;
+}
+
+.input-area button {
+    background-color: var(--secondary-color);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0 20px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.input-area button:hover {
+    background-color: var(--primary-color);
+}
+
+.input-area button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* 滚动条样式 */
+.chat-window::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Markdown元素样式 */
+.ai-message h1,
+.ai-message h2,
+.ai-message h3,
+.ai-message h4,
+.ai-message h5,
+.ai-message h6 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    line-height: 1.25;
+    color: #fff;
+    font-weight: 600;
+}
+
+.ai-message h1 {
+    font-size: 1.6em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.3em;
+}
+
+.ai-message h2 {
+    font-size: 1.4em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.2em;
+}
+
+.ai-message h3 {
+    font-size: 1.2em;
+}
+
+.ai-message h4 {
+    font-size: 1.1em;
+}
+
+.ai-message p {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.ai-message ul,
+.ai-message ol {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    padding-left: 2em;
+}
+
+.ai-message li {
+    margin-bottom: 4px;
+}
+
+.ai-message a {
+    color: var(--secondary-color);
+    text-decoration: none;
+}
+
+.ai-message a:hover {
+    text-decoration: underline;
+}
+
+.ai-message blockquote {
+    padding: 0 1em;
+    border-left: 3px solid rgba(255, 255, 255, 0.3);
+    margin: 0.5em 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.ai-message pre {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-x: auto;
+    margin: 8px 0;
+}
+
+.ai-message code {
+    font-family: 'Courier New', Courier, monospace;
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 0.9em;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.ai-message pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    display: block;
+    overflow-x: auto;
+    line-height: 1.45;
+}
+
+.ai-message table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    overflow-x: auto;
+    display: block;
+}
+
+.ai-message table th,
+.ai-message table td {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.ai-message table th {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+}
+
+.ai-message table tr:nth-child(2n) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ai-message img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.ai-message hr {
+    height: 1px;
+    border: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 16px 0;
+}
+
+/* 适配代码高亮 */
+.ai-message .hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 1em;
+    color: #abb2bf;
+    background: #282c34;
+    border-radius: 4px;
+} 

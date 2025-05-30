@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识图谱 - 兵智视界</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/knowledge-graph.css">
+    <!-- 引入D3.js库 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- 引入Neo4j JavaScript驱动 -->
+    <script src="https://unpkg.com/neo4j-driver"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">兵智视界</div>
+            <div class="user-status">
+                <!-- 用户状态将由auth.js动态更新 -->
+                <a href="login.html" class="btn">登录</a>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="knowledge-graph.html" class="active"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
+                <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
+                <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
+                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <h1>武器装备知识图谱</h1>
+            
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="搜索武器装备...">
+                <button id="searchButton">搜索</button>
+            </div>
+            
+            <div class="graph-filters">
+                <div class="filter-group">
+                    <label for="nodeTypeFilter">节点类型:</label>
+                    <select id="nodeTypeFilter">
+                        <option value="all">全部</option>
+                        <option value="Weapon">武器</option>
+                        <option value="Country">国家</option>
+                        <option value="Manufacturer">制造商</option>
+                        <option value="Type">类型</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="relationTypeFilter">关系类型:</label>
+                    <select id="relationTypeFilter">
+                        <option value="all">全部</option>
+                        <option value="MANUFACTURED_BY">制造于</option>
+                        <option value="BELONGS_TO">属于</option>
+                        <option value="USED_BY">使用于</option>
+                        <option value="IS_TYPE_OF">类型为</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="graph-controls">
+                <button id="zoomInBtn"><i class="fas fa-search-plus"></i> 放大</button>
+                <button id="zoomOutBtn"><i class="fas fa-search-minus"></i> 缩小</button>
+                <button id="resetBtn"><i class="fas fa-redo"></i> 重置</button>
+                <button id="exportBtn"><i class="fas fa-download"></i> 导出</button>
+            </div>
+            
+            <div class="knowledge-graph-container">
+                <div class="graph-legend">
+                    <h3>图例</h3>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #ff6b6b;"></span>
+                        <span class="legend-label">武器</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #4ecdc4;"></span>
+                        <span class="legend-label">国家</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #ffbe0b;"></span>
+                        <span class="legend-label">制造商</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #a786df;"></span>
+                        <span class="legend-label">类型</span>
+                    </div>
+                </div>
+                <div id="graph-visualization" class="graph-visualization">
+                    <!-- D3.js将在这里渲染知识图谱 -->
+                </div>
+                <div class="node-details">
+                    <h3>节点详情</h3>
+                    <div id="nodeDetails">
+                        <p>点击节点查看详细信息</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 兵智视界 - 南京理工大学紫金学院</p>
+        </footer>
+    </div>
+
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/common.js"></script>
+    <script src="scripts/knowledge-graph.js"></script>
+</body>
+</html>

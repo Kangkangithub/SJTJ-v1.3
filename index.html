@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兵智视界 - 武器装备知识图谱智能平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">兵智视界</div>
+            <div class="user-status">
+                <!-- 用户状态将由auth.js动态更新 -->
+                <a href="login.html" class="btn">登录</a>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="index.html" class="active"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
+                <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
+                <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
+                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section class="intro">
+                <h2>欢迎来到兵智视界</h2>
+                <p>这里是一个展示武器装备知识图谱的平台，您可以查看武器装备的基本信息、关联关系，并获取智能推荐内容。</p>
+            </section>
+
+            <div class="dashboard">
+                <!-- 武器装备数量统计 -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">武器装备数量统计</div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="weaponCountChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 问答系统使用趋势 -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">问答系统使用趋势</div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="qaUsageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 推荐系统性能指标 -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">推荐系统性能指标</div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="recommendationMetricsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 测验通过率分布 -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">测验通过率分布</div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="testPassRateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <section class="quick-links">
+                <div class="quick-link-card">
+                    <h3>知识图谱</h3>
+                    <p>探索武器装备的详细信息和关联关系。</p>
+                    <a href="knowledge-graph.html" class="btn">进入图谱</a>
+                </div>
+                <div class="quick-link-card">
+                    <h3>智能问答</h3>
+                    <p>输入问题，获取AI智能回答。</p>
+                    <a href="qa.html" class="btn">开始问答</a>
+                </div>
+                <div class="quick-link-card">
+                    <h3>智能推荐</h3>
+                    <p>根据您的兴趣获取个性化推荐内容。</p>
+                    <a href="recommendation.html" class="btn">查看推荐</a>
+                </div>
+                <div class="quick-link-card">
+                    <h3>军事测验</h3>
+                    <p>测试您的军事知识，获取成绩和解析。</p>
+                    <a href="test.html" class="btn">开始测验</a>
+                </div>
+                <div class="quick-link-card">
+                    <h3>武器识别</h3>
+                    <p>上传图片，AI智能识别武器装备。</p>
+                    <a href="weapon-recognition.html" class="btn">开始识别</a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 兵智视界 - 南京理工大学紫金学院</p>
+        </footer>
+    </div>
+
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/common.js"></script>
+    <script src="scripts/index-charts.js"></script>
+</body>
+</html>

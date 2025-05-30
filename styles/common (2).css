@@ -1,0 +1,420 @@
+/* 公共样式 - 导航栏和页头 */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #1abc9c;
+    --dark-bg: #0a0e17;
+    --card-bg: #131a27;
+    --text-color: #e0e0e0;
+    --grid-gap: 1.5rem;
+    --nav-active-bg: #1abc9c;
+    --nav-hover-bg: rgba(52, 152, 219, 0.7);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* 页头样式 */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    background-color: var(--dark-bg);
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.user-status {
+    display: flex;
+    align-items: center;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.username {
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+
+.logout-btn {
+    background-color: transparent;
+    border: 1px solid var(--secondary-color);
+    color: var(--secondary-color);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+}
+
+.logout-btn:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--secondary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: var(--accent-color);
+}
+
+/* 导航栏样式 */
+nav {
+    background-color: rgba(44, 62, 80, 0.95);
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 70px;
+    z-index: 99;
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+nav ul li {
+    position: relative;
+}
+
+nav ul li a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+nav ul li a:hover {
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    color: white;
+    transform: translateY(-2px);
+}
+
+nav ul li a.active {
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+nav ul li a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--secondary-color);
+}
+
+/* 响应式导航 */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    nav ul li a {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* 页脚样式 */
+footer {
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 3rem;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+main {
+    margin-top: 2rem;
+}
+
+.intro {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.intro h2 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--grid-gap);
+}
+
+/* 通用卡片样式 */
+.card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.chart-container {
+    height: 200px;
+    position: relative;
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 150px;
+    margin-top: 1rem;
+}
+
+.bar {
+    width: 30px;
+    background: linear-gradient(to top, var(--secondary-color), var(--accent-color));
+    border-radius: 4px 4px 0 0;
+    position: relative;
+}
+
+.bar-label {
+    position: absolute;
+    bottom: -25px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.line-chart {
+    height: 150px;
+    margin-top: 1rem;
+    position: relative;
+}
+
+.line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.radar-chart {
+    width: 100%;
+    height: 150px;
+    margin-top: 1rem;
+}
+
+.pie-chart {
+    width: 100%;
+    height: 150px;
+    margin-top: 1rem;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.quick-link-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.quick-link-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.quick-link-card h3 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+/* 通用按钮样式 */
+button {
+    padding: 0.5rem 1rem;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: var(--accent-color);
+}
+
+/* 通用输入框样式 */
+input, textarea {
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: var(--text-color);
+    width: 100%;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+}
+
+/* 通用标题样式 */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+/* 通用段落样式 */
+p {
+    margin-bottom: 1rem;
+}
+
+/* 通用链接样式 */
+a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--accent-color);
+}
+
+/* 通用列表样式 */
+ul, ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+/* 通用表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+th, td {
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+th {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-weight: bold;
+}
+
+/* 通用分隔线样式 */
+hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 1rem 0;
+}
+
+/* 通用图片样式 */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}

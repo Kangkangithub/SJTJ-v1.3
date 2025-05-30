@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录 - 兵智视界</title>
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+    <div class="container">
+        <header class="auth-header">
+            <div class="logo">兵智视界</div>
+        </header>
+        <div class="content">
+            <div class="auth-card">
+                <h1>用户登录</h1>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group remember-group">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <label for="rememberMe">记住我</label>
+                    </div>
+                    <button type="submit" class="auth-btn">登录</button>
+                </form>
+                <div class="auth-links">
+                    <p>还没有账号？<a href="register.html">立即注册</a></p>
+                    <p><a href="forgot-password.html">忘记密码？</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // 这里可以添加登录逻辑，例如发送到服务器
+            // 模拟登录验证成功
+            if (username && password) {
+                // 实际应用中，这里应该是发送请求到服务器验证用户名和密码
+                simulateLogin(username, password);
+            } else {
+                alert('请输入用户名和密码');
+            }
+        });
+        
+        // 模拟登录过程
+        function simulateLogin(username, password) {
+            // 显示登录中状态
+            const submitBtn = document.querySelector('.auth-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '登录中...';
+            
+            // 模拟网络请求延迟
+            setTimeout(() => {
+                // 登录成功，保存用户信息到localStorage
+                const userInfo = {
+                    username: username,
+                    isLoggedIn: true,
+                    loginTime: new Date().toISOString()
+                };
+                localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                
+                // 提示登录成功
+                submitBtn.textContent = '登录成功！';
+                
+                // 显示成功消息并跳转到首页
+                alert('登录成功！即将跳转到首页');
+                
+                // 延迟一秒后跳转，让用户看到成功消息
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }, 1500); // 模拟1.5秒的网络延迟
+        }
+    </script>
+</body>
+</html>

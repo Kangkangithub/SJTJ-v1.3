@@ -1,0 +1,258 @@
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #1abc9c;
+    --dark-bg: #0a0e17;
+    --card-bg: #131a27;
+    --text-color: #e0e0e0;
+    --grid-gap: 1.5rem;
+    --nav-active-bg: #1abc9c;
+    --nav-hover-bg: rgba(52, 152, 219, 0.7);
+}
+
+/* 移除在index.css中的导航样式定义，改用common.css中的导航样式 */
+
+/* 首页特定样式 */
+main {
+    margin-top: 2rem;
+}
+
+.intro {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.intro h2 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.intro p {
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--grid-gap);
+    margin-bottom: 2rem;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.card-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.3s;
+    padding: 0.3rem;
+    border-radius: 4px;
+}
+
+.card-action-btn:hover {
+    opacity: 1;
+    background-color: rgba(52, 152, 219, 0.2);
+}
+
+.chart-container {
+    height: 200px;
+    position: relative;
+}
+
+/* 自定义 Chart.js 样式 */
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 150px;
+    margin-top: 1rem;
+}
+
+.bar {
+    width: 30px;
+    background: linear-gradient(to top, var(--secondary-color), var(--accent-color));
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    transition: height 0.5s ease;
+}
+
+.bar:hover {
+    filter: brightness(1.1);
+}
+
+.bar-label {
+    position: absolute;
+    bottom: -25px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.line-chart {
+    height: 150px;
+    margin-top: 1rem;
+    position: relative;
+}
+
+.line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.radar-chart {
+    width: 100%;
+    height: 150px;
+    margin-top: 1rem;
+}
+
+.pie-chart {
+    width: 100%;
+    height: 150px;
+    margin-top: 1rem;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.quick-link-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.quick-link-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.quick-link-card h3 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.quick-link-card p {
+    margin-bottom: 1.5rem;
+    color: #ccc;
+}
+
+.quick-link-card .btn {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.quick-link-card .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-links {
+        grid-template-columns: 1fr;
+    }
+    
+    .intro {
+        padding: 1.5rem;
+    }
+    
+    .intro h2 {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 1rem;
+    }
+    
+    .quick-link-card {
+        padding: 1rem;
+    }
+} 
