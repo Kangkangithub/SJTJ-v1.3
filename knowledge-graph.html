@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>知识图谱 - 兵智视界</title>
+    <title>知识图谱 - 神机图鉴</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/knowledge-graph.css">
+    <link rel="stylesheet" href="styles/management-interface-enhanced.css">
     <!-- 引入D3.js库 -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <!-- 引入Neo4j JavaScript驱动 -->
     <script src="https://unpkg.com/neo4j-driver"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="logo">兵智视界</div>
+            <div class="logo">神机图鉴</div>
             <div class="user-status">
                 <!-- 用户状态将由auth.js动态更新 -->
                 <a href="login.html" class="btn">登录</a>
@@ -64,12 +66,15 @@
                     </select>
                 </div>
             </div>
+
+            
             
             <div class="graph-controls">
                 <button id="zoomInBtn"><i class="fas fa-search-plus"></i> 放大</button>
                 <button id="zoomOutBtn"><i class="fas fa-search-minus"></i> 缩小</button>
                 <button id="resetBtn"><i class="fas fa-redo"></i> 重置</button>
                 <button id="exportBtn"><i class="fas fa-download"></i> 导出</button>
+                <button id="dataManageBtn" class="data-manage-btn"><i class="fas fa-database"></i> 数据管理</button>
             </div>
             
             <div class="knowledge-graph-container">
@@ -102,15 +107,383 @@
                     </div>
                 </div>
             </div>
+
+            <section class="graph-analysis">
+    <h2>知识图谱数据可视化分析</h2>
+    <div class="graph-analysis-panels">
+        <!-- 节点类型分布 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">节点类型分布</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="nodeTypeDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 武器年代分布 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">武器年代分布</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="weaponYearChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 国家武器数量排行 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">国家武器数量排行</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="countryWeaponChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</section>
         </main>
 
+        <!-- 数据管理弹窗 -->
+        <div id="dataManageModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-database"></i> 武器数据管理</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="data-manage-tabs">
+                        <button class="tab-btn active" data-tab="batch-add">批量添加</button>
+                        <button class="tab-btn" data-tab="edit-data">编辑数据</button>
+                        <button class="tab-btn" data-tab="type-manage">类型管理</button>
+                        <button class="tab-btn" data-tab="country-manage">国家管理</button>
+                        <button class="tab-btn" data-tab="manufacturer-manage">制造商管理</button>
+                        <button class="tab-btn" data-tab="import-export">导入导出</button>
+                    </div>
+
+                    <!-- 批量添加标签页 -->
+                    <div id="batch-add" class="tab-content active">
+                        <div class="form-section">
+                            <h3>批量添加武器数据</h3>
+                            <form id="batchAddForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="weaponName">武器名称 *</label>
+                                        <input type="text" id="weaponName" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weaponType">武器类型 *</label>
+                                        <select id="weaponType" name="type" required>
+                                            <option value="">请选择类型</option>
+                                            <option value="步枪">步枪</option>
+                                            <option value="手枪">手枪</option>
+                                            <option value="机枪">机枪</option>
+                                            <option value="狙击枪">狙击枪</option>
+                                            <option value="火箭筒">火箭筒</option>
+                                            <option value="坦克">坦克</option>
+                                            <option value="战斗机">战斗机</option>
+                                            <option value="军舰">军舰</option>
+                                            <option value="导弹">导弹</option>
+                                            <option value="火炮">火炮</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="weaponCountry">制造国家 *</label>
+                                        <select id="weaponCountry" name="country" required>
+                                            <option value="">请选择国家</option>
+                                            <option value="中国">中国</option>
+                                            <option value="美国">美国</option>
+                                            <option value="俄罗斯">俄罗斯</option>
+                                            <option value="德国">德国</option>
+                                            <option value="法国">法国</option>
+                                            <option value="英国">英国</option>
+                                            <option value="以色列">以色列</option>
+                                            <option value="瑞典">瑞典</option>
+                                            <option value="意大利">意大利</option>
+                                            <option value="日本">日本</option>
+                                            <option value="奥地利">奥地利</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weaponYear">服役年份</label>
+                                        <input type="number" id="weaponYear" name="year" min="1800" max="2030">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="weaponManufacturer">武器制造商</label>
+                                        <div class="manufacturer-input-group">
+                                            <select id="weaponManufacturer" name="manufacturer">
+                                                <option value="">请选择制造商</option>
+                                                <option value="custom">+ 添加新制造商</option>
+                                            </select>
+                                            <input type="text" id="customManufacturer" name="customManufacturer" 
+                                                   placeholder="输入新制造商名称" style="display: none;">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" id="manufacturerDetailsGroup" style="display: none;">
+                                        <label for="manufacturerCountry">制造商所属国家</label>
+                                        <select id="manufacturerCountry" name="manufacturerCountry">
+                                            <option value="">请选择国家</option>
+                                            <option value="中国">中国</option>
+                                            <option value="美国">美国</option>
+                                            <option value="俄罗斯">俄罗斯</option>
+                                            <option value="德国">德国</option>
+                                            <option value="法国">法国</option>
+                                            <option value="英国">英国</option>
+                                            <option value="以色列">以色列</option>
+                                            <option value="瑞典">瑞典</option>
+                                            <option value="意大利">意大利</option>
+                                            <option value="日本">日本</option>
+                                            <option value="奥地利">奥地利</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row" id="manufacturerFoundedGroup" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="manufacturerFounded">制造商成立年份</label>
+                                        <input type="number" id="manufacturerFounded" name="manufacturerFounded" min="1800" max="2030">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="manufacturerDescription">制造商描述</label>
+                                        <textarea id="manufacturerDescription" name="manufacturerDescription" rows="2" 
+                                                  placeholder="请输入制造商的简要描述..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="weaponDescription">武器描述</label>
+                                    <textarea id="weaponDescription" name="description" rows="3" placeholder="请输入武器的详细描述..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>技术规格</label>
+                                    <div class="specs-container">
+                                        <div class="spec-row">
+                                            <input type="text" placeholder="规格名称" class="spec-key">
+                                            <input type="text" placeholder="规格值" class="spec-value">
+                                            <button type="button" class="remove-spec-btn"><i class="fas fa-minus"></i></button>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="addSpecBtn" class="add-spec-btn"><i class="fas fa-plus"></i> 添加规格</button>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> 添加武器</button>
+                                    <button type="button" id="clearFormBtn" class="btn-secondary">清空表单</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 编辑数据标签页 -->
+                    <div id="edit-data" class="tab-content">
+                        <div class="form-section">
+                            <h3>编辑现有武器数据</h3>
+                            <div class="search-edit-section">
+                                <div class="search-row">
+                                    <input type="text" id="editSearchInput" placeholder="搜索武器名称...">
+                                    <button id="editSearchBtn" class="btn-primary">搜索</button>
+                                </div>
+                            </div>
+                            <div id="weaponEditList" class="weapon-edit-list">
+                                <p class="no-data">请搜索武器以开始编辑</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 类型管理标签页 -->
+                    <div id="type-manage" class="tab-content">
+                        <div class="form-section">
+                            <h3>武器类型管理</h3>
+                            <div class="manage-header">
+                                <button id="add-weapon-type-btn" class="btn-primary">
+                                    <i class="fas fa-plus"></i> 添加武器类型
+                                </button>
+                            </div>
+                            <div id="weapon-types-list" class="data-list">
+                                <div class="loading">正在加载武器类型数据...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 国家管理标签页 -->
+                    <div id="country-manage" class="tab-content">
+                        <div class="form-section">
+                            <h3>国家管理</h3>
+                            <div class="manage-header">
+                                <button id="add-weapon-country-btn" class="btn-primary">
+                                    <i class="fas fa-plus"></i> 添加国家
+                                </button>
+                            </div>
+                            <div id="weapon-countries-list" class="data-list">
+                                <div class="loading">正在加载国家数据...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 制造商管理标签页 -->
+                    <div id="manufacturer-manage" class="tab-content">
+                        <div class="form-section">
+                            <h3>制造商管理</h3>
+                            <div class="manage-header">
+                                <button id="add-manufacturer-btn" class="btn-primary">
+                                    <i class="fas fa-plus"></i> 添加制造商
+                                </button>
+                            </div>
+                            <div id="manufacturers-list" class="data-list">
+                                <div class="loading">正在加载制造商数据...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 导入导出标签页 -->
+                    <div id="import-export" class="tab-content">
+                        <div class="form-section">
+                            <h3>数据导入导出</h3>
+                            <div class="import-export-section">
+                                <div class="import-section">
+                                    <h4><i class="fas fa-upload"></i> 批量导入</h4>
+                                    <p>支持JSON格式的武器数据文件</p>
+                                    <div class="file-upload-area" id="fileUploadArea">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>点击或拖拽文件到此处</p>
+                                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                                    </div>
+                                    <div class="import-preview" id="importPreview" style="display: none;">
+                                        <h5>导入预览</h5>
+                                        <div id="previewContent"></div>
+                                        <div class="import-actions">
+                                            <button id="confirmImportBtn" class="btn-primary">确认导入</button>
+                                            <button id="cancelImportBtn" class="btn-secondary">取消</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="export-section">
+                                    <h4><i class="fas fa-download"></i> 数据导出</h4>
+                                    <p>导出当前所有武器数据为JSON格式</p>
+                                    <button id="exportDataBtn" class="btn-primary"><i class="fas fa-download"></i> 导出数据</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 武器类型管理模态框 -->
+        <div id="weapon-type-modal" class="modal">
+            <div class="modal-content small-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">添加武器类型</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="weapon-type-form">
+                        <div class="form-group">
+                            <label for="type-name">类型名称 *</label>
+                            <input type="text" id="type-name" name="name" required placeholder="请输入武器类型名称">
+                        </div>
+                        <div class="form-group">
+                            <label for="type-description">类型描述</label>
+                            <textarea id="type-description" name="description" rows="3" placeholder="请输入类型描述（可选）"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-primary save-btn">保存</button>
+                            <button type="button" class="btn-secondary cancel-btn">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 国家管理模态框 -->
+        <div id="weapon-country-modal" class="modal">
+            <div class="modal-content small-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">添加国家</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="weapon-country-form">
+                        <div class="form-group">
+                            <label for="country-name">国家名称 *</label>
+                            <input type="text" id="country-name" name="name" required placeholder="请输入国家名称">
+                        </div>
+                        <div class="form-group">
+                            <label for="country-code">国家代码</label>
+                            <input type="text" id="country-code" name="code" placeholder="请输入国家代码（可选）" maxlength="10">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-primary save-btn">保存</button>
+                            <button type="button" class="btn-secondary cancel-btn">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 制造商管理模态框 -->
+        <div id="manufacturer-modal" class="modal">
+            <div class="modal-content small-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">添加制造商</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="manufacturer-form">
+                        <div class="form-group">
+                            <label for="manufacturer-name">制造商名称 *</label>
+                            <input type="text" id="manufacturer-name" name="name" required placeholder="请输入制造商名称">
+                        </div>
+                        <div class="form-group">
+                            <label for="manufacturer-country">所属国家</label>
+                            <select id="manufacturer-country" name="country">
+                                <option value="">请选择国家</option>
+                                <option value="中国">中国</option>
+                                <option value="美国">美国</option>
+                                <option value="俄罗斯">俄罗斯</option>
+                                <option value="德国">德国</option>
+                                <option value="法国">法国</option>
+                                <option value="英国">英国</option>
+                                <option value="以色列">以色列</option>
+                                <option value="瑞典">瑞典</option>
+                                <option value="意大利">意大利</option>
+                                <option value="日本">日本</option>
+                                <option value="奥地利">奥地利</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="manufacturer-founded">成立年份</label>
+                            <input type="number" id="manufacturer-founded" name="founded" min="1500" max="2030" placeholder="请输入成立年份">
+                        </div>
+                        <div class="form-group">
+                            <label for="manufacturer-description">制造商描述</label>
+                            <textarea id="manufacturer-description" name="description" rows="3" placeholder="请输入制造商描述（可选）"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-primary save-btn">保存</button>
+                            <button type="button" class="btn-secondary cancel-btn">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <footer>
-            <p>&copy; 2025 兵智视界 - 南京理工大学紫金学院</p>
+            <p>&copy; 2025 神机图鉴 - 南京理工大学紫金学院</p>
         </footer>
     </div>
 
     <script src="scripts/auth.js"></script>
     <script src="scripts/common.js"></script>
+    <script src="scripts/weapon-data-batch-add.js"></script>
     <script src="scripts/knowledge-graph.js"></script>
+    <script src="scripts/manufacturer-management.js"></script>
+    <script src="scripts/weapon-type-management.js"></script>
+    <script src="scripts/weapon-country-management.js"></script>
+    <script src="scripts/weapon-manufacturer-management.js"></script>
+    <script src="scripts/index-charts.js"></script>
+    <script src="scripts/weapon-delete-fix.js"></script>
 </body>
 </html>

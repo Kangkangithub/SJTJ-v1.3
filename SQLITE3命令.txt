@@ -1,0 +1,108 @@
+以下是 SQLite 命令行（sqlite3）中常用的命令大全，分为**系统命令**（以`.`开头）和**SQL 命令**两类：
+
+
+### 一、系统命令（以`.`开头，用于管理数据库）
+1. **打开/创建数据库**
+   ```bash
+   .open 数据库文件名  # 打开指定数据库，若不存在则创建（如：.open test.db）
+   .open :memory:     # 创建内存数据库（数据仅在会话中存在）
+   ```
+
+2. **查看数据库信息**
+   ```bash
+   .databases      # 显示当前打开的数据库及路径
+   .tables         # 列出当前数据库中所有表
+   .tables 通配符  # 按条件筛选表（如：.tables user*）
+   .schema         # 显示所有表的创建语句
+   .schema 表名    # 显示指定表的创建语句（如：.schema users）
+   ```
+
+3. **导入/导出数据**
+   ```bash
+   .import 文件名 表名  # 从文件导入数据到表（需提前创建表结构）
+   .output 文件名      # 将后续命令的输出保存到文件（如：.output data.txt）
+   .output stdout      # 恢复输出到控制台
+   .dump               # 导出数据库所有内容为SQL语句（可用于备份）
+   .dump 表名          # 导出指定表的SQL语句
+   ```
+
+4. **格式化输出**
+   ```bash
+   .mode 模式       # 设置输出格式（常见模式：csv、column、line、list、tabs）
+   .header on/off   # 显示/隐藏列名（如：.header on 开启列名显示）
+   .width 列宽列表  # 自定义列宽（如：.width 10 20 为前两列设置宽度，auto为自动设置列宽）
+   ```
+
+5. **其他常用命令**
+   ```bash
+   .help            # 显示所有系统命令的帮助信息
+   .quit 或 .exit   # 退出sqlite3命令行
+   .show            # 显示当前的环境设置（如模式、编码等）
+   .timer on/off    # 开启/关闭命令执行时间统计
+   ```
+
+
+### 二、SQL 命令（操作数据库内容，需以`;`结尾）
+1. **创建表**
+   ```sql
+   CREATE TABLE 表名 (
+     列名1 数据类型 [约束],
+     列名2 数据类型 [约束],
+     ...
+   );
+   -- 示例：创建用户表
+   CREATE TABLE users (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     name TEXT NOT NULL,
+     age INTEGER CHECK(age > 0)
+   );
+   ```
+
+2. **插入数据**
+   ```sql
+   INSERT INTO 表名 (列1, 列2, ...) VALUES (值1, 值2, ...);
+   -- 示例
+   INSERT INTO users (name, age) VALUES ('Alice', 25);
+   ```
+
+3. **查询数据**
+   ```sql
+   SELECT 列1, 列2 FROM 表名 [WHERE 条件] [ORDER BY 列名] [LIMIT 数量];
+   -- 示例：查询年龄大于18的用户，按年龄排序
+   SELECT name, age FROM users WHERE age > 18 ORDER BY age DESC LIMIT 10;
+   ```
+
+4. **更新数据**
+   ```sql
+   UPDATE 表名 SET 列1=值1, 列2=值2 WHERE 条件;
+   -- 示例：将Alice的年龄改为26
+   UPDATE users SET age=26 WHERE name='Alice';
+   ```
+
+5. **删除数据**
+   ```sql
+   DELETE FROM 表名 WHERE 条件;
+   -- 示例：删除年龄小于18的用户
+   DELETE FROM users WHERE age < 18;
+   ```
+
+6. **删除表**
+   ```sql
+   DROP TABLE 表名;  -- 永久删除表及所有数据
+   ```
+
+7. **其他常用SQL命令**
+   ```sql
+   ALTER TABLE 表名 ADD COLUMN 列名 数据类型;  -- 新增列
+   CREATE INDEX 索引名 ON 表名(列名);          -- 创建索引（加速查询）
+   PRAGMA table_info(表名);                    -- 查看表的列信息（类似.describe）
+   ```
+
+
+### 三、使用技巧
+- 系统命令可缩写（如 `.open` 可简写为 `.op`，`.tables` 可简写为 `.ta`）
+- SQL 命令支持多行输入，以 `;` 结束时执行
+- 按 **↑↓** 键可查看历史命令
+- 若忘记加分号，输入 `;` 并回车即可执行上一条未完成的SQL命令
+
+通过 `.help` 命令可以随时查看所有命令的详细说明。

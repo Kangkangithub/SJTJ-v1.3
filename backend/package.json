@@ -1,0 +1,42 @@
+{
+  "name": "military-knowledge-backend",
+  "version": "1.0.0",
+  "description": "兵智世界后端系统 - 军事知识图谱与武器识别系统",
+  "main": "src/app-simple.js",
+  "scripts": {
+    "start": "node src/app-simple.js",
+    "dev": "nodemon src/app-simple.js",
+    "test": "jest",
+    "init-db": "node scripts/init-database-simple.js"
+  },
+  "keywords": [
+    "military",
+    "knowledge-graph",
+    "weapon-recognition",
+    "sqlite"
+  ],
+  "author": "兵智世界开发团队",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^12.2.0",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "sqlite3": "^5.1.6",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  }
+}

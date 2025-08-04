@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户注册 - 兵智视界</title>
+    <title>用户注册 - 神机图鉴</title>
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/auth.css">
 </head>
 <body>
     <div class="container">
         <header class="auth-header">
-            <div class="logo">兵智视界</div>
+            <div class="logo">神机图鉴</div>
         </header>
         <div class="content">
             <div class="auth-card">
@@ -41,20 +41,85 @@
         </div>
     </div>
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const API_BASE = 'http://localhost:3001/api';
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
+            // 验证密码一致性
             if (password !== confirmPassword) {
                 alert('两次输入的密码不一致！');
                 return;
             }
-            
-            // 这里可以添加注册逻辑，例如发送到服务器
-            alert('注册成功！');
+
+            // 验证密码长度
+            if (password.length < 6) {
+                alert('密码至少需要6个字符！');
+                return;
+            }
+
+            // 验证用户名格式
+            if (!/^[a-zA-Z0-9]{3,30}$/.test(username)) {
+                alert('用户名只能包含字母和数字，长度为3-30个字符！');
+                return;
+            }
+
+            try {
+                // 显示加载状态
+                const submitBtn = document.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = '注册中...';
+                submitBtn.disabled = true;
+
+                // 发送注册请求
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: password,
+                        name: username
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    console.log('注册成功，用户数据:', data.data);
+                    
+                    // 注册成功，保存用户信息和令牌
+                    localStorage.setItem('authToken', data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify({
+                        ...data.data.user,
+                        isLoggedIn: true
+                    }));
+
+                    alert('注册成功！即将跳转到个人中心...');
+                    
+                    // 跳转到个人中心
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 1500);
+                } else {
+                    alert('注册失败：' + data.message);
+                }
+            } catch (error) {
+                console.error('注册请求失败:', error);
+                alert('注册失败，请检查网络连接或稍后重试');
+            } finally {
+                // 恢复按钮状态
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         });
     </script>
 </body>

@@ -1,0 +1,206 @@
+{
+    "nodes": [
+        
+        { "id": "1", "labels": ["Weapon"], "properties": { "name": "AK-47", "description": "卡拉什尼科夫自动步枪", "year": "1947" } },
+        { "id": "2", "labels": ["Weapon"], "properties": { "name": "M16", "description": "美国制式自动步枪", "year": "1964" } },
+        { "id": "3", "labels": ["Weapon"], "properties": { "name": "T-72", "description": "苏联主战坦克", "year": "1971" } },
+        { "id": "4", "labels": ["Manufacturer"], "properties": { "name": "卡拉什尼科夫公司", "country": "俄罗斯", "founded": "1948" } },
+        { "id": "5", "labels": ["Manufacturer"], "properties": { "name": "柯尔特公司", "country": "美国", "founded": "1855" } },
+        { "id": "6", "labels": ["Country"], "properties": { "name": "俄罗斯", "region": "欧亚大陆" } },
+        { "id": "7", "labels": ["Country"], "properties": { "name": "美国", "region": "北美洲" } },
+        { "id": "8", "labels": ["Type"], "properties": { "name": "自动步枪" } },
+        { "id": "9", "labels": ["Type"], "properties": { "name": "坦克" } },
+        
+        
+        { "id": "10", "labels": ["Weapon"], "properties": { "name": "F-22猛禽", "description": "美国第五代隐形战斗机", "year": "2005" } },
+        { "id": "11", "labels": ["Weapon"], "properties": { "name": "Su-57", "description": "俄罗斯第五代隐形战斗机", "year": "2020" } },
+        { "id": "12", "labels": ["Weapon"], "properties": { "name": "J-20", "description": "中国第五代隐形战斗机", "year": "2017" } },
+        { "id": "13", "labels": ["Weapon"], "properties": { "name": "东风-17", "description": "中国高超音速导弹", "year": "2019" } },
+        { "id": "14", "labels": ["Weapon"], "properties": { "name": "阿瓦塔", "description": "以色列先进坦克", "year": "2020" } },
+        { "id": "15", "labels": ["Weapon"], "properties": { "name": "毒刺导弹", "description": "美国便携式防空导弹", "year": "1981" } },
+        { "id": "16", "labels": ["Weapon"], "properties": { "name": "海尔法", "description": "以色列反坦克导弹", "year": "1997" } },
+        { "id": "17", "labels": ["Weapon"], "properties": { "name": "阿帕奇", "description": "美国攻击直升机", "year": "1986" } },
+        
+        
+        { "id": "18", "labels": ["Manufacturer"], "properties": { "name": "洛克希德·马丁", "country": "美国", "founded": "1995" } },
+        { "id": "19", "labels": ["Manufacturer"], "properties": { "name": "苏霍伊设计局", "country": "俄罗斯", "founded": "1939" } },
+        { "id": "20", "labels": ["Manufacturer"], "properties": { "name": "成都飞机工业集团", "country": "中国", "founded": "1958" } },
+        { "id": "21", "labels": ["Manufacturer"], "properties": { "name": "中国航天科工集团", "country": "中国", "founded": "1956" } },
+        { "id": "22", "labels": ["Manufacturer"], "properties": { "name": "以色列军事工业", "country": "以色列", "founded": "1933" } },
+        { "id": "23", "labels": ["Manufacturer"], "properties": { "name": "波音公司", "country": "美国", "founded": "1916" } },
+        { "id": "18", "labels": ["Manufacturer"], "properties": { "name": "洛克希德·马丁", "country": "美国", "founded": "1995" } },
+        { "id": "19", "labels": ["Manufacturer"], "properties": { "name": "苏霍伊设计局", "country": "俄罗斯", "founded": "1939" } },
+        { "id": "20", "labels": ["Manufacturer"], "properties": { "name": "成都飞机工业集团", "country": "中国", "founded": "1958" } },
+        { "id": "21", "labels": ["Manufacturer"], "properties": { "name": "中国航天科工集团", "country": "中国", "founded": "1956" } },
+        { "id": "22", "labels": ["Manufacturer"], "properties": { "name": "以色列军事工业", "country": "以色列", "founded": "1933" } },
+        { "id": "23", "labels": ["Manufacturer"], "properties": { "name": "波音公司", "country": "美国", "founded": "1916" } },
+        { "id": "18", "labels": ["Manufacturer"], "properties": { "name": "洛克希德·马丁", "country": "美国", "founded": "1995" } },
+        { "id": "19", "labels": ["Manufacturer"], "properties": { "name": "苏霍伊设计局", "country": "俄罗斯", "founded": "1939" } },
+        { "id": "20", "labels": ["Manufacturer"], "properties": { "name": "成都飞机工业集团", "country": "中国", "founded": "1958" } },
+        { "id": "21", "labels": ["Manufacturer"], "properties": { "name": "中国航天科工集团", "country": "中国", "founded": "1956" } },
+        { "id": "22", "labels": ["Manufacturer"], "properties": { "name": "以色列军事工业", "country": "以色列", "founded": "1933" } },
+        { "id": "23", "labels": ["Manufacturer"], "properties": { "name": "波音公司", "country": "美国", "founded": "1916" } },
+        { "id": "18", "labels": ["Manufacturer"], "properties": { "name": "洛克希德·马丁", "country": "美国", "founded": "1995" } },
+        { "id": "19", "labels": ["Manufacturer"], "properties": { "name": "苏霍伊设计局", "country": "俄罗斯", "founded": "1939" } },
+        { "id": "20", "labels": ["Manufacturer"], "properties": { "name": "成都飞机工业集团", "country": "中国", "founded": "1958" } },
+        { "id": "21", "labels": ["Manufacturer"], "properties": { "name": "中国航天科工集团", "country": "中国", "founded": "1956" } },
+        { "id": "22", "labels": ["Manufacturer"], "properties": { "name": "以色列军事工业", "country": "以色列", "founded": "1933" } },
+        { "id": "23", "labels": ["Manufacturer"], "properties": { "name": "波音公司", "country": "美国", "founded": "1916" } },
+        
+        
+        { "id": "24", "labels": ["Country"], "properties": { "name": "中国", "region": "亚洲" } },
+        { "id": "25", "labels": ["Country"], "properties": { "name": "以色列", "region": "中东" } },
+        
+        
+        { "id": "26", "labels": ["Type"], "properties": { "name": "战斗机" } },
+        { "id": "27", "labels": ["Type"], "properties": { "name": "导弹" } },
+        { "id": "28", "labels": ["Type"], "properties": { "name": "直升机" } },
+        
+        
+        { "id": "29", "labels": ["Weapon"], "properties": { "name": "伯克级驱逐舰", "description": "美国海军导弹驱逐舰", "year": "1991" } },
+        { "id": "30", "labels": ["Weapon"], "properties": { "name": "提康德罗加级巡洋舰", "description": "美国导弹巡洋舰", "year": "1983" } },
+        { "id": "31", "labels": ["Weapon"], "properties": { "name": "055型驱逐舰", "description": "中国大型驱逐舰", "year": "2017" } },
+        { "id": "32", "labels": ["Weapon"], "properties": { "name": "S-400防空系统", "description": "俄罗斯远程防空导弹系统", "year": "2007" } },
+        { "id": "33", "labels": ["Weapon"], "properties": { "name": "爱国者PAC-3", "description": "美国中高空防空导弹系统", "year": "1995" } },
+        { "id": "34", "labels": ["Weapon"], "properties": { "name": "HQ-9", "description": "中国远程防空导弹系统", "year": "2001" } },
+        { "id": "35", "labels": ["Weapon"], "properties": { "name": "B-2幽灵", "description": "美国隐形战略轰炸机", "year": "1989" } },
+        { "id": "36", "labels": ["Weapon"], "properties": { "name": "Tu-160", "description": "俄罗斯超音速战略轰炸机", "year": "1987" } },
+        { "id": "37", "labels": ["Weapon"], "properties": { "name": "H-6K", "description": "中国轰炸机", "year": "2009" } },
+        { "id": "38", "labels": ["Weapon"], "properties": { "name": "F-35闪电II", "description": "美国联合攻击战斗机", "year": "2015" } },
+        { "id": "39", "labels": ["Weapon"], "properties": { "name": "欧洲台风", "description": "欧洲多用途战斗机", "year": "2003" } },
+        { "id": "40", "labels": ["Weapon"], "properties": { "name": "阵风", "description": "法国多用途战斗机", "year": "2001" } },
+        
+        
+        { "id": "41", "labels": ["Manufacturer"], "properties": { "name": "诺斯罗普·格鲁曼", "country": "美国", "founded": "1994" } },
+        { "id": "42", "labels": ["Manufacturer"], "properties": { "name": "图波列夫设计局", "country": "俄罗斯", "founded": "1922" } },
+        { "id": "43", "labels": ["Manufacturer"], "properties": { "name": "西安飞机工业集团", "country": "中国", "founded": "1958" } },
+        { "id": "44", "labels": ["Manufacturer"], "properties": { "name": "空中客车防务与航天", "country": "欧洲", "founded": "2014" } },
+        { "id": "45", "labels": ["Manufacturer"], "properties": { "name": "达索航空", "country": "法国", "founded": "1929" } },
+        { "id": "46", "labels": ["Manufacturer"], "properties": { "name": "江南造船厂", "country": "中国", "founded": "1865" } },
+        { "id": "47", "labels": ["Manufacturer"], "properties": { "name": "通用动力", "country": "美国", "founded": "1952" } },
+        { "id": "48", "labels": ["Manufacturer"], "properties": { "name": "阿尔马兹-安泰", "country": "俄罗斯", "founded": "2002" } },
+        { "id": "49", "labels": ["Manufacturer"], "properties": { "name": "雷神公司", "country": "美国", "founded": "1922" } },
+        
+        
+        { "id": "50", "labels": ["Country"], "properties": { "name": "法国", "region": "欧洲" } },
+        { "id": "51", "labels": ["Country"], "properties": { "name": "德国", "region": "欧洲" } },
+        { "id": "52", "labels": ["Country"], "properties": { "name": "英国", "region": "欧洲" } },
+        { "id": "53", "labels": ["Country"], "properties": { "name": "意大利", "region": "欧洲" } },
+        { "id": "54", "labels": ["Country"], "properties": { "name": "西班牙", "region": "欧洲" } },
+        
+        
+        { "id": "55", "labels": ["Type"], "properties": { "name": "战列舰" } },
+        { "id": "56", "labels": ["Type"], "properties": { "name": "驱逐舰" } },
+        { "id": "57", "labels": ["Type"], "properties": { "name": "巡洋舰" } },
+        { "id": "58", "labels": ["Type"], "properties": { "name": "防空系统" } },
+        { "id": "59", "labels": ["Type"], "properties": { "name": "轰炸机" } }
+    ],
+    "links": [
+        
+        { "source": "1", "target": "4", "type": "制造" },
+        { "source": "2", "target": "5", "type": "制造" },
+        { "source": "1", "target": "6", "type": "使用" },
+        { "source": "2", "target": "7", "type": "使用" },
+        { "source": "3", "target": "6", "type": "使用" },
+        { "source": "1", "target": "8", "type": "类型" },
+        { "source": "2", "target": "8", "type": "类型" },
+        { "source": "3", "target": "9", "type": "类型" },
+        
+       
+        { "source": "10", "target": "18", "type": "制造" },
+        { "source": "11", "target": "19", "type": "制造" },
+        { "source": "12", "target": "20", "type": "制造" },
+        { "source": "13", "target": "21", "type": "制造" },
+        { "source": "14", "target": "22", "type": "制造" },
+        { "source": "15", "target": "18", "type": "制造" },
+        { "source": "16", "target": "22", "type": "制造" },
+        { "source": "17", "target": "23", "type": "制造" },
+        
+      
+        { "source": "10", "target": "7", "type": "使用" },
+        { "source": "11", "target": "6", "type": "使用" },
+        { "source": "12", "target": "24", "type": "使用" },
+        { "source": "13", "target": "24", "type": "使用" },
+        { "source": "14", "target": "25", "type": "使用" },
+        { "source": "15", "target": "7", "type": "使用" },
+        { "source": "16", "target": "25", "type": "使用" },
+        { "source": "17", "target": "7", "type": "使用" },
+        
+       
+        { "source": "10", "target": "26", "type": "类型" },
+        { "source": "11", "target": "26", "type": "类型" },
+        { "source": "12", "target": "26", "type": "类型" },
+        { "source": "13", "target": "27", "type": "类型" },
+        { "source": "14", "target": "9", "type": "类型" },
+        { "source": "15", "target": "27", "type": "类型" },
+        { "source": "16", "target": "27", "type": "类型" },
+        { "source": "17", "target": "28", "type": "类型" },
+        
+        
+        { "source": "18", "target": "7", "type": "属于" },
+        { "source": "19", "target": "6", "type": "属于" },
+        { "source": "20", "target": "24", "type": "属于" },
+        { "source": "21", "target": "24", "type": "属于" },
+        { "source": "22", "target": "25", "type": "属于" },
+        { "source": "23", "target": "7", "type": "属于" },
+        
+       
+        { "source": "29", "target": "47", "type": "制造" },
+        { "source": "30", "target": "18", "type": "制造" },
+        { "source": "31", "target": "46", "type": "制造" },
+        { "source": "32", "target": "48", "type": "制造" },
+        { "source": "33", "target": "49", "type": "制造" },
+        { "source": "34", "target": "21", "type": "制造" },
+        { "source": "35", "target": "41", "type": "制造" },
+        { "source": "36", "target": "42", "type": "制造" },
+        { "source": "37", "target": "43", "type": "制造" },
+        { "source": "38", "target": "18", "type": "制造" },
+        { "source": "39", "target": "44", "type": "制造" },
+        { "source": "40", "target": "45", "type": "制造" },
+        
+        
+        { "source": "29", "target": "7", "type": "使用" },
+        { "source": "30", "target": "7", "type": "使用" },
+        { "source": "31", "target": "24", "type": "使用" },
+        { "source": "32", "target": "6", "type": "使用" },
+        { "source": "33", "target": "7", "type": "使用" },
+        { "source": "34", "target": "24", "type": "使用" },
+        { "source": "35", "target": "7", "type": "使用" },
+        { "source": "36", "target": "6", "type": "使用" },
+        { "source": "37", "target": "24", "type": "使用" },
+        { "source": "38", "target": "7", "type": "使用" },
+        { "source": "39", "target": "51", "type": "使用" },
+        { "source": "39", "target": "52", "type": "使用" },
+        { "source": "39", "target": "53", "type": "使用" },
+        { "source": "39", "target": "54", "type": "使用" },
+        { "source": "40", "target": "50", "type": "使用" },
+        
+       
+        { "source": "29", "target": "56", "type": "类型" },
+        { "source": "30", "target": "57", "type": "类型" },
+        { "source": "31", "target": "56", "type": "类型" },
+        { "source": "32", "target": "58", "type": "类型" },
+        { "source": "33", "target": "58", "type": "类型" },
+        { "source": "34", "target": "58", "type": "类型" },
+        { "source": "35", "target": "59", "type": "类型" },
+        { "source": "36", "target": "59", "type": "类型" },
+        { "source": "37", "target": "59", "type": "类型" },
+        { "source": "38", "target": "26", "type": "类型" },
+        { "source": "39", "target": "26", "type": "类型" },
+        { "source": "40", "target": "26", "type": "类型" },
+        
+        
+        { "source": "41", "target": "7", "type": "属于" },
+        { "source": "42", "target": "6", "type": "属于" },
+        { "source": "43", "target": "24", "type": "属于" },
+        { "source": "44", "target": "51", "type": "属于" },
+        { "source": "44", "target": "52", "type": "属于" },
+        { "source": "44", "target": "53", "type": "属于" },
+        { "source": "44", "target": "54", "type": "属于" },
+        { "source": "45", "target": "50", "type": "属于" },
+        { "source": "46", "target": "24", "type": "属于" },
+        { "source": "47", "target": "7", "type": "属于" },
+        { "source": "48", "target": "6", "type": "属于" },
+        { "source": "49", "target": "7", "type": "属于" }
+    ]
+}

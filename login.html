@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户登录 - 兵智视界</title>
+    <title>用户登录 - 神机图鉴</title>
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/auth.css">
 </head>
 <body>
     <div class="container">
         <header class="auth-header">
-            <div class="logo">兵智视界</div>
+            <div class="logo">神机图鉴</div>
         </header>
         <div class="content">
             <div class="auth-card">
@@ -38,51 +38,82 @@
         </div>
     </div>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const API_BASE = 'http://localhost:3001/api';
+
+        // 页面加载时检查是否已经登录
+        document.addEventListener('DOMContentLoaded', function() {
+            const authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                // 如果已经登录，直接跳转到个人中心
+                window.location.href = 'profile.html';
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
-            // 这里可以添加登录逻辑，例如发送到服务器
-            // 模拟登录验证成功
-            if (username && password) {
-                // 实际应用中，这里应该是发送请求到服务器验证用户名和密码
-                simulateLogin(username, password);
-            } else {
+            if (!username || !password) {
                 alert('请输入用户名和密码');
+                return;
+            }
+
+            try {
+                // 显示登录中状态
+                const submitBtn = document.querySelector('.auth-btn');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = '登录中...';
+
+                // 发送登录请求
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 登录成功，保存用户信息和令牌
+                    localStorage.setItem('authToken', data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify({
+                        ...data.data.user,
+                        isLoggedIn: true,
+                        loginTime: new Date().toISOString()
+                    }));
+
+                    // 提示登录成功
+                    submitBtn.textContent = '登录成功！';
+                    alert('登录成功！即将跳转到个人中心');
+                    
+                    // 跳转到个人中心
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 1000);
+                } else {
+                    alert('登录失败：' + data.message);
+                    // 恢复按钮状态
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('登录请求失败:', error);
+                alert('登录失败，请检查网络连接或稍后重试');
+                
+                // 恢复按钮状态
+                const submitBtn = document.querySelector('.auth-btn');
+                submitBtn.textContent = '登录';
+                submitBtn.disabled = false;
             }
         });
-        
-        // 模拟登录过程
-        function simulateLogin(username, password) {
-            // 显示登录中状态
-            const submitBtn = document.querySelector('.auth-btn');
-            const originalText = submitBtn.textContent;
-            submitBtn.disabled = true;
-            submitBtn.textContent = '登录中...';
-            
-            // 模拟网络请求延迟
-            setTimeout(() => {
-                // 登录成功，保存用户信息到localStorage
-                const userInfo = {
-                    username: username,
-                    isLoggedIn: true,
-                    loginTime: new Date().toISOString()
-                };
-                localStorage.setItem('userInfo', JSON.stringify(userInfo));
-                
-                // 提示登录成功
-                submitBtn.textContent = '登录成功！';
-                
-                // 显示成功消息并跳转到首页
-                alert('登录成功！即将跳转到首页');
-                
-                // 延迟一秒后跳转，让用户看到成功消息
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            }, 1500); // 模拟1.5秒的网络延迟
-        }
     </script>
 </body>
 </html>

@@ -1,5 +1,12 @@
 // 首页图表脚本
 document.addEventListener('DOMContentLoaded', function() {
+    // 检查是否在正确的页面上（避免在其他页面执行）
+    const weaponCountElement = document.getElementById('weaponCountChart');
+    if (!weaponCountElement) {
+        console.log('index-charts.js: 不在首页，跳过图表初始化');
+        return; // 如果不是首页，直接返回
+    }
+    
     // 设置Chart.js全局默认值
     Chart.defaults.color = '#e0e0e0';
     Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
@@ -42,11 +49,11 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // 1. 武器装备数量统计柱状图
-    const weaponCountCtx = document.getElementById('weaponCountChart').getContext('2d');
+    const weaponCountCtx = weaponCountElement.getContext('2d');
     const weaponCountChart = new Chart(weaponCountCtx, {
         type: 'bar',
         data: {
-            labels: ['无人机', '战斗机', '坦克', '导弹', '舰艇'],
+            labels: ['防空系统', '战斗机', '坦克', '导弹', '舰艇'],
             datasets: [{
                 label: '数量',
                 data: [68, 79, 58, 47, 39],
@@ -83,14 +90,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 2. 问答系统使用趋势折线图
+    // 2. 武器装备使用趋势折线图
     const qaUsageCtx = document.getElementById('qaUsageChart').getContext('2d');
     const qaUsageChart = new Chart(qaUsageCtx, {
         type: 'line',
         data: {
             labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
             datasets: [{
-                label: '问答次数',
+                label: '使用次数',
                 data: [450, 590, 680, 780, 890, 980, 1080],
                 borderColor: themeColors.blue,
                 backgroundColor: 'rgba(52, 152, 219, 0.1)',
@@ -126,9 +133,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const recommendationMetricsChart = new Chart(recommendationMetricsCtx, {
         type: 'radar',
         data: {
-            labels: ['准确性', '用户满意度', '相关性', '多样性', '时效性'],
+            labels: ['准确性', '可靠性', '防护力', '火力', '机动性'],
             datasets: [{
-                label: '性能指标',
+                label: '武器性能',
                 data: [85, 78, 90, 70, 85],
                 backgroundColor: 'rgba(52, 152, 219, 0.2)',
                 borderColor: themeColors.blue,
@@ -175,14 +182,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 4. 测验通过率分布饼图
+    // 4. 武器国别分布饼图
     const testPassRateCtx = document.getElementById('testPassRateChart').getContext('2d');
     const testPassRateChart = new Chart(testPassRateCtx, {
         type: 'pie',
         data: {
-            labels: ['优秀', '良好', '及格', '不及格'],
+            labels: ['美国', '中国', '俄罗斯', '法国'],
             datasets: [{
-                label: '学生占比',
+                label: '武器分布',
                 data: [38, 32, 18, 12],
                 backgroundColor: [
                     themeColors.blue,

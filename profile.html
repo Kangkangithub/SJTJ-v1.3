@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人中心 - 兵智视界</title>
+    <title>个人中心 - 神机图鉴</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/profile.css">
@@ -11,7 +11,7 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">兵智视界</div>
+            <div class="logo">神机图鉴</div>
             <div class="user-status">
                 <!-- 用户状态将由auth.js动态更新 -->
                 <a href="login.html" class="btn">登录</a>
@@ -60,65 +60,189 @@
             </div>
         </div>
     </div>
-    <script src="scripts/auth.js"></script>
     <script>
-        // 检查用户是否已登录
-        document.addEventListener('DOMContentLoaded', function() {
-            // 从localStorage获取用户信息
-            const userInfoStr = localStorage.getItem('userInfo');
+        const API_BASE = 'http://localhost:3001/api';
+
+        // 检查用户是否已登录并加载用户信息
+        document.addEventListener('DOMContentLoaded', async function() {
+            const authToken = localStorage.getItem('authToken');
             
-            if (!userInfoStr) {
-                // 如果用户未登录，重定向到登录页面
+            if (!authToken) {
                 alert('请先登录');
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             try {
-                // 解析用户信息
-                const userInfo = JSON.parse(userInfoStr);
+                console.log('正在获取用户信息...');
                 
-                // 检查是否登录
-                if (!userInfo || !userInfo.isLoggedIn) {
-                    alert('请先登录');
-                    window.location.href = 'login.html';
-                    return;
+                // 从后端获取用户信息
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                console.log('API响应状态:', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('获取到的用户数据:', data);
+                    
+                    if (data.success && data.data) {
+                        const user = data.data;
+                        
+                        // 显示用户信息
+                        document.getElementById('profileName').textContent = user.name || user.username;
+                        document.getElementById('username').value = user.username || '';
+                        document.getElementById('email').value = user.email || '';
+                        document.getElementById('phone').value = user.phone || '';
+                        document.getElementById('bio').value = user.bio || '';
+                        
+                        // 更新localStorage中的用户信息
+                        localStorage.setItem('userInfo', JSON.stringify({
+                            ...user,
+                            isLoggedIn: true
+                        }));
+                        
+                        console.log('用户信息加载成功');
+                    } else {
+                        throw new Error('用户数据格式错误');
+                    }
+                } else if (response.status === 401 || response.status === 403) {
+                    // 令牌无效，清除本地存储并重定向到登录页面
+                    console.log('令牌无效，清除本地存储');
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    alert('登录已过期，请重新登录');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1000);
+                } else {
+                    // 其他HTTP错误
+                    const errorData = await response.text();
+                    console.error('API错误响应:', errorData);
+                    throw new Error(`服务器错误: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('获取用户信息时出错:', error);
+                
+                // 检查是否是网络连接问题
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    alert('无法连接到服务器，请检查网络连接或确认后端服务是否正在运行');
+                } else {
+                    alert('获取用户信息失败：' + error.message);
                 }
                 
-                // 显示用户信息
-                document.getElementById('profileName').textContent = userInfo.username;
-                document.getElementById('username').value = userInfo.username;
-            } catch (error) {
-                console.error('解析用户信息时出错:', error);
-                alert('获取用户信息失败，请重新登录');
-                window.location.href = 'login.html';
+                // 清除可能损坏的令牌
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                
+                // 延迟跳转，避免无限循环
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
             }
         });
 
-        document.getElementById('profileForm').addEventListener('submit', function(e) {
+        // 处理表单提交
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                alert('请先登录');
+                window.location.href = 'login.html';
+                return;
+            }
+
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const phone = document.getElementById('phone').value;
             const bio = document.getElementById('bio').value;
-            
-            // 更新localStorage中的用户名
+
             try {
-                const userInfoStr = localStorage.getItem('userInfo');
-                if (userInfoStr) {
-                    const userInfo = JSON.parse(userInfoStr);
-                    userInfo.username = username;
-                    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                // 显示加载状态
+                const submitBtn = document.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = '保存中...';
+                submitBtn.disabled = true;
+
+                // 发送更新请求
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        name: username,
+                        phone: phone,
+                        bio: bio
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('更新响应数据:', data);
+
+                    if (data.success) {
+                        alert('个人资料保存成功！');
+                        
+                        // 更新页面显示
+                        document.getElementById('profileName').textContent = username;
+                        
+                        // 更新localStorage中的用户信息
+                        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                        userInfo.name = username;
+                        userInfo.phone = phone;
+                        userInfo.bio = bio;
+                        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                    } else {
+                        alert('保存失败：' + (data.message || '未知错误'));
+                    }
+                } else if (response.status === 401 || response.status === 403) {
+                    // 令牌无效
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    alert('登录已过期，请重新登录');
+                    window.location.href = 'login.html';
+                } else {
+                    // 其他HTTP错误
+                    const errorData = await response.json().catch(() => ({}));
+                    alert('保存失败：' + (errorData.message || `服务器错误 ${response.status}`));
                 }
             } catch (error) {
-                console.error('更新用户信息时出错:', error);
+                console.error('保存个人资料时出错:', error);
+                alert('保存失败，请检查网络连接或稍后重试');
+            } finally {
+                // 恢复按钮状态
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
-            
-            // 这里可以添加保存个人资料的逻辑，例如发送到服务器
-            alert('个人资料已保存！');
-            
-            // 更新页面显示
-            document.getElementById('profileName').textContent = username;
+        });
+
+        // 添加退出登录功能
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                alert('已退出登录');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // 在页面加载完成后添加退出登录按钮
+        document.addEventListener('DOMContentLoaded', function() {
+            // 在用户状态区域添加退出登录按钮
+            const userStatus = document.querySelector('.user-status');
+            if (userStatus) {
+                userStatus.innerHTML = `
+                    <span>欢迎回来！</span>
+                    <button onclick="logout()" class="btn" style="margin-left: 10px;">退出登录</button>
+                `;
+            }
         });
     </script>
 </body>

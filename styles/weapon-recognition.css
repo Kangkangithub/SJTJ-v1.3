@@ -1,4 +1,4 @@
-/* 武器识别页面样式 */
+/* 武器识别页面样式（包含视频识别） */
 .weapon-recognition-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -41,6 +41,7 @@
     transition: all 0.3s;
     padding: 2rem;
     position: relative;
+    overflow: hidden;
 }
 
 .upload-area:hover {
@@ -91,6 +92,16 @@
     border-radius: 8px;
     margin-top: 1rem;
     display: none;
+    object-fit: contain;
+}
+
+#videoPreview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    margin-top: 1rem;
+    display: none;
+    object-fit: contain;
 }
 
 /* 结果显示部分 */
@@ -124,6 +135,7 @@
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     background-color: rgba(13, 17, 23, 0.8);
@@ -131,6 +143,11 @@
     z-index: 10;
     backdrop-filter: blur(3px);
     display: none;
+}
+
+#processingText {
+    margin-top: 1rem;
+    color: var(--text-color);
 }
 
 .spinner {
@@ -252,6 +269,107 @@
     margin-top: 0.5rem;
 }
 
+/* 视频识别结果 */
+.video-results {
+    margin-top: 1.5rem;
+}
+
+.video-results h3 {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.video-result-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.video-result-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: rgba(22, 27, 37, 0.7);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.video-result-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.video-result-thumb {
+    width: 80px;
+    min-width: 80px;
+    height: 60px;
+    background-color: #1e2736;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.video-thumb-placeholder {
+    position: relative;
+    text-align: center;
+}
+
+.video-thumb-placeholder i {
+    font-size: 2rem;
+    color: var(--secondary-color);
+}
+
+.video-thumb-placeholder span {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 3px;
+    padding: 0 4px;
+    font-size: 0.8rem;
+}
+
+.video-result-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.video-weapon-name {
+    font-size: 1.1rem;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.video-confidence {
+    background: var(--accent-color);
+    color: white;
+    padding: 0.1rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+.video-weapon-type {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin: 0.2rem 0;
+}
+
+.video-time {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    font-weight: bold;
+}
+
 .no-result {
     display: flex;
     flex-direction: column;
@@ -301,12 +419,22 @@
     .weapon-recognition-container {
         grid-template-columns: 1fr;
     }
-    
+
     .upload-options {
         flex-direction: column;
     }
-    
+
     .upload-options button {
         width: 100%;
     }
-} 
+
+    .video-result-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .video-result-thumb {
+        width: 100%;
+        height: 80px;
+    }
+}

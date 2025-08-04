@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>武器智能识别 - 兵智视界</title>
+    <title>武器智能识别 - 神机图鉴</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/weapon-recognition.css">
@@ -11,9 +11,8 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">兵智视界</div>
+            <div class="logo">神机图鉴</div>
             <div class="user-status">
-                <!-- 用户状态将由auth.js动态更新 -->
                 <a href="login.html" class="btn">登录</a>
             </div>
         </header>
@@ -33,23 +32,27 @@
         <main>
             <section class="intro">
                 <h2>武器智能识别</h2>
-                <p>基于YOLOv8的武器装备智能识别系统，可识别主流武器装备并提供相关信息。上传图片或使用摄像头进行实时识别。</p>
+                <p>基于YOLOv8的武器装备智能识别系统，可识别主流武器装备并提供相关信息。支持图片、视频上传或使用摄像头进行实时识别。</p>
             </section>
 
             <div class="weapon-recognition-container">
                 <!-- 上传与识别区域 -->
                 <div class="upload-section">
-                    <h2>上传武器图片</h2>
+                    <h2>上传武器媒体文件</h2>
                     <div class="upload-area" id="uploadArea">
                         <i class="fas fa-cloud-upload-alt"></i>
-                        <p>点击或拖放图片到此处</p>
-                        <p>支持JPG、PNG格式图片</p>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                        <p>点击或拖放图片/视频到此处</p>
+                        <p>支持JPG、PNG、MP4格式文件</p>
+                        <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
                         <img id="imagePreview" alt="预览图">
+                        <video id="videoPreview" controls style="display: none;"></video>
                     </div>
                     <div class="upload-options">
                         <button id="uploadButton" class="action-button">
-                            <i class="fas fa-upload"></i> 上传图片
+                            <i class="fas fa-upload"></i> 上传文件
+                        </button>
+                        <button id="videoButton" class="action-button">
+                            <i class="fas fa-video"></i> 上传视频
                         </button>
                         <button id="cameraButton" class="action-button">
                             <i class="fas fa-camera"></i> 使用摄像头
@@ -70,51 +73,52 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="loading-indicator" id="loadingIndicator">
                         <div class="spinner"></div>
+                        <p id="processingText">处理中...</p>
                     </div>
-                    
+
                     <div class="result-content" id="resultContent">
                         <!-- 初始状态显示 -->
                         <div class="no-result" id="noResult">
                             <i class="fas fa-search"></i>
-                            <p>请上传武器装备图片进行识别</p>
+                            <p>请上传武器装备图片或视频进行识别</p>
                         </div>
-                        
+
                         <!-- 识别后显示的武器信息 -->
                         <div class="weapon-info" id="weaponInfo" style="display: none;">
                             <div class="weapon-name">
                                 <span id="weaponNameText">武器名称</span>
                                 <span class="similarity-badge" id="confidenceValue">95%</span>
                             </div>
-                            
+
                             <div class="weapon-details">
                                 <div class="detail-group">
                                     <div class="detail-label">类型</div>
                                     <div class="detail-value" id="weaponTypeValue">战斗机</div>
                                 </div>
-                                
+
                                 <div class="detail-group">
                                     <div class="detail-label">国家/地区</div>
                                     <div class="detail-value" id="weaponCountryValue">美国</div>
                                 </div>
-                                
+
                                 <div class="detail-group">
                                     <div class="detail-label">生产年份</div>
                                     <div class="detail-value" id="weaponYearValue">2005</div>
                                 </div>
-                                
+
                                 <div class="detail-group">
                                     <div class="detail-label">制造商</div>
                                     <div class="detail-value" id="weaponManufacturerValue">洛克希德·马丁</div>
                                 </div>
                             </div>
-                            
+
                             <div class="weapon-description" id="weaponDescriptionValue">
                                 武器详细描述将显示在这里。包含武器的基本信息、性能特点和历史背景等。
                             </div>
-                            
+
                             <div class="confidence-section">
                                 <div class="detail-label">识别相似度</div>
                                 <div class="confidence-bar">
@@ -122,12 +126,20 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- 相关武器推荐 -->
                         <div class="related-weapons" id="relatedWeapons" style="display: none;">
                             <h3>相关武器装备</h3>
                             <div class="related-list" id="relatedList">
                                 <!-- 相关武器将动态添加 -->
+                            </div>
+                        </div>
+
+                        <!-- 视频识别结果 -->
+                        <div class="video-results" id="videoResults" style="display: none;">
+                            <h3>视频识别结果</h3>
+                            <div class="video-result-list" id="videoResultList">
+                                <!-- 视频帧识别结果将动态添加 -->
                             </div>
                         </div>
                     </div>
@@ -136,7 +148,7 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 兵智视界 - 南京理工大学紫金学院</p>
+            <p>&copy; 2025 神机图鉴 - 南京理工大学紫金学院</p>
         </footer>
     </div>
 
@@ -149,20 +161,31 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <video id="cameraPreview" style="width: 100%; height: 300px; background: #000; border-radius: 8px;" autoplay></video>
-            <div style="display: flex; justify-content: center; margin-top: 1rem; gap: 1rem;">
+            <div style="position: relative;">
+                <video id="cameraPreview" style="width: 100%; height: 300px; background: #000; border-radius: 8px;" autoplay></video>
+                <!-- 实时识别结果覆盖层 -->
+                <div id="realtimeResultsOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none;"></div>
+            </div>
+            <div style="display: flex; justify-content: center; margin-top: 1rem; gap: 1rem; flex-wrap: wrap;">
                 <button id="captureCameraButton" class="action-button">
                     <i class="fas fa-camera"></i> 拍摄
+                </button>
+                <button id="realtimeRecognitionButton" class="action-button">
+                    <i class="fas fa-bolt"></i> 实时识别
+                </button>
+                <button id="stopRealtimeRecognitionButton" class="action-button" style="display: none; background-color: #e74c3c;">
+                    <i class="fas fa-stop"></i> 停止识别
                 </button>
                 <button id="confirmCaptureButton" class="action-button" style="display: none;">
                     <i class="fas fa-check"></i> 使用此图片
                 </button>
             </div>
             <canvas id="captureCanvas" style="display: none;"></canvas>
+            <canvas id="realtimeCanvas" style="display: none;"></canvas>
         </div>
     </div>
 
     <script src="scripts/auth.js"></script>
     <script src="scripts/weapon-recognition.js"></script>
 </body>
-</html> 
+</html>

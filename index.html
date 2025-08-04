@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>兵智视界 - 武器装备知识图谱智能平台</title>
+    <title>神机图鉴 - 武器装备知识图谱智能平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/index.css">
+    <link rel="stylesheet" href="styles/images.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="logo">兵智视界</div>
+            <div class="logo">神机图鉴</div>
             <div class="user-status">
                 <!-- 用户状态将由auth.js动态更新 -->
                 <a href="login.html" class="btn">登录</a>
@@ -32,63 +34,45 @@
         </nav>
 
         <main>
+            <!-- 图片轮播区域 -->
+            <section class="carousel-section">
+                <div class="swiper-container">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide" onclick="showWeaponDetails('tank')">
+                            <img src="images/tank.png" alt="坦克">
+                            <div class="caption">现代主战坦克：具备强大的火力、防护力和机动性。</div>
+                        </div>
+                        <div class="swiper-slide" onclick="showWeaponDetails('fighter')">
+                            <img src="images/fighter.png" alt="战斗机">
+                            <div class="caption">第五代隐形战斗机：高隐身、高机动、高态势感知。</div>
+                        </div>
+                        <div class="swiper-slide" onclick="showWeaponDetails('ship')">
+                            <img src="images/ship.jpg" alt="军舰">
+                            <div class="caption">现代驱逐舰：远洋作战核心力量，配备先进雷达与导弹系统。</div>
+                        </div>
+                        <div class="swiper-slide" onclick="showWeaponDetails('submarine')">
+                            <img src="images/submarine.png" alt="潜艇">
+                            <div class="caption">核潜艇：战略威慑的核心力量，具备全球打击能力。</div>
+                        </div>
+                        <div class="swiper-slide" onclick="showWeaponDetails('helicopter')">
+                            <img src="images/helicopter.png" alt="直升机">
+                            <div class="caption">武装直升机：灵活机动，提供空中火力支援。</div>
+                        </div>
+                    </div>
+                    <!-- 添加分页器和导航按钮 -->
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                </div>
+            </section>
+
             <section class="intro">
-                <h2>欢迎来到兵智视界</h2>
+                <h2>欢迎来到神机图鉴</h2>
                 <p>这里是一个展示武器装备知识图谱的平台，您可以查看武器装备的基本信息、关联关系，并获取智能推荐内容。</p>
             </section>
 
             <div class="dashboard">
-                <!-- 武器装备数量统计 -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">武器装备数量统计</div>
-                        <div class="card-actions">
-                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="weaponCountChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- 问答系统使用趋势 -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">问答系统使用趋势</div>
-                        <div class="card-actions">
-                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="qaUsageChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- 推荐系统性能指标 -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">推荐系统性能指标</div>
-                        <div class="card-actions">
-                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="recommendationMetricsChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- 测验通过率分布 -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">测验通过率分布</div>
-                        <div class="card-actions">
-                            <button class="card-action-btn" title="刷新"><i class="fas fa-sync-alt"></i></button>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="testPassRateChart"></canvas>
-                    </div>
-                </div>
+                <!-- 仪表盘内容同前省略 -->
             </div>
 
             <section class="quick-links">
@@ -118,15 +102,131 @@
                     <a href="weapon-recognition.html" class="btn">开始识别</a>
                 </div>
             </section>
+
+<section class="friend-links">
+    <h2>合作与参考</h2>
+    <p>访问以下资源，了解更多军事科技相关内容：</p>
+    <div class="link-container">
+        <div class="link-card">
+            <h3>全球军事观察</h3>
+            <p>全球领先的军事新闻和分析平台，实时更新各国武器装备和国际局势。</p>
+            <a href="https://military.china.com/" target="_blank" class="btn">访问网站</a>
+        </div>
+        <div class="link-card">
+            <h3>军事百科全书</h3>
+            <p>全面介绍各种武器装备、军事理论及历史事件，是学习军事的宝贵资源。</p>
+            <a href="https://en.wikipedia.org/wiki/Military_technology" target="_blank" class="btn">访问网站</a>
+        </div>
+        <div class="link-card">
+            <h3>国际防务与安全展览</h3>
+            <p>每年举行的全球军事防务展览，展示最新的武器装备与军事技术。</p>
+            <a href="https://www.idexuae.ae/" target="_blank" class="btn">访问网站</a>
+        </div>
+        <div class="link-card">
+            <h3>武器发展与创新</h3>
+            <p>提供全球最新的武器研究和军事技术发展动态，紧跟科技前沿。</p>
+            <a href="https://www.armytimes.com/" target="_blank" class="btn">访问网站</a>
+        </div>
+    </div>
+</section>
+
+
         </main>
 
         <footer>
-            <p>&copy; 2025 兵智视界 - 南京理工大学紫金学院</p>
+            <p>&copy; 2025 神机图鉴 - 南京理工大学紫金学院</p>
         </footer>
+    </div>
+
+    <!-- 武器参数浮窗 -->
+    <div id="weapon-modal" class="weapon-modal">
+        <div class="weapon-modal-content">
+            <span class="close-btn" onclick="closeWeaponDetails()">×</span>
+            <h2 id="weapon-title">武器名称</h2>
+            <p id="weapon-description">武器描述...</p>
+            <table id="weapon-specs">
+                <tr><th>最大射程</th><td id="max-range">2000 km</td></tr>
+                <tr><th>速度</th><td id="speed">2500 km/h</td></tr>
+                <tr><th>重量</th><td id="weight">70 tons</td></tr>
+                <tr><th>武器系统</th><td id="weapon-system">激光制导</td></tr>
+            </table>
+        </div>
     </div>
 
     <script src="scripts/auth.js"></script>
     <script src="scripts/common.js"></script>
     <script src="scripts/index-charts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        const swiper = new Swiper('.swiper-container', {
+            loop: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            slidesPerView: 1,  // 保证每次只显示一张图片
+            spaceBetween: 10,  // 图片之间的空隙
+        });
+
+        function showWeaponDetails(weaponType) {
+            const modal = document.getElementById("weapon-modal");
+            const title = document.getElementById("weapon-title");
+            const description = document.getElementById("weapon-description");
+            const specs = document.getElementById("weapon-specs");
+
+            // 根据不同武器类型设置数据
+            if (weaponType === 'tank') {
+                title.innerText = "现代主战坦克";
+                description.innerText = "这款主战坦克具备极强的火力、防护能力和机动性，能够应对各种现代战场上的威胁。";
+                document.getElementById("max-range").innerText = "500 km";
+                document.getElementById("speed").innerText = "60 km/h";
+                document.getElementById("weight").innerText = "70 tons";
+                document.getElementById("weapon-system").innerText = "120mm 铅弹炮";
+            } else if (weaponType === 'fighter') {
+                title.innerText = "第五代隐形战斗机";
+                description.innerText = "这款战斗机具备高隐身性、机动性及先进的电子战能力，是空中优势的制胜利器。";
+                document.getElementById("max-range").innerText = "2000 km";
+                document.getElementById("speed").innerText = "2500 km/h";
+                document.getElementById("weight").innerText = "20 tons";
+                document.getElementById("weapon-system").innerText = "雷达导弹、机炮";
+            } else if (weaponType === 'ship') {
+                title.innerText = "现代驱逐舰";
+                description.innerText = "驱逐舰是现代海军的核心力量，配备先进的雷达和防空导弹系统，具备强大的作战能力。";
+                document.getElementById("max-range").innerText = "12000 km";
+                document.getElementById("speed").innerText = "30 knots";
+                document.getElementById("weight").innerText = "9000 tons";
+                document.getElementById("weapon-system").innerText = "防空导弹、舰炮";
+            } else if (weaponType === 'submarine') {
+                title.innerText = "核潜艇";
+                description.innerText = "核潜艇具备隐蔽性和打击远程目标的能力，是战略威慑的核心力量。";
+                document.getElementById("max-range").innerText = "20000 km";
+                document.getElementById("speed").innerText = "50 km/h";
+                document.getElementById("weight").innerText = "16000 tons";
+                document.getElementById("weapon-system").innerText = "潜射导弹";
+            } else if (weaponType === 'helicopter') {
+                title.innerText = "武装直升机";
+                description.innerText = "这款直升机能够提供空中火力支援，适合执行侦察、打击和运输任务。";
+                document.getElementById("max-range").innerText = "600 km";
+                document.getElementById("speed").innerText = "250 km/h";
+                document.getElementById("weight").innerText = "5 tons";
+                document.getElementById("weapon-system").innerText = "导弹、机炮";
+            }
+
+            modal.style.display = "flex";
+        }
+
+        function closeWeaponDetails() {
+            document.getElementById("weapon-modal").style.display = "none";
+        }
+    </script>
+    
 </body>
 </html>
