@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>制造商API测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .log-output {
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .data-display {
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .status.error {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .status.warning {
+            background-color: #f39c12;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>制造商API数据获取测试</h1>
+        
+        <div class="test-section">
+            <h2>API连接测试</h2>
+            <button class="btn" onclick="testAPIConnection()">测试API连接</button>
+            <button class="btn" onclick="testWeaponsAPI()">测试武器API</button>
+            <button class="btn" onclick="testManufacturerData()">测试制造商数据提取</button>
+            <button class="btn" onclick="clearLog()">清空日志</button>
+            <div id="connectionStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>API响应数据</h2>
+            <div id="apiData" class="data-display">等待API测试...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>制造商统计结果</h2>
+            <div id="manufacturerStats" class="data-display">等待制造商数据提取...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>测试日志</h2>
+            <div id="logOutput" class="log-output"></div>
+        </div>
+    </div>
+
+    <script>
+        // 日志函数
+        function log(message, type = 'info') {
+            const logOutput = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '[ERROR]' : type === 'warn' ? '[WARN]' : '[INFO]';
+            logOutput.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+            console.log(`${prefix} ${message}`);
+        }
+        
+        // 清空日志
+        function clearLog() {
+            document.getElementById('logOutput').textContent = '';
+            document.getElementById('apiData').textContent = '等待API测试...';
+            document.getElementById('manufacturerStats').textContent = '等待制造商数据提取...';
+            document.getElementById('connectionStatus').innerHTML = '';
+        }
+        
+        // 显示状态
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        // 测试API连接
+        async function testAPIConnection() {
+            log('开始测试API连接...');
+            showStatus('正在测试API连接...', 'warning');
+            
+            const ports = [3001];
+            let successPort = null;
+            
+            for (const port of ports) {
+                try {
+                    log(`尝试连接端口 ${port}...`);
+                    const response = await fetch(`http://localhost:${port}/api`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        log(`端口 ${port} 连接成功`);
+                        log(`API信息: ${data.message}`);
+                        successPort = port;
+                        showStatus(`API连接成功 - 端口 ${port}`, 'success');
+                        break;
+                    } else {
+                        log(`端口 ${port} 响应状态: ${response.status}`, 'warn');
+                    }
+                } catch (error) {
+                    log(`端口 ${port} 连接失败: ${error.message}`, 'error');
+                }
+            }
+            
+            if (!successPort) {
+                showStatus('所有端口连接失败', 'error');
+                log('API连接测试失败', 'error');
+            }
+            
+            return successPort;
+        }
+        
+        // 测试武器API
+        async function testWeaponsAPI() {
+            log('开始测试武器API...');
+            
+            const ports = [3000, 3001];
+            let response = null;
+            let successPort = null;
+            
+            for (const port of ports) {
+                try {
+                    log(`尝试从端口 ${port} 获取武器数据...`);
+                    response = await fetch(`http://localhost:${port}/api/weapons?limit=10`);
+                    
+                    if (response.ok) {
+                        successPort = port;
+                        log(`成功从端口 ${port} 获取武器数据`);
+                        break;
+                    } else {
+                        log(`端口 ${port} 武器API响应状态: ${response.status}`, 'warn');
+                    }
+                } catch (error) {
+                    log(`端口 ${port} 武器API请求失败: ${error.message}`, 'error');
+                }
+            }
+            
+            if (!response || !response.ok) {
+                showStatus('武器API测试失败', 'error');
+                log('武器API测试失败', 'error');
+                return null;
+            }
+            
+            try {
+                const result = await response.json();
+                log('武器API响应成功');
+                log(`响应数据结构: ${Object.keys(result).join(', ')}`);
+                
+                // 显示API数据
+                document.getElementById('apiData').textContent = JSON.stringify(result, null, 2);
+                
+                // 解析武器数据
+                let weapons = [];
+                if (Array.isArray(result)) {
+                    weapons = result;
+                } else if (result.data && result.data.weapons && Array.isArray(result.data.weapons)) {
+                    weapons = result.data.weapons;
+                } else if (result.data && Array.isArray(result.data)) {
+                    weapons = result.data;
+                } else if (result.weapons && Array.isArray(result.weapons)) {
+                    weapons = result.weapons;
+                }
+                
+                log(`解析到武器数据: ${weapons.length} 条`);
+                
+                if (weapons.length > 0) {
+                    log('武器数据示例:');
+                    log(JSON.stringify(weapons[0], null, 2));
+                    
+                    // 检查制造商字段
+                    const weaponsWithManufacturer = weapons.filter(w => w.manufacturer);
+                    log(`包含制造商信息的武器: ${weaponsWithManufacturer.length} 条`);
+                    
+                    if (weaponsWithManufacturer.length > 0) {
+                        log('制造商信息示例:');
+                        weaponsWithManufacturer.slice(0, 3).forEach((weapon, index) => {
+                            log(`${index + 1}. ${weapon.name} - 制造商: ${weapon.manufacturer}`);
+                        });
+                    }
+                }
+                
+                showStatus(`武器API测试成功 - 获取到 ${weapons.length} 条数据`, 'success');
+                return weapons;
+                
+            } catch (error) {
+                log(`解析武器API响应失败: ${error.message}`, 'error');
+                showStatus('武器API数据解析失败', 'error');
+                return null;
+            }
+        }
+        
+        // 测试制造商数据提取
+        async function testManufacturerData() {
+            log('开始测试制造商数据提取...');
+            
+            const weapons = await testWeaponsAPI();
+            if (!weapons) {
+                log('无法获取武器数据，制造商统计失败', 'error');
+                return;
+            }
+            
+            // 统计制造商
+            const manufacturerCount = {};
+            weapons.forEach(weapon => {
+                if (weapon.manufacturer && weapon.manufacturer.trim()) {
+                    const manufacturer = weapon.manufacturer.trim();
+                    manufacturerCount[manufacturer] = (manufacturerCount[manufacturer] || 0) + 1;
+                }
+            });
+            
+            log(`统计到制造商: ${Object.keys(manufacturerCount).length} 个`);
+            
+            if (Object.keys(manufacturerCount).length > 0) {
+                log('制造商统计结果:');
+                Object.entries(manufacturerCount)
+                    .sort(([,a], [,b]) => b - a)
+                    .forEach(([manufacturer, count]) => {
+                        log(`${manufacturer}: ${count} 件武器`);
+                    });
+                
+                // 显示制造商统计
+                document.getElementById('manufacturerStats').textContent = JSON.stringify(manufacturerCount, null, 2);
+                showStatus(`制造商数据提取成功 - 找到 ${Object.keys(manufacturerCount).length} 个制造商`, 'success');
+            } else {
+                log('未找到任何制造商数据', 'warn');
+                document.getElementById('manufacturerStats').textContent = '未找到制造商数据';
+                showStatus('未找到制造商数据', 'warning');
+            }
+            
+            return manufacturerCount;
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('制造商API测试页面加载完成');
+            log('点击按钮开始测试API连接和数据获取');
+        });
+    </script>
+</body>
+</html>

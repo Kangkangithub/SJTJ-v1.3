@@ -1,4 +1,4 @@
-const databaseManager = require('../config/database');
+const databaseManager = require('../config/database_Neo4j');
 const logger = require('../utils/logger');
 
 class KnowledgeGraphService {

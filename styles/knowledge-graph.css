@@ -305,17 +305,256 @@
 .graph-analysis {
     margin-top: 2rem;
 }
+
+.graph-analysis h2 {
+    color: var(--secondary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
 .graph-analysis-panels {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
 }
+
 .graph-analysis .card {
-    background: var(--card-bg);
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border: 1px solid #475569;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.graph-analysis .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+}
+
+.graph-analysis .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    border-color: var(--secondary-color);
+}
+
+.graph-analysis .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #475569;
+}
+
+.graph-analysis .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0;
+}
+
+.graph-analysis .card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.graph-analysis .card-action-btn {
+    background: rgba(52, 152, 219, 0.2);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    border-radius: 6px;
+    color: var(--secondary-color);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.graph-analysis .card-action-btn:hover {
+    background: var(--secondary-color);
+    color: white;
+    transform: rotate(180deg);
+}
+
+.chart-container {
+    height: 320px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 8px;
     padding: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.chart-container canvas {
+    max-height: 100%;
+    border-radius: 4px;
+}
+
+/* 图表加载状态 */
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+.chart-loading::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(52, 152, 219, 0.3);
+    border-top: 2px solid var(--secondary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 图表错误状态 */
+.chart-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #e74c3c;
+    text-align: center;
+    padding: 1rem;
+}
+
+.chart-error i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+}
+
+.chart-error p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* 图表数据为空状态 */
+.chart-no-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    padding: 1rem;
+}
+
+.chart-no-data i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.chart-no-data p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.chart-no-data small {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* 响应式图表样式 */
+@media (max-width: 1400px) {
+    .graph-analysis-panels {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
+    .graph-analysis-panels {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .chart-container {
+        height: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .graph-analysis-panels {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .graph-analysis .card {
+        padding: 1rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+        padding: 0.5rem;
+    }
+    
+    .graph-analysis .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .graph-analysis .card-actions {
+        align-self: flex-end;
+    }
+}
+
+/* 图表特定样式 */
+.chart-container[data-chart="radar"] {
+    height: 350px;
+}
+
+.chart-container[data-chart="line"] {
+    height: 300px;
+}
+
+.chart-container[data-chart="horizontalBar"] {
+    height: 380px;
+}
+
+/* 图表工具提示自定义样式 */
+.chartjs-tooltip {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border: 1px solid rgba(52, 152, 219, 0.3) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.chartjs-tooltip-title {
+    color: var(--secondary-color) !important;
+    font-weight: 600 !important;
+}
+
+.chartjs-tooltip-body {
+    color: #f1f5f9 !important;
 }
 
 /* 数据管理弹窗样式 */

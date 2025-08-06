@@ -98,6 +98,7 @@ class SimpleApp {
           auth: '/api/auth',
           weapons: '/api/weapons',
           manufacturers: '/api/manufacturers',
+          manufacturerStatistics: '/api/manufacturer-statistics',
           weaponTypes: '/api/weapon-types',
           weaponCountries: '/api/weapon-countries',
           knowledge: '/api/knowledge'
@@ -109,6 +110,7 @@ class SimpleApp {
     this.app.use('/api/auth', authRoutes);
     this.app.use('/api/weapons', weaponRoutes);
     this.app.use('/api/manufacturers', require('./routes/manufacturers'));
+    this.app.use('/api/manufacturer-statistics', require('./routes/manufacturer-statistics'));
     this.app.use('/api/weapon-types', require('./routes/weapon-types'));
     this.app.use('/api/weapon-countries', require('./routes/weapon-countries'));
     this.app.use('/api/knowledge', require('./routes/knowledge-graph'));

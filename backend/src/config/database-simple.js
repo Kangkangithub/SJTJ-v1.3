@@ -28,6 +28,9 @@ class SimpleDatabaseManager {
         logger.info('SQLite数据库连接成功');
       });
 
+      // 启用外键约束（重要！防止数据完整性问题）
+      await this.enableForeignKeys();
+
       // 初始化数据表
       await this.initializeTables();
       
@@ -36,6 +39,21 @@ class SimpleDatabaseManager {
       logger.error('数据库连接失败:', error);
       throw error;
     }
+  }
+
+  // 启用外键约束
+  async enableForeignKeys() {
+    return new Promise((resolve, reject) => {
+      this.db.run('PRAGMA foreign_keys = ON', (err) => {
+        if (err) {
+          logger.error('启用外键约束失败:', err);
+          reject(err);
+        } else {
+          logger.info('✅ 外键约束已启用，数据完整性得到保障');
+          resolve();
+        }
+      });
+    });
   }
 
   // 初始化数据表
@@ -171,7 +189,7 @@ class SimpleDatabaseManager {
     });
   }
 
-  // 插入示例数据
+  // 插入基础数据（不包含示例武器）
   async insertSampleData() {
     return new Promise((resolve, reject) => {
       // 插入武器类别
@@ -206,7 +224,7 @@ class SimpleDatabaseManager {
         });
       });
 
-      // 插入示例制造商
+      // 插入基础制造商（保留制造商数据，因为可能被现有武器引用）
       const manufacturers = [
         { name: '卡拉什尼科夫集团', country: '俄罗斯', founded: 1807, description: '俄罗斯著名军工企业，AK系列步枪制造商' },
         { name: '柯尔特公司', country: '美国', founded: 1855, description: '美国历史悠久的枪械制造商，M16步枪制造商之一' },
@@ -230,119 +248,10 @@ class SimpleDatabaseManager {
         });
       });
 
-      // 插入示例武器
-      const weapons = [
-        {
-          name: 'AK-47突击步枪',
-          type: '步枪',
-          country: '俄罗斯',
-          year: 1947,
-          description: 'AK-47是由苏联枪械设计师米哈伊尔·卡拉什尼科夫设计的自动步枪，是世界上最著名和使用最广泛的突击步枪之一。',
-          specifications: JSON.stringify({
-            caliber: '7.62×39mm',
-            length: '870mm',
-            weight: '4.3kg',
-            rate_of_fire: '600发/分钟',
-            effective_range: '400m'
-          }),
-          performance_data: JSON.stringify({
-            reliability: 9.5,
-            accuracy: 7.0,
-            durability: 9.8
-          }),
-          manufacturer: '卡拉什尼科夫集团'
-        },
-        {
-          name: 'M16突击步枪',
-          type: '步枪',
-          country: '美国',
-          year: 1964,
-          description: 'M16是美国军队的制式突击步枪，以其轻量化和高精度著称。',
-          specifications: JSON.stringify({
-            caliber: '5.56×45mm NATO',
-            length: '1006mm',
-            weight: '3.26kg',
-            rate_of_fire: '700-950发/分钟',
-            effective_range: '550m'
-          }),
-          performance_data: JSON.stringify({
-            reliability: 8.0,
-            accuracy: 9.0,
-            durability: 7.5
-          }),
-          manufacturer: '柯尔特公司'
-        },
-        {
-          name: 'Glock 17手枪',
-          type: '手枪',
-          country: '奥地利',
-          year: 1982,
-          description: 'Glock 17是奥地利格洛克公司生产的半自动手枪，以其可靠性和简洁设计闻名。',
-          specifications: JSON.stringify({
-            caliber: '9×19mm',
-            length: '186mm',
-            weight: '0.625kg',
-            magazine_capacity: '17发',
-            effective_range: '50m'
-          }),
-          performance_data: JSON.stringify({
-            reliability: 9.2,
-            accuracy: 8.5,
-            durability: 9.0
-          }),
-          manufacturer: '格洛克公司'
-        }
-      ];
-
-      const weaponPromises = weapons.map((weapon) => {
-        return new Promise((res, rej) => {
-          const db = this.db;
-          db.run(
-            `INSERT OR IGNORE INTO weapons 
-             (name, type, country, year, description, specifications, performance_data) 
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [weapon.name, weapon.type, weapon.country, weapon.year, 
-             weapon.description, weapon.specifications, weapon.performance_data],
-            function(err) {
-              if (err) {
-                rej(err);
-                return;
-              }
-              
-              // 如果武器有制造商信息，创建关联
-              if (weapon.manufacturer && this.lastID) {
-                const weaponId = this.lastID;
-                // 查找制造商ID
-                db.get(
-                  'SELECT id FROM manufacturers WHERE name = ?',
-                  [weapon.manufacturer],
-                  (err, manufacturerRow) => {
-                    if (err || !manufacturerRow) {
-                      res(); // 即使制造商关联失败，也继续
-                      return;
-                    }
-                    
-                    // 创建武器-制造商关联
-                    db.run(
-                      'INSERT OR IGNORE INTO weapon_manufacturers (weapon_id, manufacturer_id) VALUES (?, ?)',
-                      [weaponId, manufacturerRow.id],
-                      (err) => {
-                        res(); // 无论成功失败都继续
-                      }
-                    );
-                  }
-                );
-              } else {
-                res();
-              }
-            }
-          );
-        });
-      });
-
-      Promise.all([...categoryPromises, ...countryPromises, ...manufacturerPromises, ...weaponPromises])
+      // 只插入基础数据，不插入示例武器
+      Promise.all([...categoryPromises, ...countryPromises, ...manufacturerPromises])
         .then(() => {
-          logger.info('示例数据插入完成');
+          logger.info('基础数据插入完成（不包含示例武器）');
           resolve();
         })
         .catch(reject);

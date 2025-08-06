@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>制造商统计功能测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            background: #333;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .api-test {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .api-test {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>制造商武器数量统计功能测试</h1>
+        
+        <div class="test-section">
+            <h2>API连接测试</h2>
+            <div class="api-test">
+                <div>
+                    <h3>制造商统计API</h3>
+                    <button onclick="testManufacturerStatsAPI()">测试制造商统计API</button>
+                    <div id="statsApiStatus"></div>
+                    <pre id="statsApiResponse"></pre>
+                </div>
+                <div>
+                    <h3>武器API</h3>
+                    <button onclick="testWeaponsAPI()">测试武器API</button>
+                    <div id="weaponsApiStatus"></div>
+                    <pre id="weaponsApiResponse"></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>制造商统计图表测试</h2>
+            <button onclick="testManufacturerChart()">生成制造商统计图表</button>
+            <button onclick="refreshChart()">刷新图表</button>
+            <div id="chartStatus"></div>
+            <div class="chart-container">
+                <canvas id="manufacturerChart"></canvas>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>数据分析结果</h2>
+            <div id="analysisResults"></div>
+        </div>
+    </div>
+
+    <script src="scripts/knowledge-graph-analysis-manufacturer-complete.js"></script>
+    <script>
+        let manufacturerAnalysis = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，初始化制造商分析模块...');
+            manufacturerAnalysis = new ManufacturerAnalysis();
+        });
+
+        // 测试制造商统计API
+        async function testManufacturerStatsAPI() {
+            const statusDiv = document.getElementById('statsApiStatus');
+            const responseDiv = document.getElementById('statsApiResponse');
+            
+            statusDiv.innerHTML = '<div class="status info">正在测试制造商统计API...</div>';
+            responseDiv.textContent = '';
+
+            try {
+                const response = await fetch('http://localhost:3001/api/manufacturer-statistics/weapon-count');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '<div class="status success">制造商统计API连接成功！</div>';
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                    
+                    // 显示分析结果
+                    displayAnalysisResults(data);
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">API响应错误: ${response.status}</div>`;
+                    responseDiv.textContent = await response.text();
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">API连接失败: ${error.message}</div>`;
+                responseDiv.textContent = error.stack;
+            }
+        }
+
+        // 测试武器API
+        async function testWeaponsAPI() {
+            const statusDiv = document.getElementById('weaponsApiStatus');
+            const responseDiv = document.getElementById('weaponsApiResponse');
+            
+            statusDiv.innerHTML = '<div class="status info">正在测试武器API...</div>';
+            responseDiv.textContent = '';
+
+            try {
+                const response = await fetch('http://localhost:3001/api/weapons?limit=5');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '<div class="status success">武器API连接成功！</div>';
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">API响应错误: ${response.status}</div>`;
+                    responseDiv.textContent = await response.text();
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">API连接失败: ${error.message}</div>`;
+                responseDiv.textContent = error.stack;
+            }
+        }
+
+        // 测试制造商图表
+        async function testManufacturerChart() {
+            const statusDiv = document.getElementById('chartStatus');
+            
+            statusDiv.innerHTML = '<div class="status info">正在生成制造商统计图表...</div>';
+
+            try {
+                if (manufacturerAnalysis) {
+                    await manufacturerAnalysis.generateManufacturerChart();
+                    statusDiv.innerHTML = '<div class="status success">制造商统计图表生成成功！</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">制造商分析模块未初始化</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">图表生成失败: ${error.message}</div>`;
+                console.error('图表生成错误:', error);
+            }
+        }
+
+        // 刷新图表
+        async function refreshChart() {
+            const statusDiv = document.getElementById('chartStatus');
+            
+            statusDiv.innerHTML = '<div class="status info">正在刷新图表...</div>';
+
+            try {
+                if (manufacturerAnalysis) {
+                    await manufacturerAnalysis.refresh();
+                    statusDiv.innerHTML = '<div class="status success">图表刷新成功！</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">制造商分析模块未初始化</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">图表刷新失败: ${error.message}</div>`;
+                console.error('图表刷新错误:', error);
+            }
+        }
+
+        // 显示分析结果
+        function displayAnalysisResults(data) {
+            const resultsDiv = document.getElementById('analysisResults');
+            
+            if (data.success && data.data) {
+                const manufacturerCount = data.data.manufacturer_count || {};
+                const totalManufacturers = data.data.total_manufacturers || 0;
+                const statistics = data.data.statistics || [];
+
+                let html = `
+                    <h3>数据分析结果</h3>
+                    <p><strong>制造商总数:</strong> ${totalManufacturers}</p>
+                    <p><strong>有武器数据的制造商:</strong> ${Object.keys(manufacturerCount).length}</p>
+                    
+                    <h4>制造商武器数量排行 (前10名)</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #444;">
+                                <th style="padding: 8px; border: 1px solid #666;">排名</th>
+                                <th style="padding: 8px; border: 1px solid #666;">制造商</th>
+                                <th style="padding: 8px; border: 1px solid #666;">武器数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                const sortedManufacturers = Object.entries(manufacturerCount)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 10);
+
+                sortedManufacturers.forEach(([name, count], index) => {
+                    html += `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #666; text-align: center;">${index + 1}</td>
+                            <td style="padding: 8px; border: 1px solid #666;">${name}</td>
+                            <td style="padding: 8px; border: 1px solid #666; text-align: center;">${count}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = '<p>暂无分析结果</p>';
+            }
+        }
+
+        // 页面加载时自动测试
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('自动开始API测试...');
+                testManufacturerStatsAPI();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

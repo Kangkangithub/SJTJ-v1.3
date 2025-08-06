@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "marked": "^15.0.7"
+    "marked": "^15.0.7",
+    "node-fetch": "^3.3.2"
   }
 }

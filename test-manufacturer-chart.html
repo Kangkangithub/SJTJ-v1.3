@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>制造商图表测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .test-buttons {
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .log-output {
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .chart-no-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #e0e0e0;
+            text-align: center;
+        }
+        
+        .chart-no-data i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #95a5a6;
+        }
+        
+        .chart-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #e0e0e0;
+        }
+        
+        .chart-loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>制造商武器数量统计测试</h1>
+        
+        <div class="test-section">
+            <h2>测试控制</h2>
+            <div class="test-buttons">
+                <button class="btn" onclick="testWithMockData()">使用模拟数据测试</button>
+                <button class="btn" onclick="testWithAPIData()">使用API数据测试</button>
+                <button class="btn" onclick="testWithGraphData()">使用图谱数据测试</button>
+                <button class="btn" onclick="clearChart()">清空图表</button>
+                <button class="btn" onclick="clearLog()">清空日志</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>制造商武器数量图表</h2>
+            <div class="chart-container">
+                <canvas id="manufacturerChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>测试日志</h2>
+            <div id="logOutput" class="log-output"></div>
+        </div>
+    </div>
+
+    <script>
+        let manufacturerChart = null;
+        
+        // 日志函数
+        function log(message) {
+            const logOutput = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            logOutput.innerHTML += `[${timestamp}] ${message}\n`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+            console.log(message);
+        }
+        
+        // 清空日志
+        function clearLog() {
+            document.getElementById('logOutput').innerHTML = '';
+        }
+        
+        // 清空图表
+        function clearChart() {
+            if (manufacturerChart) {
+                manufacturerChart.destroy();
+                manufacturerChart = null;
+            }
+            const ctx = document.getElementById('manufacturerChart');
+            ctx.innerHTML = '';
+            log('图表已清空');
+        }
+        
+        // 使用模拟数据测试
+        function testWithMockData() {
+            log('开始使用模拟数据测试...');
+            
+            const mockData = {
+                '中国北方工业公司': 15,
+                '洛克希德·马丁': 12,
+                '波音公司': 10,
+                '卡拉什尼科夫集团': 8,
+                '莱茵金属': 6,
+                '泰雷兹集团': 5,
+                'BAE系统公司': 4,
+                '以色列军事工业': 3,
+                '中国南方工业集团': 7,
+                '雷神公司': 9
+            };
+            
+            generateManufacturerChart(mockData);
+            log('模拟数据测试完成');
+        }
+        
+        // 使用API数据测试
+        async function testWithAPIData() {
+            log('开始从API获取数据测试...');
+            
+            try {
+                showLoading();
+                
+                const response = await fetch('http://localhost:3001/api/weapons?limit=1000');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                log(`API响应状态: ${response.status}`);
+                log(`API返回数据结构: ${JSON.stringify(Object.keys(result))}`);
+                
+                let weapons = [];
+                if (Array.isArray(result)) {
+                    weapons = result;
+                } else if (result.data && result.data.weapons && Array.isArray(result.data.weapons)) {
+                    weapons = result.data.weapons;
+                } else if (result.data && Array.isArray(result.data)) {
+                    weapons = result.data;
+                } else if (result.weapons && Array.isArray(result.weapons)) {
+                    weapons = result.weapons;
+                }
+                
+                log(`解析到武器数据: ${weapons.length} 条`);
+                
+                if (weapons.length === 0) {
+                    showNoData('未找到武器数据');
+                    return;
+                }
+                
+                // 统计制造商
+                const manufacturerCount = {};
+                weapons.forEach(weapon => {
+                    if (weapon.manufacturer) {
+                        manufacturerCount[weapon.manufacturer] = (manufacturerCount[weapon.manufacturer] || 0) + 1;
+                    }
+                });
+                
+                log(`统计到制造商: ${Object.keys(manufacturerCount).length} 个`);
+                log(`制造商数据: ${JSON.stringify(manufacturerCount)}`);
+                
+                if (Object.keys(manufacturerCount).length === 0) {
+                    showNoData('武器数据中未找到制造商信息');
+                    return;
+                }
+                
+                generateManufacturerChart(manufacturerCount);
+                log('API数据测试完成');
+                
+            } catch (error) {
+                log(`API数据获取失败: ${error.message}`);
+                showNoData('API数据获取失败');
+            }
+        }
+        
+        // 使用图谱数据测试
+        function testWithGraphData() {
+            log('开始使用图谱数据测试...');
+            
+            // 模拟图谱数据结构
+            const mockGraphData = {
+                nodes: [
+                    { id: 'weapon_1', labels: ['Weapon'], properties: { name: 'AK-47', manufacturer: '卡拉什尼科夫集团' } },
+                    { id: 'weapon_2', labels: ['Weapon'], properties: { name: 'M16', manufacturer: '柯尔特公司' } },
+                    { id: 'weapon_3', labels: ['Weapon'], properties: { name: 'F-22', manufacturer: '洛克希德·马丁' } },
+                    { id: 'weapon_4', labels: ['Weapon'], properties: { name: 'F-35', manufacturer: '洛克希德·马丁' } },
+                    { id: 'weapon_5', labels: ['Weapon'], properties: { name: '95式步枪', manufacturer: '中国北方工业公司' } },
+                    { id: 'manufacturer_1', labels: ['Manufacturer'], properties: { name: '卡拉什尼科夫集团' } },
+                    { id: 'manufacturer_2', labels: ['Manufacturer'], properties: { name: '柯尔特公司' } },
+                    { id: 'manufacturer_3', labels: ['Manufacturer'], properties: { name: '洛克希德·马丁' } },
+                    { id: 'manufacturer_4', labels: ['Manufacturer'], properties: { name: '中国北方工业公司' } }
+                ],
+                links: [
+                    { source: 'weapon_1', target: 'manufacturer_1', type: 'MANUFACTURED_BY' },
+                    { source: 'weapon_2', target: 'manufacturer_2', type: 'MANUFACTURED_BY' },
+                    { source: 'weapon_3', target: 'manufacturer_3', type: 'MANUFACTURED_BY' },
+                    { source: 'weapon_4', target: 'manufacturer_3', type: 'MANUFACTURED_BY' },
+                    { source: 'weapon_5', target: 'manufacturer_4', type: 'MANUFACTURED_BY' }
+                ]
+            };
+            
+            const manufacturerCount = extractManufacturerFromGraph(mockGraphData);
+            log(`从图谱数据提取制造商: ${JSON.stringify(manufacturerCount)}`);
+            
+            generateManufacturerChart(manufacturerCount);
+            log('图谱数据测试完成');
+        }
+        
+        // 从图谱数据提取制造商信息
+        function extractManufacturerFromGraph(graphData) {
+            const nodeMap = {};
+            const manufacturerCount = {};
+            
+            // 构建节点映射
+            graphData.nodes.forEach(node => {
+                nodeMap[node.id] = node;
+                
+                // 制造商节点初始化
+                if (node.labels.includes('Manufacturer') && node.properties.name) {
+                    manufacturerCount[node.properties.name] = 0;
+                }
+            });
+            
+            // 统计制造商的武器数量
+            graphData.links.forEach(link => {
+                const sourceNode = nodeMap[link.source];
+                const targetNode = nodeMap[link.target];
+                
+                if (!sourceNode || !targetNode) {
+                    return;
+                }
+                
+                // 制造商武器数量统计
+                if (link.type === 'MANUFACTURED_BY' && 
+                    sourceNode.labels.includes('Weapon') && 
+                    targetNode.labels.includes('Manufacturer')) {
+                    const manufacturerName = targetNode.properties.name;
+                    if (manufacturerName) {
+                        manufacturerCount[manufacturerName] = (manufacturerCount[manufacturerName] || 0) + 1;
+                    }
+                }
+            });
+            
+            return manufacturerCount;
+        }
+        
+        // 生成制造商图表
+        function generateManufacturerChart(manufacturerData) {
+            const ctx = document.getElementById('manufacturerChart');
+            
+            // 销毁现有图表
+            if (manufacturerChart) {
+                manufacturerChart.destroy();
+            }
+            
+            // 过滤和排序数据
+            const filteredData = Object.entries(manufacturerData)
+                .filter(([name, count]) => count > 0)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 10);
+            
+            if (filteredData.length === 0) {
+                showNoData('没有有效的制造商数据');
+                return;
+            }
+            
+            log(`生成图表，数据点: ${filteredData.length} 个`);
+            
+            manufacturerChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: filteredData.map(([name]) => name.length > 12 ? name.substring(0, 12) + '...' : name),
+                    datasets: [{
+                        label: '武器数量',
+                        data: filteredData.map(([, count]) => count),
+                        backgroundColor: '#f39c12',
+                        borderRadius: 4,
+                        borderWidth: 1,
+                        borderColor: 'rgba(243, 156, 18, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: '制造商武器数量统计',
+                            color: '#e0e0e0'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#e0e0e0',
+                            bodyColor: '#e0e0e0',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(context) {
+                                    const fullName = filteredData[context[0].dataIndex][0];
+                                    return fullName;
+                                },
+                                label: function(context) {
+                                    return `武器数量: ${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: '制造商',
+                                color: '#e0e0e0'
+                            },
+                            ticks: { 
+                                maxRotation: 45, 
+                                minRotation: 30,
+                                color: '#e0e0e0'
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: '武器数量',
+                                color: '#e0e0e0'
+                            },
+                            ticks: { 
+                                color: '#e0e0e0',
+                                stepSize: 1
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+            
+            log('图表生成完成');
+        }
+        
+        // 显示加载状态
+        function showLoading() {
+            const ctx = document.getElementById('manufacturerChart');
+            ctx.innerHTML = `
+                <div class="chart-loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>正在加载制造商数据...</p>
+                </div>
+            `;
+        }
+        
+        // 显示无数据状态
+        function showNoData(message = '暂无制造商数据') {
+            const ctx = document.getElementById('manufacturerChart');
+            ctx.innerHTML = `
+                <div class="chart-no-data">
+                    <i class="fas fa-chart-bar"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('制造商图表测试页面加载完成');
+            log('可以使用按钮进行各种测试');
+        });
+    </script>
+</body>
+</html>

@@ -418,6 +418,14 @@ function clearManufacturerSelection() {
                 break;
                 
             case 'Manufacturer':
+                // 显示制造商描述
+                if (node.properties.description) {
+                    html += '<div class="detail-group">';
+                    html += `<div class="detail-label">描述</div>`;
+                    html += `<div class="detail-value">${node.properties.description}</div>`;
+                    html += '</div>';
+                }
+                
                 if (node.properties.country) {
                     html += '<div class="detail-group">';
                     html += `<div class="detail-label">所属国家</div>`;
@@ -429,6 +437,16 @@ function clearManufacturerSelection() {
                     html += '<div class="detail-group">';
                     html += `<div class="detail-label">成立时间</div>`;
                     html += `<div class="detail-value">${node.properties.founded}</div>`;
+                    html += '</div>';
+                }
+                break;
+                
+            case 'Type':
+                // 显示武器类型描述
+                if (node.properties.description) {
+                    html += '<div class="detail-group">';
+                    html += `<div class="detail-label">描述</div>`;
+                    html += `<div class="detail-value">${node.properties.description}</div>`;
                     html += '</div>';
                 }
                 break;
@@ -1145,18 +1163,34 @@ function initializeEditData() {
 
         try {
             showLoading('正在搜索武器...');
+            console.log(`搜索武器: ${searchTerm}`);
+            
             const response = await fetch(`http://localhost:3001/api/weapons/search?q=${encodeURIComponent(searchTerm)}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const result = await response.json();
+            console.log('搜索API响应:', result);
             hideLoading();
 
-            if (result.success && result.data.weapons) {
+            if (result.success && result.data && result.data.weapons) {
                 displayWeaponList(result.data.weapons);
+                showNotification(`搜索完成，找到 ${result.data.weapons.length} 个结果`, 'success');
+            } else if (result.success && Array.isArray(result.data)) {
+                // 处理直接返回数组的情况
+                displayWeaponList(result.data);
+                showNotification(`搜索完成，找到 ${result.data.length} 个结果`, 'success');
             } else {
+                console.warn('搜索结果格式异常:', result);
                 weaponList.innerHTML = '<p class="no-data">未找到相关武器</p>';
+                showNotification('未找到相关武器', 'info');
             }
         } catch (error) {
             hideLoading();
             console.error('搜索武器失败:', error);
+            showNotification(`搜索失败: ${error.message}`, 'error');
             weaponList.innerHTML = '<p class="no-data">搜索失败，请检查网络连接</p>';
         }
     }

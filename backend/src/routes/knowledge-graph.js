@@ -89,6 +89,7 @@ router.get('/graph-data', (req, res) => {
                 labels: ["Manufacturer"],
                 properties: {
                     name: manufacturer.name,
+                    description: manufacturer.description || '',
                     country: manufacturer.country,
                     founded: manufacturer.founded || ''
                 }

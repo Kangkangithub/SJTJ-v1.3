@@ -27,12 +27,15 @@ router.get('/', optionalAuth, async (req, res) => {
       params.push(country);
     }
     
-    // 获取武器列表
+    // 获取武器列表（包含制造商信息）
     const weapons = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT id, name, type, country, year, description 
-         FROM weapons${whereClause} 
-         ORDER BY created_at DESC 
+        `SELECT w.id, w.name, w.type, w.country, w.year, w.description, m.name as manufacturer
+         FROM weapons w
+         LEFT JOIN weapon_manufacturers wm ON w.id = wm.weapon_id
+         LEFT JOIN manufacturers m ON wm.manufacturer_id = m.id
+         ${whereClause} 
+         ORDER BY w.created_at DESC 
          LIMIT ? OFFSET ?`,
         [...params, parseInt(limit), offset],
         (err, rows) => {
@@ -63,7 +66,8 @@ router.get('/', optionalAuth, async (req, res) => {
           type: weapon.type,
           country: weapon.country,
           year: weapon.year,
-          description: weapon.description
+          description: weapon.description,
+          manufacturer: weapon.manufacturer || null
         })),
         pagination: {
           current_page: parseInt(page),
@@ -83,67 +87,124 @@ router.get('/', optionalAuth, async (req, res) => {
 });
 
 // 搜索武器
-router.get('/search', optionalAuth, async (req, res) => {
-  try {
-    const { q: searchTerm, category, country } = req.query;
-    
-    if (!searchTerm) {
-      return res.status(400).json({
-        success: false,
-        message: '搜索关键词不能为空'
-      });
-    }
-
-    const db = databaseManager.getDatabase();
-    
-    // 构建搜索查询
-    let whereClause = 'WHERE (name LIKE ? OR description LIKE ?)';
-    let params = [`%${searchTerm}%`, `%${searchTerm}%`];
-    
-    if (category) {
-      whereClause += ' AND type = ?';
-      params.push(category);
-    }
-    
-    if (country) {
-      whereClause += ' AND country = ?';
-      params.push(country);
-    }
-
-    const weapons = await new Promise((resolve, reject) => {
-      db.all(
-        `SELECT id, name, type, country, year, description 
-         FROM weapons ${whereClause} 
-         LIMIT 50`,
-        params,
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
+router.get('/search', async (req, res) => {
+    try {
+        const { q } = req.query;
+        
+        if (!q || q.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: '搜索关键词不能为空'
+            });
         }
-      );
-    });
 
-    res.json({
-      success: true,
-      data: {
-        weapons: weapons.map(weapon => ({
-          id: weapon.id.toString(),
-          name: weapon.name,
-          type: weapon.type,
-          country: weapon.country,
-          year: weapon.year,
-          description: weapon.description
-        })),
-        total: weapons.length
-      }
-    });
-  } catch (error) {
-    logger.error('搜索武器错误:', error);
-    res.status(500).json({
-      success: false,
-      message: '搜索武器失败'
-    });
-  }
+        console.log(`搜索武器: ${q}`);
+        
+        const searchTerm = `%${q.trim()}%`;
+        
+        // 使用回调方式而不是prepare方式
+        const query = `
+            SELECT DISTINCT 
+                w.id,
+                w.name,
+                w.type,
+                w.country,
+                w.year,
+                w.description,
+                w.specifications,
+                w.images,
+                w.performance_data,
+                w.created_at,
+                w.updated_at,
+                GROUP_CONCAT(DISTINCT m.name) as manufacturers
+            FROM weapons w
+            LEFT JOIN weapon_manufacturers wm ON w.id = wm.weapon_id
+            LEFT JOIN manufacturers m ON wm.manufacturer_id = m.id
+            WHERE w.name LIKE ? 
+               OR w.type LIKE ? 
+               OR w.country LIKE ? 
+               OR w.description LIKE ?
+               OR m.name LIKE ?
+            GROUP BY w.id, w.name, w.type, w.country, w.year, w.description, w.specifications, w.images, w.performance_data, w.created_at, w.updated_at
+            ORDER BY w.name
+            LIMIT 50
+        `;
+        
+        const db = databaseManager.getDatabase();
+        db.all(query, [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm], (err, weapons) => {
+            if (err) {
+                console.error('数据库查询错误:', err);
+                return res.status(500).json({
+                    success: false,
+                    message: '数据库查询失败',
+                    error: err.message
+                });
+            }
+            
+            try {
+                // 处理制造商数据和JSON字段
+                const processedWeapons = weapons.map(weapon => {
+                    let specifications = {};
+                    let performanceData = {};
+                    let images = [];
+                    
+                    try {
+                        specifications = weapon.specifications ? JSON.parse(weapon.specifications) : {};
+                    } catch (e) {
+                        console.warn('解析specifications失败:', e);
+                        specifications = {};
+                    }
+                    
+                    try {
+                        performanceData = weapon.performance_data ? JSON.parse(weapon.performance_data) : {};
+                    } catch (e) {
+                        console.warn('解析performance_data失败:', e);
+                        performanceData = {};
+                    }
+                    
+                    try {
+                        images = weapon.images ? JSON.parse(weapon.images) : [];
+                    } catch (e) {
+                        console.warn('解析images失败:', e);
+                        images = [];
+                    }
+                    
+                    return {
+                        ...weapon,
+                        manufacturers: weapon.manufacturers ? weapon.manufacturers.split(',') : [],
+                        specifications: specifications,
+                        performance_data: performanceData,
+                        images: images
+                    };
+                });
+
+                console.log(`搜索到 ${processedWeapons.length} 个武器`);
+
+                res.json({
+                    success: true,
+                    data: {
+                        weapons: processedWeapons,
+                        total: processedWeapons.length
+                    }
+                });
+            } catch (processError) {
+                console.error('处理搜索结果失败:', processError);
+                res.status(500).json({
+                    success: false,
+                    message: '处理搜索结果失败',
+                    error: processError.message
+                });
+            }
+        });
+
+    } catch (error) {
+        console.error('搜索武器失败:', error);
+        res.status(500).json({
+            success: false,
+            message: '搜索武器失败',
+            error: error.message
+        });
+    }
 });
 
 // 获取武器统计信息

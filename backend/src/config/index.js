@@ -40,7 +40,7 @@ const config = {
   // API限流配置
   rateLimit: {
     windowMs: process.env.RATE_LIMIT_WINDOW_MS || 900000, // 15分钟
-    maxRequests: process.env.RATE_LIMIT_MAX_REQUESTS || 100
+    maxRequests: process.env.RATE_LIMIT_MAX_REQUESTS || 1000 // 提高到1000个请求
   },
 
   // 缓存配置

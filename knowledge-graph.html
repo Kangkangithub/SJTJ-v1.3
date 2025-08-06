@@ -115,6 +115,11 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">节点类型分布</div>
+                <div class="card-actions">
+                    <button class="card-action-btn" title="刷新数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="nodeTypeDistributionChart"></canvas>
@@ -125,6 +130,11 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">武器年代分布</div>
+                <div class="card-actions">
+                    <button class="card-action-btn" title="刷新数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="weaponYearChart"></canvas>
@@ -135,9 +145,59 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">国家武器数量排行</div>
+                <div class="card-actions">
+                    <button class="card-action-btn" title="刷新数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="countryWeaponChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 武器类型分布 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">武器类型分布</div>
+                <div class="card-actions">
+                    <button class="card-action-btn" title="刷新数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="weaponTypeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 制造商武器数量统计 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">制造商武器数量统计</div>
+                <div class="card-actions">
+                    <button class="card-action-btn" title="刷新数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="manufacturerChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 国家制造商分布 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">国家制造商分布</div>
+                <div class="card-actions">
+                    <button class="card-action-btn" title="刷新数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="countryManufacturerChart"></canvas>
             </div>
         </div>
     </div>
@@ -483,7 +543,8 @@
     <script src="scripts/weapon-type-management.js"></script>
     <script src="scripts/weapon-country-management.js"></script>
     <script src="scripts/weapon-manufacturer-management.js"></script>
-    <script src="scripts/index-charts.js"></script>
+    <script src="scripts/knowledge-graph-analysis-fixed.js"></script>
+    <script src="scripts/knowledge-graph-analysis-manufacturer-complete.js"></script>
     <script src="scripts/weapon-delete-fix.js"></script>
 </body>
 </html>
