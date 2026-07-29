@@ -15,15 +15,22 @@ const config = {
 
   // 数据库配置
   databases: {
+    // SQLite 配置（当前使用）
+    sqlite: {
+      path: process.env.SQLITE_PATH || 'data/herb-knowledge.db'
+    },
+    // Neo4j 配置（完整模式使用）
     neo4j: {
       uri: process.env.NEO4J_URI || 'bolt://localhost:7687',
       username: process.env.NEO4J_USERNAME || 'neo4j',
       password: process.env.NEO4J_PASSWORD || 'password'
     },
+    // MongoDB 配置（完整模式使用）
     mongodb: {
       uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/military-knowledge',
       testUri: process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/military-knowledge-test'
     },
+    // Redis 配置（完整模式使用）
     redis: {
       host: process.env.REDIS_HOST || 'localhost',
       port: process.env.REDIS_PORT || 6379,

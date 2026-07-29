@@ -29,8 +29,7 @@ const uploadsDir = path.join(backendDir, 'uploads');
 // 检查关键文件是否存在
 const requiredFiles = [
   path.join(srcDir, 'app-simple.js'),
-  path.join(srcDir, 'config', 'database-simple.js'),
-  path.join(srcDir, 'routes', 'weapons-simple.js')
+  path.join(srcDir, 'config', 'database-simple.js')
 ];
 
 const missingFiles = requiredFiles.filter(file => !fs.existsSync(file));
@@ -42,17 +41,17 @@ if (missingFiles.length > 0) {
 }
 
 // 启动服务器
-console.log('正在启动兵智世界后端服务 (简化版)...');
+console.log('正在启动神农AI药材知识库服务...');
 console.log(`环境: ${process.env.NODE_ENV}`);
 console.log(`端口: ${process.env.PORT}`);
-console.log(`数据库: SQLite`);
+console.log(`数据库: SQLite (herb-knowledge.db)`);
 console.log('');
 
 try {
   // 导入并启动应用
   const SimpleApp = require('./backend/src/app-simple.js');
   const app = new SimpleApp();
-  
+
   app.start().then(() => {
     console.log('');
     console.log('🚀 服务器启动成功！');
@@ -60,8 +59,7 @@ try {
     console.log('可用的API端点:');
     console.log(`  - 健康检查: http://localhost:${process.env.PORT}/health`);
     console.log(`  - API文档: http://localhost:${process.env.PORT}/api`);
-    console.log(`  - 武器管理: http://localhost:${process.env.PORT}/api/weapons`);
-    console.log(`  - 制造商管理: http://localhost:${process.env.PORT}/api/manufacturers`);
+    console.log(`  - 药材管理: http://localhost:${process.env.PORT}/api/herbs`);
     console.log(`  - 知识图谱: http://localhost:${process.env.PORT}/api/knowledge`);
     console.log('');
     console.log('前端页面:');

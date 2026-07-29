@@ -48,39 +48,37 @@
         </nav>
 
         <main>
-            <h1>武器装备知识图谱</h1>
-            
+            <h1>药材知识图谱</h1>
+
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="搜索武器装备...">
+                <input type="text" id="searchInput" placeholder="搜索药材...">
                 <button id="searchButton">搜索</button>
             </div>
-            
+
             <div class="graph-filters">
                 <div class="filter-group">
-                    <label for="nodeTypeFilter">节点类型:</label>
-                    <select id="nodeTypeFilter">
-                        <option value="all">全部</option>
-                        <option value="Weapon">武器</option>
-                        <option value="Country">国家</option>
-                        <option value="Manufacturer">制造商</option>
-                        <option value="Type">类型</option>
-                    </select>
+                    <label>显示节点:</label>
+                    <div class="toggle-group" id="nodeTypeToggle">
+                        <label class="toggle-btn active" data-type="Herb" style="background:#ff6b6b">药材</label>
+                        <label class="toggle-btn active" data-type="Category" style="background:#4ecdc4">分类</label>
+                        <label class="toggle-btn" data-type="Property" style="background:#ffbe0b">性味</label>
+                        <label class="toggle-btn" data-type="Meridian" style="background:#a786df">归经</label>
+                        <label class="toggle-btn" data-type="Efficacy" style="background:#f97316">功效</label>
+                        <label class="toggle-btn" data-type="Region" style="background:#45b7d1">产地</label>
+                    </div>
                 </div>
+            </div>
+
+            <div class="graph-filters" style="margin-top:8px">
                 <div class="filter-group">
                     <label for="relationTypeFilter">关系类型:</label>
                     <select id="relationTypeFilter">
                         <option value="all">全部</option>
-                        <option value="MANUFACTURED_BY">制造于</option>
-                        <option value="BELONGS_TO">属于</option>
-                        <option value="USED_BY">使用于</option>
-                        <option value="IS_TYPE_OF">类型为</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="viewMode">视图模式:</label>
-                    <select id="viewMode">
-                        <option value="graph">知识图谱</option>
-                        <option value="map">世界地图</option>
+                        <option value="属于">属于</option>
+                        <option value="产自">产自</option>
+                        <option value="性">性味</option>
+                        <option value="入">归经</option>
+                        <option value="功效">功效</option>
                     </select>
                 </div>
             </div>
@@ -90,32 +88,36 @@
                 <button id="zoomOutBtn"><i class="fas fa-search-minus"></i> 缩小</button>
                 <button id="resetBtn"><i class="fas fa-redo"></i> 重置</button>
                 <button id="exportBtn"><i class="fas fa-download"></i> 导出</button>
-                <button id="dataManageBtn" class="data-manage-btn"><i class="fas fa-database"></i> 数据管理</button>
             </div>
-            
+
             <!-- 知识图谱容器 -->
             <div id="graph-container" class="knowledge-graph-container">
                 <div class="graph-legend">
                     <h3>图例</h3>
                     <div class="legend-item">
                         <span class="legend-color" style="background-color: #ff6b6b;"></span>
-                        <span class="legend-label">武器</span>
+                        <span class="legend-label">药材</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color" style="background-color: #4ecdc4;"></span>
-                        <span class="legend-label">国家</span>
+                        <span class="legend-label">分类</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color" style="background-color: #ffbe0b;"></span>
-                        <span class="legend-label">制造商</span>
+                        <span class="legend-label">性味</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color" style="background-color: #a786df;"></span>
-                        <span class="legend-label">类型</span>
+                        <span class="legend-label">归经</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #f97316;"></span>
+                        <span class="legend-label">功效</span>
                     </div>
                 </div>
                 <div id="graph-visualization" class="graph-visualization">
                     <!-- D3.js将在这里渲染知识图谱 -->
+                    <div id="linkTooltip" class="link-tooltip" style="display:none;"></div>
                 </div>
                 <div class="node-details">
                     <h3>节点详情</h3>

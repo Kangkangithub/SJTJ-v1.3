@@ -6,10 +6,15 @@ const logger = require('../utils/logger');
 
 class UserService {
     constructor() {
-        this.dbPath = path.join(__dirname, '../../data/military-knowledge.db');
+        // 使用配置中的数据库路径，确保与环境变量一致
+        const config = require('../config');
+        const sqlitePath = config.databases.sqlite.path;
+        this.dbPath = path.isAbsolute(sqlitePath)
+            ? sqlitePath
+            : path.join(__dirname, '../../', sqlitePath);
     }
 
-    // 获取数据库连接
+    // 获取数据库连接（独立连接，避免影响主连接）
     getDb() {
         return new sqlite3.Database(this.dbPath);
     }

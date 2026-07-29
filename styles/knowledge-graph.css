@@ -95,6 +95,7 @@
 }
 
 .graph-visualization {
+    position: relative;
     width: 100%;
     height: 100%;
     min-height: 500px;
@@ -1273,4 +1274,61 @@
         flex-direction: column;
         gap: 0.3rem;
     }
+}
+
+/* ===== 节点类型切换按钮 ===== */
+.toggle-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.toggle-btn {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: all 0.25s ease;
+    color: #fff;
+    font-weight: 500;
+    user-select: none;
+}
+.toggle-btn.active {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
+.toggle-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+@media (max-width: 768px) {
+    .toggle-group { gap: 4px; }
+    .toggle-btn { font-size: 12px; padding: 3px 10px; }
+}
+
+/* ===== 连接线标签样式 ===== */
+.link-label-group {
+    pointer-events: none;
+    cursor: default;
+}
+.link-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: 0.5px;
+}
+
+/* ===== 关系悬停提示 ===== */
+.link-tooltip {
+    position: absolute;
+    background: rgba(15,23,42,0.92);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 100;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    white-space: nowrap;
+    transform: translate(-50%, -28px);
 }

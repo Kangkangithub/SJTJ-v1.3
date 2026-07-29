@@ -127,13 +127,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 首先尝试获取统计数据
             try {
-                const statsResponse = await fetch('http://localhost:3001/api/weapons/statistics');
+                const statsResponse = await fetch('http://localhost:3001/api/herbs/statistics');
                 if (statsResponse.ok) {
                     const statsResult = await statsResponse.json();
                     console.log('获取到统计数据:', statsResult);
                     
                     if (statsResult.success && statsResult.data) {
-                        generateChartsFromStats(statsResult.data);
+                        // 映射字段名（新API: by_category替代by_type, by_region替代by_country）
+                        const mappedData = {
+                            by_type: statsResult.data.by_category || [],
+                            by_country: statsResult.data.by_region || []
+                        };
+                        generateChartsFromStats(mappedData);
                         isDataLoaded = true;
                         return;
                     }
@@ -143,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 如果统计接口失败，尝试武器列表接口
-            const response = await fetch('http://localhost:3001/api/weapons?limit=1000');
+            const response = await fetch('http://localhost:3001/api/herbs?limit=1000');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -152,30 +157,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             console.log('API返回的原始数据:', result);
             
-            // 处理不同的API响应格式
+            // 处理API响应格式（药材API）
             let weapons = [];
-            if (Array.isArray(result)) {
-                weapons = result;
-            } else if (result.data && result.data.weapons && Array.isArray(result.data.weapons)) {
-                weapons = result.data.weapons;
+            if (result.data && result.data.herbs && Array.isArray(result.data.herbs)) {
+                weapons = result.data.herbs;
             } else if (result.data && Array.isArray(result.data)) {
                 weapons = result.data;
-            } else if (result.weapons && Array.isArray(result.weapons)) {
-                weapons = result.weapons;
-            } else if (result.success && result.data && result.data.weapons) {
-                weapons = result.data.weapons;
             } else {
                 console.error('API返回的数据格式不正确:', result);
-                console.log('尝试直接使用result作为数组...');
-                // 最后尝试：如果result本身看起来像武器数据
-                if (result.name && result.type) {
-                    weapons = [result];
-                } else {
-                    throw new Error('API返回的数据格式不正确');
-                }
+                throw new Error('API返回的数据格式不正确');
             }
-            
-            console.log('处理后的武器数据:', weapons.length, '条');
+
+            console.log('处理后的药材数据:', weapons.length, '条');
             
             if (weapons.length === 0) {
                 console.log('没有武器数据，显示无数据提示');
@@ -238,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 });
-                console.log('武器类型图表生成完成');
+                console.log('药材分类图表生成完成');
             }
         }
 
@@ -251,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: {
                         labels: statsData.by_country.map(item => item.country),
                         datasets: [{
-                            label: '武器数量',
+                            label: '药材数量',
                             data: statsData.by_country.map(item => item.count),
                             backgroundColor: themeColors.success,
                             borderRadius: 4
@@ -870,8 +863,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
         
-        // 每3秒检查一次数据更新
-        setInterval(checkForUpdates, 3000);
+        // 每30秒检查一次数据更新（避免触发API限流）
+        setInterval(checkForUpdates, 30000);
     }
 
     // 初始化

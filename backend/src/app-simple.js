@@ -13,9 +13,36 @@ const logger = require('./utils/logger');
 // 导入简化版服务
 const userService = require('./services/userService-simple');
 
+// 通用 API 缓存（参考数据几乎不改，缓存 1 小时）
+const apiCache = new Map();
+const API_CACHE_TTL = 3600 * 1000;
+function cacheMiddleware(key) {
+  return (req, res, next) => {
+    const cached = apiCache.get(key);
+    if (cached && Date.now() < cached.expires) {
+      return res.json(cached.data);
+    }
+    // 拦截 res.json 以缓存响应
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+      if (body && body.success) {
+        apiCache.set(key, { data: body, expires: Date.now() + API_CACHE_TTL });
+      }
+      return originalJson(body);
+    };
+    next();
+  };
+}
+function clearApiCache(pattern) {
+  if (!pattern) { apiCache.clear(); return; }
+  for (const key of apiCache.keys()) {
+    if (key.includes(pattern)) apiCache.delete(key);
+  }
+}
+
 // 导入路由（需要创建简化版）
 const authRoutes = require('./routes/auth-simple');
-const weaponRoutes = require('./routes/weapons-simple');
+const herbRoutes = require('./routes/herbs');
 
 class SimpleApp {
   constructor() {
@@ -27,9 +54,25 @@ class SimpleApp {
 
   // 设置中间件
   setupMiddleware() {
-    // 安全中间件
+    // 安全中间件（开放 CSP 以允许内联脚本，适配现有 HTML 页面）
     this.app.use(helmet({
-      crossOriginResourcePolicy: { policy: "cross-origin" }
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'",
+            "https://cdn.jsdelivr.net",
+            "https://d3js.org",
+            "https://unpkg.com",
+            "https://cdnjs.cloudflare.com"
+          ],
+          scriptSrcAttr: ["'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+          imgSrc: ["'self'", "data:", "blob:"],
+          connectSrc: ["'self'", "http://localhost:3001", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+          fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "data:"]
+        }
+      }
     }));
 
     // CORS配置
@@ -57,6 +100,8 @@ class SimpleApp {
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
     // 静态文件服务
+    // 前端页面（项目根目录下的 HTML 文件）
+    this.app.use(express.static(path.join(__dirname, '../../')));
     this.app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
     this.app.use('/public', express.static(path.join(__dirname, '../public')));
 
@@ -91,35 +136,59 @@ class SimpleApp {
     this.app.get('/api', (req, res) => {
       res.json({
         success: true,
-        message: '兵智世界后端API服务 (简化版)',
-        version: '1.0.0',
-        database: 'SQLite',
+        message: '神农AI - 药材知识库后端API服务',
+        version: '2.0.0',
+        database: 'SQLite (herb-knowledge.db)',
         endpoints: {
-          auth: '/api/auth',
-          weapons: '/api/weapons',
-          weaponImages: '/api/weapon-images',
-          weaponVideos: '/api/weapon-videos',
-          weaponModels: '/api/weapon-models',
-          manufacturers: '/api/manufacturers',
-          manufacturerStatistics: '/api/manufacturer-statistics',
-          weaponTypes: '/api/weapon-types',
-          weaponCountries: '/api/weapon-countries',
-          knowledge: '/api/knowledge'
+          herbs: '/api/herbs',
+          herbDetail: '/api/herbs/:id',
+          herbSearch: '/api/herbs/search',
+          herbStatistics: '/api/herbs/statistics',
+          herbCategories: '/api/herb-categories',
+          herbRegions: '/api/herb-regions',
+          herbSources: '/api/herb-sources',
+          herbImages: '/api/herb-images/:herbId',
+          formulas: '/api/formulas',
+          formulaDetail: '/api/formulas/:id',
+          aiChat: '/api/ai-gateway/chat (需登录)',
+          aiAnalyzeHerb: '/api/ai-gateway/analyze-herb (需登录)',
+          aiCheckCompatibility: '/api/ai-gateway/check-compatibility (需登录)',
+          knowledgeGraph: '/api/knowledge/graph-data',
+          herbDetailsAPI: '/api/knowledge/herb-details/:name',
+          regionDistribution: '/api/knowledge/region-distribution',
+          mockData: '/api/mock',
+          health: '/api/health',
+          auth: '/api/auth/login'
         }
       });
     });
 
     // 注册路由
     this.app.use('/api/auth', authRoutes);
-    this.app.use('/api/weapons', weaponRoutes);
-    this.app.use('/api/weapon-images', require('./routes/weapon-images'));
-    this.app.use('/api/weapon-videos', require('./routes/weapon-videos'));
-    this.app.use('/api/weapon-models', require('./routes/weapon-models'));
-    this.app.use('/api/manufacturers', require('./routes/manufacturers'));
-    this.app.use('/api/manufacturer-statistics', require('./routes/manufacturer-statistics'));
-    this.app.use('/api/weapon-types', require('./routes/weapon-types'));
-    this.app.use('/api/weapon-countries', require('./routes/weapon-countries'));
+    this.app.use('/api/herbs', herbRoutes);
+    this.app.use('/api/herb-categories', cacheMiddleware('herb-categories'), require('./routes/herb-categories'));
+    this.app.use('/api/herb-regions', cacheMiddleware('herb-regions'), require('./routes/herb-regions'));
+    this.app.use('/api/herb-sources', cacheMiddleware('herb-sources'), require('./routes/herb-sources'));
+    this.app.use('/api/herb-images', require('./routes/herb-images'));
+    this.app.use('/api/formulas', require('./routes/formulas'));
     this.app.use('/api/knowledge', require('./routes/knowledge-graph'));
+    this.app.use('/api/ai-gateway', require('./routes/ai-gateway'));
+    this.app.use('/api/mock', require('./routes/mock'));
+
+    // 手动清缓存（管理员用）
+    this.app.post('/api/cache/clear', (req, res) => {
+      apiCache.clear();
+      res.json({ success: true, message: 'API 缓存已清空' });
+    });
+
+    // ===== 旧武器 API → 新药材 API 重定向（B 更新前端前的临时方案） =====
+    this.app.use('/api/weapons', (req, res) => res.redirect(301, '/api/herbs' + req.url.replace(/^\/api\/weapons/, '')));
+    this.app.use('/api/weapon-types', (req, res) => res.redirect(301, '/api/herb-categories'));
+    this.app.use('/api/weapon-countries', (req, res) => res.redirect(301, '/api/herb-regions'));
+    this.app.use('/api/manufacturers', (req, res) => res.redirect(301, '/api/herb-sources'));
+    this.app.use('/api/weapon-images', (req, res) => res.redirect(301, '/api/herb-images'));
+    this.app.get('/api/weapon-models*', (req, res) => res.status(410).json({ success: false, message: '3D模型功能已迁移' }));
+    this.app.get('/api/weapon-videos*', (req, res) => res.status(410).json({ success: false, message: '视频功能已迁移' }));
 
     // 404处理
     this.app.use('*', (req, res) => {

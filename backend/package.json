@@ -7,7 +7,8 @@
     "start": "node src/app-simple.js",
     "dev": "nodemon src/app-simple.js",
     "test": "jest",
-    "init-db": "node scripts/init-database-simple.js"
+    "init-db": "node scripts/init-database-simple.js",
+    "init-herb-db": "node scripts/init-herb-data.js"
   },
   "keywords": [
     "military",

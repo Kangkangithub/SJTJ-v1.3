@@ -10,14 +10,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const width = document.getElementById('graph-visualization').clientWidth;
     const height = document.getElementById('graph-visualization').clientHeight;
     
-    // 节点颜色映射
+    // 节点颜色映射（药材知识图谱）
     const nodeColors = {
-        'Weapon': '#ff6b6b',
-        'Country': '#4ecdc4',
-        'Manufacturer': '#ffbe0b',
-        'Type': '#a786df',
+        'Herb': '#ff6b6b',          // 药材 - 红色
+        'Category': '#4ecdc4',       // 分类 - 青色
+        'Region': '#45b7d1',         // 产地 - 蓝色
+        'Source': '#96ceb4',         // 来源 - 绿色
+        'Property': '#ffbe0b',       // 性味 - 金色
+        'Meridian': '#a786df',       // 归经 - 紫色
+        'Efficacy': '#f97316',       // 功效 - 橙色
         'default': '#999999'
     };
+
+    // 关系类型颜色映射
+    const linkColors = {
+        '属于': '#4ecdc4',
+        '产自': '#45b7d1',
+        '性': '#ffbe0b',
+        '入': '#a786df',
+        '功效': '#f97316',
+    };
+
+    // 节点大小映射
+    function getNodeRadius(label) {
+        const sizes = {
+            'Herb': 18,
+            'Category': 14,
+            'Region': 12,
+            'Source': 10,
+            'Property': 10,
+            'Meridian': 10,
+            'Efficacy': 10
+        };
+        return sizes[label] || 12;
+    }
     
     // 创建D3.js力导向图
     const svg = d3.select('#graph-visualization')
@@ -210,10 +236,10 @@ function clearManufacturerSelection() {
     
     // 初始化力导向仿真
     const simulation = d3.forceSimulation()
-        .force('link', d3.forceLink().id(d => d.id).distance(100))
-        .force('charge', d3.forceManyBody().strength(-200))
+        .force('link', d3.forceLink().id(d => d.id).distance(120))
+        .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(30));
+        .force('collision', d3.forceCollide().radius(35));
     
     // 创建箭头标记
     svg.append('defs').selectAll('marker')
@@ -244,36 +270,49 @@ function clearManufacturerSelection() {
         // 清除现有图形
         svg.selectAll('*').remove();
         
-        // 重新创建箭头标记
+        // 重新创建箭头标记（按关系类型着色）
+        const linkTypes = [...new Set(data.links.map(l => l.type))];
         svg.append('defs').selectAll('marker')
-            .data(['end'])
+            .data(linkTypes)
             .enter().append('marker')
-            .attr('id', d => d)
+            .attr('id', d => `arrow-${d}`)
             .attr('viewBox', '0 -5 10 10')
-            .attr('refX', 25)
+            .attr('refX', 22)
             .attr('refY', 0)
             .attr('markerWidth', 6)
             .attr('markerHeight', 6)
             .attr('orient', 'auto')
             .append('path')
-            .attr('fill', 'rgba(255, 255, 255, 0.3)')
+            .attr('fill', d => linkColors[d] || 'rgba(255,255,255,0.3)')
             .attr('d', 'M0,-5L10,0L0,5');
         
+        const defaultLinkColor = 'rgba(255,255,255,0.25)';
+
         // 创建连接线
         const link = svg.append('g')
             .selectAll('line')
             .data(data.links)
             .enter().append('line')
             .attr('class', 'link')
-            .attr('marker-end', 'url(#end)');
-        
-        // 创建连接标签
-        const linkLabel = svg.append('g')
-            .selectAll('text')
-            .data(data.links)
-            .enter().append('text')
-            .attr('class', 'link-label')
-            .text(d => d.type);
+            .attr('stroke', d => linkColors[d.type] || defaultLinkColor)
+            .attr('stroke-opacity', 0.4)
+            .attr('stroke-width', d => d.type === '属于' ? 2 : 1.2)
+            .attr('marker-end', d => `url(#arrow-${d.type})`);
+
+        // 连接线悬停提示（悬浮弹出式）
+        const tooltip = document.getElementById('linkTooltip');
+        link.on('mouseover', function(event, d) {
+            tooltip.textContent = d.type;
+            tooltip.style.display = 'block';
+        })
+        .on('mousemove', function(event) {
+            const rect = this.closest('.graph-visualization').getBoundingClientRect();
+            tooltip.style.left = (event.clientX - rect.left) + 'px';
+            tooltip.style.top = (event.clientY - rect.top) + 'px';
+        })
+        .on('mouseout', function() {
+            tooltip.style.display = 'none';
+        });
         
         // 创建节点容器组
         const node = svg.append('g')
@@ -285,7 +324,7 @@ function clearManufacturerSelection() {
         // 添加节点圆形
         node.append('circle')
             .attr('class', 'node')
-            .attr('r', 15)
+            .attr('r', d => getNodeRadius(d.labels[0]))
             .attr('fill', d => nodeColors[d.labels[0]] || nodeColors.default)
             .call(d3.drag()
                 .on('start', dragStarted)
@@ -341,11 +380,6 @@ function clearManufacturerSelection() {
                     .attr('y1', d => d.source.y)
                     .attr('x2', d => d.target.x)
                     .attr('y2', d => d.target.y);
-                
-                // 更新连接标签位置
-                linkLabel
-                    .attr('x', d => (d.source.x + d.target.x) / 2)
-                    .attr('y', d => (d.source.y + d.target.y) / 2);
                 
                 // 更新节点组位置
                 node
@@ -784,11 +818,12 @@ function clearManufacturerSelection() {
 
             const jsonData = apiResponse.data;
             graphData = jsonData;
-            
+
             // 更新过滤器选项
             updateFilterOptions(jsonData);
-            
-            renderGraph(jsonData);
+
+            // 初始渲染：应用 toggle 开关过滤，默认只显示药材+分类
+            applyFilters();
             
             console.log('知识图谱数据加载成功:', jsonData);
         } catch (error) {
@@ -822,27 +857,7 @@ function clearManufacturerSelection() {
         
         console.log('发现的节点类型:', Array.from(nodeTypes));
         console.log('发现的关系类型:', Array.from(relationTypes));
-        
-        // 更新节点类型过滤器
-        const nodeTypeFilter = document.getElementById('nodeTypeFilter');
-        if (nodeTypeFilter) {
-            // 保留"全部"选项
-            const currentValue = nodeTypeFilter.value;
-            nodeTypeFilter.innerHTML = '<option value="all">全部</option>';
-            
-            Array.from(nodeTypes).sort().forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                nodeTypeFilter.appendChild(option);
-            });
-            
-            // 恢复之前的选择
-            if (currentValue && Array.from(nodeTypes).includes(currentValue)) {
-                nodeTypeFilter.value = currentValue;
-            }
-        }
-        
+
         // 更新关系类型过滤器
         const relationTypeFilter = document.getElementById('relationTypeFilter');
         if (relationTypeFilter) {
@@ -869,7 +884,7 @@ function clearManufacturerSelection() {
         const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
         
         if (!searchTerm) {
-            renderGraph(graphData);
+            applyFilters();
             return;
         }
         
@@ -891,93 +906,68 @@ function clearManufacturerSelection() {
         });
     });
     
-    // 过滤器功能 - 添加错误处理和调试信息
-    const nodeTypeFilterElement = document.getElementById('nodeTypeFilter');
-    const relationTypeFilterElement = document.getElementById('relationTypeFilter');
-    
-    if (nodeTypeFilterElement) {
-        nodeTypeFilterElement.addEventListener('change', applyFilters);
-        console.log('节点类型过滤器已绑定');
-    } else {
-        console.error('未找到节点类型过滤器元素 (nodeTypeFilter)');
+    // ===== 节点类型切换按钮 =====
+    let activeNodeTypes = new Set(['Herb', 'Category']); // 默认只显示药材+分类
+    const toggleGroup = document.getElementById('nodeTypeToggle');
+
+    if (toggleGroup) {
+        toggleGroup.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.dataset.type;
+                if (type === 'Herb') return; // 药材始终显示
+                this.classList.toggle('active');
+                if (this.classList.contains('active')) {
+                    activeNodeTypes.add(type);
+                } else {
+                    activeNodeTypes.delete(type);
+                }
+                applyFilters();
+            });
+        });
     }
-    
+
+    // 关系类型过滤
+    const relationTypeFilterElement = document.getElementById('relationTypeFilter');
     if (relationTypeFilterElement) {
         relationTypeFilterElement.addEventListener('change', applyFilters);
-        console.log('关系类型过滤器已绑定');
-    } else {
-        console.error('未找到关系类型过滤器元素 (relationTypeFilter)');
     }
-    
+
     function applyFilters() {
-        console.log('应用过滤器...');
-        
         if (!graphData || !graphData.nodes || !graphData.links) {
-            console.warn('图数据未加载，无法应用过滤器');
+            console.warn('图数据未加载');
             return;
         }
-        
-        const nodeTypeFilter = nodeTypeFilterElement ? nodeTypeFilterElement.value : 'all';
+
         const relationTypeFilter = relationTypeFilterElement ? relationTypeFilterElement.value : 'all';
-        
-        console.log('过滤条件:', { nodeTypeFilter, relationTypeFilter });
-        
-        // 过滤节点
-        let filteredNodes = [...graphData.nodes];
-        if (nodeTypeFilter !== 'all') {
-            filteredNodes = graphData.nodes.filter(node => {
-                const hasLabel = node.labels && node.labels.includes(nodeTypeFilter);
-                return hasLabel;
-            });
-            console.log(`节点过滤后数量: ${filteredNodes.length}/${graphData.nodes.length}`);
-        }
-        
+
+        // 过滤节点：只保留选中类型的节点
+        let filteredNodes = graphData.nodes.filter(node => {
+            const label = node.labels && node.labels[0];
+            return activeNodeTypes.has(label);
+        });
+
         const nodeIds = new Set(filteredNodes.map(node => node.id));
-        
+
         // 过滤连接
-        let filteredLinks = [...graphData.links];
-        
-        // 首先根据关系类型过滤
-        if (relationTypeFilter !== 'all') {
-            filteredLinks = graphData.links.filter(link => {
-                const matchesType = link.type === relationTypeFilter;
-                return matchesType;
-            });
-            console.log(`关系过滤后数量: ${filteredLinks.length}/${graphData.links.length}`);
-        }
-        
-        // 然后过滤连接，确保连接的节点在过滤后的节点中
-        filteredLinks = filteredLinks.filter(link => {
+        let filteredLinks = graphData.links.filter(link => {
             const sourceId = link.source.id || link.source;
             const targetId = link.target.id || link.target;
             const hasValidNodes = nodeIds.has(sourceId) && nodeIds.has(targetId);
-            return hasValidNodes;
+            if (!hasValidNodes) return false;
+            if (relationTypeFilter !== 'all' && link.type !== relationTypeFilter) return false;
+            return true;
         });
-        
-        // 修复：如果只选择了节点类型过滤，显示所有该类型的节点，即使没有连接
-        // 如果同时选择了关系类型过滤，才需要确保节点有相关连接
-        if (nodeTypeFilter !== 'all' && relationTypeFilter !== 'all') {
-            // 两个过滤器都启用时，只显示有相关连接的节点
-            const linkedNodeIds = new Set();
-            filteredLinks.forEach(link => {
-                linkedNodeIds.add(link.source.id || link.source);
-                linkedNodeIds.add(link.target.id || link.target);
-            });
-            
-            filteredNodes = filteredNodes.filter(node => linkedNodeIds.has(node.id));
-        } else if (relationTypeFilter !== 'all') {
-            // 只启用关系类型过滤时，显示所有与该关系相关的节点
-            const linkedNodeIds = new Set();
-            filteredLinks.forEach(link => {
-                linkedNodeIds.add(link.source.id || link.source);
-                linkedNodeIds.add(link.target.id || link.target);
-            });
-            
-            // 从原始节点中找到所有相关节点
-            filteredNodes = graphData.nodes.filter(node => linkedNodeIds.has(node.id));
-        }
-        // 如果只启用节点类型过滤，保持所有该类型的节点，不管是否有连接
-        
+
+        // 确保显示的节点都有至少一条连接（除了药材节点自身）
+        const linkedNodeIds = new Set();
+        filteredLinks.forEach(link => {
+            linkedNodeIds.add(link.source.id || link.source);
+            linkedNodeIds.add(link.target.id || link.target);
+        });
+        filteredNodes = filteredNodes.filter(node =>
+            node.labels[0] === 'Herb' || linkedNodeIds.has(node.id)
+        );
+
         console.log('最终过滤结果:', { 
             nodes: filteredNodes.length, 
             links: filteredLinks.length 

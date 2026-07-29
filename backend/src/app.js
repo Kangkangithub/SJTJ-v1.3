@@ -34,7 +34,23 @@ class App {
   setupMiddleware() {
     // 安全中间件
     this.app.use(helmet({
-      crossOriginResourcePolicy: { policy: "cross-origin" }
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'",
+            "https://cdn.jsdelivr.net",
+            "https://d3js.org",
+            "https://unpkg.com",
+            "https://cdnjs.cloudflare.com"
+          ],
+          scriptSrcAttr: ["'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+          imgSrc: ["'self'", "data:", "blob:"],
+          connectSrc: ["'self'", "http://localhost:3001", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+          fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "data:"]
+        }
+      }
     }));
 
     // CORS配置
@@ -62,6 +78,8 @@ class App {
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
     // 静态文件服务
+    // 前端页面（项目根目录下的 HTML 文件）
+    this.app.use(express.static(path.join(__dirname, '../../')));
     this.app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
     // API限流

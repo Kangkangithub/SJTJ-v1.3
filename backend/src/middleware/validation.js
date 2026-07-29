@@ -169,10 +169,96 @@ const knowledgeQuerySchema = Joi.object({
     })
 });
 
+// 药材创建验证规则
+const herbSchema = Joi.object({
+  name: Joi.string()
+    .min(1)
+    .max(100)
+    .required()
+    .messages({
+      'string.min': '药材名称不能为空',
+      'string.max': '药材名称不能超过100个字符',
+      'any.required': '药材名称是必填项'
+    }),
+
+  pinyin: Joi.string()
+    .max(50)
+    .optional()
+    .allow(null, '')
+    .messages({ 'string.max': '拼音不能超过50个字符' }),
+
+  latin_name: Joi.string()
+    .max(100)
+    .optional()
+    .allow(null, ''),
+
+  alias: Joi.string()
+    .max(100)
+    .optional()
+    .allow(null, '')
+    .messages({ 'string.max': '别名不能超过100个字符' }),
+
+  category_id: Joi.number()
+    .integer()
+    .positive()
+    .optional()
+    .allow(null)
+    .messages({
+      'number.base': '分类ID必须是数字',
+      'number.positive': '分类ID必须为正数'
+    }),
+
+  region_id: Joi.number()
+    .integer()
+    .positive()
+    .optional()
+    .allow(null),
+
+  source_id: Joi.number()
+    .integer()
+    .positive()
+    .optional()
+    .allow(null),
+
+  description: Joi.string()
+    .max(500)
+    .optional()
+    .allow('')
+    .messages({ 'string.max': '描述不能超过500个字符' }),
+
+  efficacy: Joi.string()
+    .max(500)
+    .optional()
+    .allow(''),
+
+  usage_dosage: Joi.string()
+    .max(100)
+    .optional()
+    .allow(''),
+
+  caution: Joi.string()
+    .max(500)
+    .optional()
+    .allow(''),
+
+  property_ids: Joi.array()
+    .items(Joi.number().integer().positive())
+    .optional(),
+
+  meridian_ids: Joi.array()
+    .items(Joi.number().integer().positive())
+    .optional(),
+
+  efficacy_ids: Joi.array()
+    .items(Joi.number().integer().positive())
+    .optional()
+});
+
 module.exports = {
   validate,
   userRegistrationSchema,
   userLoginSchema,
   weaponSchema,
+  herbSchema,
   knowledgeQuerySchema
 };

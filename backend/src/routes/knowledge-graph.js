@@ -1,484 +1,358 @@
 const express = require('express');
 const Database = require('better-sqlite3');
 const path = require('path');
+const config = require('../config');
 
 const router = express.Router();
 
-// 获取知识图谱数据
+// 简单的内存缓存
+const cache = new Map();
+const CACHE_TTL = 3600 * 1000; // 1小时
+
+function getCached(key) {
+  const item = cache.get(key);
+  if (!item) return null;
+  if (Date.now() > item.expires) { cache.delete(key); return null; }
+  return item.value;
+}
+
+function setCache(key, value, ttl = CACHE_TTL) {
+  cache.set(key, { value, expires: Date.now() + ttl });
+}
+
+// 获取数据库路径
+function getDbPath() {
+  const sqlitePath = config.databases.sqlite.path;
+  return path.isAbsolute(sqlitePath)
+    ? sqlitePath
+    : path.join(__dirname, '../../', sqlitePath);
+}
+
+// =============================================
+// 药材知识图谱数据
+// =============================================
 router.get('/graph-data', (req, res) => {
-    try {
-        const db = new Database(path.join(__dirname, '../../data/military-knowledge.db'));
-        
-        // 获取所有武器数据
-        const weapons = db.prepare(`
-            SELECT id, name, type, country, year, description 
-            FROM weapons 
-            ORDER BY id
-        `).all();
-        
-        // 获取所有国家数据
-        const countries = db.prepare(`
-            SELECT id, name 
-            FROM countries 
-            ORDER BY id
-        `).all();
-        
-        // 获取所有分类数据
-        const categories = db.prepare(`
-            SELECT id, name, description 
-            FROM categories 
-            ORDER BY id
-        `).all();
-        
-        // 获取所有制造商数据
-        const manufacturers = db.prepare(`
-            SELECT id, name, country, founded, description 
-            FROM manufacturers 
-            ORDER BY id
-        `).all();
-        
-        db.close();
-        
-        // 构建节点数据
-        const nodes = [];
-        const links = [];
-        
-        // 添加武器节点
-        weapons.forEach(weapon => {
-            nodes.push({
-                id: `weapon_${weapon.id}`,
-                labels: ["Weapon"],
-                properties: {
-                    name: weapon.name,
-                    description: weapon.description || '',
-                    year: weapon.year ? weapon.year.toString() : '',
-                    type: weapon.type,
-                    country: weapon.country
-                }
-            });
+  try {
+    // 缓存命中直接返回
+    const cached = getCached('graph-data');
+    if (cached) return res.json({ success: true, data: cached, cached: true });
+
+    const db = new Database(getDbPath());
+
+    // 获取所有药材
+    const herbs = db.prepare(`
+      SELECT h.id, h.name, h.pinyin, h.description, hc.name as category, hr.name as region
+      FROM herbs h
+      LEFT JOIN herb_categories hc ON h.category_id = hc.id
+      LEFT JOIN herb_regions hr ON h.region_id = hr.id
+      ORDER BY h.id
+    `).all();
+
+    // 获取所有分类
+    const categories = db.prepare(`
+      SELECT id, name, description FROM herb_categories ORDER BY id
+    `).all();
+
+    // 获取所有产地
+    const regions = db.prepare(`
+      SELECT id, name, description FROM herb_regions ORDER BY id
+    `).all();
+
+    // 获取所有来源
+    const sources = db.prepare(`
+      SELECT id, name FROM herb_sources ORDER BY id
+    `).all();
+
+    // 获取性味
+    const properties = db.prepare(`
+      SELECT id, name, type FROM properties ORDER BY id
+    `).all();
+
+    // 获取归经
+    const meridians = db.prepare(`
+      SELECT id, name FROM meridians ORDER BY id
+    `).all();
+
+    // 获取药材-性味关联
+    const herbProperties = db.prepare(`
+      SELECT hp.herb_id, hp.property_id, h.name as herb_name
+      FROM herb_properties hp
+      JOIN herbs h ON hp.herb_id = h.id
+    `).all();
+
+    // 获取药材-归经关联
+    const herbMeridians = db.prepare(`
+      SELECT hm.herb_id, hm.meridian_id
+      FROM herb_meridians hm
+    `).all();
+
+    // 获取药材-功效关联
+    const herbEfficacies = db.prepare(`
+      SELECT he.herb_id, he.efficacy_id, e.name as efficacy_name
+      FROM herb_efficacies he
+      JOIN efficacies e ON he.efficacy_id = e.id
+    `).all();
+
+    // 获取功效
+    const efficacies = db.prepare(`
+      SELECT id, name FROM efficacies ORDER BY id
+    `).all();
+
+    db.close();
+
+    // 构建节点
+    const nodes = [];
+    const links = [];
+
+    // 药材节点
+    herbs.forEach(h => {
+      nodes.push({
+        id: `herb_${h.id}`,
+        labels: ['Herb'],
+        properties: {
+          name: h.name,
+          pinyin: h.pinyin || '',
+          description: h.description || '',
+          category: h.category || '',
+          region: h.region || ''
+        }
+      });
+    });
+
+    // 分类节点
+    categories.forEach(c => {
+      nodes.push({
+        id: `category_${c.id}`,
+        labels: ['Category'],
+        properties: { name: c.name, description: c.description || '' }
+      });
+    });
+
+    // 产地节点
+    regions.forEach(r => {
+      nodes.push({
+        id: `region_${r.id}`,
+        labels: ['Region'],
+        properties: { name: r.name, description: r.description || '' }
+      });
+    });
+
+    // 来源节点
+    sources.forEach(s => {
+      nodes.push({
+        id: `source_${s.id}`,
+        labels: ['Source'],
+        properties: { name: s.name }
+      });
+    });
+
+    // 性味节点
+    properties.forEach(p => {
+      nodes.push({
+        id: `property_${p.id}`,
+        labels: ['Property'],
+        properties: { name: p.name, type: p.type }
+      });
+    });
+
+    // 归经节点
+    meridians.forEach(m => {
+      nodes.push({
+        id: `meridian_${m.id}`,
+        labels: ['Meridian'],
+        properties: { name: m.name }
+      });
+    });
+
+    // 功效节点
+    efficacies.forEach(e => {
+      if (!nodes.find(n => n.id === `efficacy_${e.id}`)) {
+        nodes.push({
+          id: `efficacy_${e.id}`,
+          labels: ['Efficacy'],
+          properties: { name: e.name }
         });
-        
-        // 添加国家节点
-        countries.forEach(country => {
-            nodes.push({
-                id: `country_${country.id}`,
-                labels: ["Country"],
-                properties: {
-                    name: country.name,
-                    region: getRegionByCountry(country.name)
-                }
-            });
-        });
-        
-        // 添加分类节点
-        categories.forEach(category => {
-            nodes.push({
-                id: `type_${category.id}`,
-                labels: ["Type"],
-                properties: {
-                    name: category.name,
-                    description: category.description || ''
-                }
-            });
-        });
-        
-        // 添加制造商节点
-        manufacturers.forEach(manufacturer => {
-            nodes.push({
-                id: `manufacturer_${manufacturer.id}`,
-                labels: ["Manufacturer"],
-                properties: {
-                    name: manufacturer.name,
-                    description: manufacturer.description || '',
-                    country: manufacturer.country,
-                    founded: manufacturer.founded || ''
-                }
-            });
-        });
-        
-        // 创建关系链接
-        weapons.forEach(weapon => {
-            const weaponNodeId = `weapon_${weapon.id}`;
-            
-            // 武器 -> 国家 关系
-            const countryNode = countries.find(c => c.name === weapon.country);
-            if (countryNode) {
-                links.push({
-                    source: weaponNodeId,
-                    target: `country_${countryNode.id}`,
-                    type: "使用"
-                });
-            }
-            
-            // 武器 -> 类型 关系 (使用模糊匹配)
-            const typeNode = findMatchingType(weapon.type, categories);
-            if (typeNode) {
-                links.push({
-                    source: weaponNodeId,
-                    target: `type_${typeNode.id}`,
-                    type: "类型"
-                });
-            }
-            
-            // 武器 -> 制造商 关系 (基于武器名称和制造商推断)
-            const manufacturerNode = findMatchingManufacturer(weapon, manufacturers);
-            if (manufacturerNode) {
-                links.push({
-                    source: weaponNodeId,
-                    target: `manufacturer_${manufacturerNode.id}`,
-                    type: "制造"
-                });
-            }
-        });
-        
-        // 制造商 -> 国家 关系
-        manufacturers.forEach(manufacturer => {
-            const countryNode = countries.find(c => c.name === manufacturer.country);
-            if (countryNode) {
-                links.push({
-                    source: `manufacturer_${manufacturer.id}`,
-                    target: `country_${countryNode.id}`,
-                    type: "属于"
-                });
-            }
-        });
-        
-        res.json({
-            success: true,
-            data: {
-                nodes,
-                links
-            }
-        });
-        
-    } catch (error) {
-        console.error('获取知识图谱数据失败:', error);
-        res.status(500).json({
-            success: false,
-            message: '获取知识图谱数据失败',
-            error: error.message
-        });
-    }
+      }
+    });
+
+    // 创建关系链接
+    // 药材 → 分类
+    herbs.forEach(h => {
+      if (h.category) {
+        const cat = categories.find(c => c.name === h.category);
+        if (cat) links.push({ source: `herb_${h.id}`, target: `category_${cat.id}`, type: '属于' });
+      }
+    });
+
+    // 药材 → 产地
+    herbs.forEach(h => {
+      if (h.region) {
+        const region = regions.find(r => r.name === h.region);
+        if (region) links.push({ source: `herb_${h.id}`, target: `region_${region.id}`, type: '产自' });
+      }
+    });
+
+    // 药材 → 来源
+    herbs.forEach(h => {
+      // source_id is in herbs table but not selected - need to re-query or handle differently
+    });
+
+    // 药材 → 性味
+    herbProperties.forEach(hp => {
+      links.push({ source: `herb_${hp.herb_id}`, target: `property_${hp.property_id}`, type: '性' });
+    });
+
+    // 药材 → 归经
+    herbMeridians.forEach(hm => {
+      links.push({ source: `herb_${hm.herb_id}`, target: `meridian_${hm.meridian_id}`, type: '入' });
+    });
+
+    // 药材 → 功效
+    herbEfficacies.forEach(he => {
+      links.push({ source: `herb_${he.herb_id}`, target: `efficacy_${he.efficacy_id}`, type: '功效' });
+    });
+
+    // 写入缓存
+    const result = { nodes, links };
+    setCache('graph-data', result);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('获取知识图谱数据失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取知识图谱数据失败',
+      error: error.message
+    });
+  }
 });
 
-// 根据国家名称获取地区
-function getRegionByCountry(countryName) {
-    const regionMap = {
-        '美国': '北美洲',
-        '俄罗斯': '欧亚大陆',
-        '中国': '亚洲',
-        '德国': '欧洲',
-        '法国': '欧洲',
-        '英国': '欧洲',
-        '以色列': '中东',
-        '瑞典': '欧洲',
-        '意大利': '欧洲',
-        '日本': '亚洲',
-        '奥地利': '欧洲',
-        '西班牙': '欧洲'
-    };
-    return regionMap[countryName] || '未知';
-}
+// =============================================
+// 获取药材详情（替代原 country-details）
+// =============================================
+router.get('/herb-details/:herbName', (req, res) => {
+  try {
+    const herbName = decodeURIComponent(req.params.herbName);
+    const db = new Database(getDbPath());
 
-// 查找匹配的类型（支持模糊匹配）
-function findMatchingType(weaponType, categories) {
-    // 直接匹配
-    let match = categories.find(c => c.name === weaponType);
-    if (match) return match;
-    
-    // 模糊匹配映射
-    const typeMapping = {
-        '步枪': ['自动步枪', '突击步枪', '步枪'],
-        '手枪': ['手枪', 'pistol'],
-        '坦克': ['坦克', '主战坦克'],
-        '战斗机': ['战斗机', '战机'],
-        '导弹': ['导弹', '火箭'],
-        '直升机': ['直升机', '武装直升机'],
-        '驱逐舰': ['驱逐舰', '军舰'],
-        '巡洋舰': ['巡洋舰', '军舰'],
-        '轰炸机': ['轰炸机', '战略轰炸机'],
-        '防空系统': ['防空系统', '防空导弹']
-    };
-    
-    for (const [key, values] of Object.entries(typeMapping)) {
-        if (values.includes(weaponType)) {
-            match = categories.find(c => values.includes(c.name));
-            if (match) return match;
-        }
-    }
-    
-    return null;
-}
+    const herb = db.prepare(`
+      SELECT h.*, hc.name as category_name, hr.name as region_name, hs.name as source_name
+      FROM herbs h
+      LEFT JOIN herb_categories hc ON h.category_id = hc.id
+      LEFT JOIN herb_regions hr ON h.region_id = hr.id
+      LEFT JOIN herb_sources hs ON h.source_id = hs.id
+      WHERE h.name = ?
+    `).get(herbName);
 
-// 查找匹配的制造商
-function findMatchingManufacturer(weapon, manufacturers) {
-    const weaponName = weapon.name.toLowerCase();
-    
-    // 基于武器名称的制造商映射
-    const manufacturerMapping = {
-        'ak-47': '卡拉什尼科夫公司',
-        'ak47': '卡拉什尼科夫公司',
-        'm16': '柯尔特公司',
-        'glock': '格洛克公司',
-        'f-22': '洛克希德·马丁',
-        'f22': '洛克希德·马丁',
-        'su-57': '苏霍伊设计局',
-        'j-20': '成都飞机工业集团',
-        '东风': '中国航天科工集团',
-        '阿帕奇': '波音公司',
-        'apache': '波音公司',
-        'b-2': '诺斯罗普·格鲁曼',
-        'tu-160': '图波列夫设计局',
-        'h-6': '西安飞机工业集团',
-        'f-35': '洛克希德·马丁',
-        '台风': '空中客车防务与航天',
-        '阵风': '达索航空',
-        '055': '江南造船厂',
-        '伯克': '通用动力',
-        's-400': '阿尔马兹-安泰',
-        '爱国者': '雷神公司',
-        'hq-9': '中国航天科工集团'
-    };
-    
-    for (const [key, manufacturerName] of Object.entries(manufacturerMapping)) {
-        if (weaponName.includes(key)) {
-            const manufacturer = manufacturers.find(m => m.name === manufacturerName);
-            if (manufacturer) return manufacturer;
-        }
+    if (!herb) {
+      db.close();
+      return res.status(404).json({ success: false, message: '药材不存在' });
     }
-    
-    return null;
-}
 
-// 获取世界地图国家数据
-/**
- * 获取国家详细信息
- */
-router.get('/country-details/:countryName', (req, res) => {
-    try {
-        const countryName = decodeURIComponent(req.params.countryName);
-        const db = new Database(path.join(__dirname, '../../data/military-knowledge.db'));
-        
-        // 获取国家基本信息
-        const countryInfo = db.prepare(`
-            SELECT id, name, code
-            FROM countries
-            WHERE name = ?
-        `).get(countryName);
-        
-        if (!countryInfo) {
-            db.close();
-            return res.status(404).json({
-                success: false,
-                message: '国家不存在'
-            });
-        }
-        
-        // 获取武器数量
-        const weaponCount = db.prepare(`
-            SELECT COUNT(*) as count
-            FROM weapons
-            WHERE country = ?
-        `).get(countryName).count;
-        
-        // 获取制造商数量
-        const manufacturerCount = db.prepare(`
-            SELECT COUNT(*) as count
-            FROM manufacturers
-            WHERE country = ?
-        `).get(countryName).count;
-        
-        // 获取武器类型分布
-        const weaponTypes = db.prepare(`
-            SELECT type, COUNT(*) as count
-            FROM weapons
-            WHERE country = ?
-            GROUP BY type
-            ORDER BY count DESC
-        `).all(countryName);
-        
-        // 获取武器列表（前20个）
-        const weapons = db.prepare(`
-            SELECT id, name, type, year, description
-            FROM weapons
-            WHERE country = ?
-            ORDER BY year DESC
-            LIMIT 20
-        `).all(countryName);
-        
-        // 获取制造商列表（前20个）
-        const manufacturers = db.prepare(`
-            SELECT id, name, founded, description
-            FROM manufacturers
-            WHERE country = ?
-            ORDER BY name
-            LIMIT 20
-        `).all(countryName);
-        
-        db.close();
-        
-        // 中英文国家名称映射
-        const countryNameMapping = {
-            '中国': 'China',
-            '美国': 'United States',
-            '俄罗斯': 'Russia',
-            '德国': 'Germany',
-            '法国': 'France',
-            '英国': 'United Kingdom',
-            '日本': 'Japan',
-            '韩国': 'South Korea',
-            '印度': 'India',
-            '以色列': 'Israel',
-            '意大利': 'Italy',
-            '西班牙': 'Spain',
-            '加拿大': 'Canada',
-            '澳大利亚': 'Australia'
-        };
-        
-        res.json({
-            success: true,
-            data: {
-                basicInfo: {
-                    id: countryInfo.id,
-                    chineseName: countryInfo.name,
-                    englishName: countryNameMapping[countryInfo.name] || countryInfo.name,
-                    code: countryInfo.code || ''
-                },
-                statistics: {
-                    weaponCount,
-                    manufacturerCount,
-                    weaponTypeCount: weaponTypes.length
-                },
-                weaponTypes,
-                weapons,
-                manufacturers
-            }
-        });
-        
-    } catch (error) {
-        console.error('获取国家详情失败:', error);
-        res.status(500).json({
-            success: false,
-            message: '获取国家详情失败',
-            error: error.message
-        });
-    }
+    // 性味
+    const properties = db.prepare(`
+      SELECT p.name, p.type, hp.intensity
+      FROM herb_properties hp
+      JOIN properties p ON hp.property_id = p.id
+      WHERE hp.herb_id = ?
+    `).all(herb.id);
+
+    // 归经
+    const meridians = db.prepare(`
+      SELECT m.name, m.abbreviation
+      FROM herb_meridians hm
+      JOIN meridians m ON hm.meridian_id = m.id
+      WHERE hm.herb_id = ?
+    `).all(herb.id);
+
+    // 功效
+    const efficacies = db.prepare(`
+      SELECT e.name
+      FROM herb_efficacies he
+      JOIN efficacies e ON he.efficacy_id = e.id
+      WHERE he.herb_id = ?
+    `).all(herb.id);
+
+    // 包含此药材的方剂
+    const formulas = db.prepare(`
+      SELECT f.id, f.name, fh.dosage, fh.role
+      FROM formula_herbs fh
+      JOIN formulas f ON fh.formula_id = f.id
+      WHERE fh.herb_id = ?
+      ORDER BY f.name
+    `).all(herb.id);
+
+    // 配伍禁忌
+    const incompatibilities = db.prepare(`
+      SELECT h2.name as herb2_name, cr.relation_type, cr.description
+      FROM compatibility_rules cr
+      JOIN herbs h2 ON cr.herb2_id = h2.id
+      WHERE cr.herb1_id = ? AND cr.relation_type IN ('相反','相恶')
+    `).all(herb.id);
+
+    db.close();
+
+    res.json({
+      success: true,
+      data: {
+        basicInfo: herb,
+        properties,
+        meridians,
+        efficacies,
+        formulas,
+        incompatibilities
+      }
+    });
+  } catch (error) {
+    console.error('获取药材详情失败:', error);
+    res.status(500).json({ success: false, message: '获取药材详情失败', error: error.message });
+  }
 });
 
-router.get('/world-map-data', (req, res) => {
-    try {
-        const db = new Database(path.join(__dirname, '../../data/military-knowledge.db'));
-        
-        // 获取所有国家数据，包括武器数量统计和经纬度坐标
-        const countries = db.prepare(`
-            SELECT 
-                c.id, 
-                c.name, 
-                c.code,
-                c.latitude,
-                c.longitude,
-                COUNT(w.id) as weaponCount
-            FROM countries c
-            LEFT JOIN weapons w ON c.name = w.country
-            GROUP BY c.id, c.name, c.code, c.latitude, c.longitude
-            ORDER BY c.name
-        `).all();
-        
-        db.close();
-        
-        // 中英文国家名称映射表
-        const countryNameMapping = {
-            '中国': 'China',
-            '美国': 'United States',
-            '俄罗斯': 'Russia',
-            '德国': 'Germany',
-            '法国': 'France',
-            '英国': 'United Kingdom',
-            '日本': 'Japan',
-            '韩国': 'South Korea',
-            '印度': 'India',
-            '以色列': 'Israel',
-            '意大利': 'Italy',
-            '西班牙': 'Spain',
-            '加拿大': 'Canada',
-            '澳大利亚': 'Australia',
-            '巴西': 'Brazil',
-            '阿根廷': 'Argentina',
-            '墨西哥': 'Mexico',
-            '南非': 'South Africa',
-            '埃及': 'Egypt',
-            '土耳其': 'Turkey',
-            '伊朗': 'Iran',
-            '沙特阿拉伯': 'Saudi Arabia',
-            '巴基斯坦': 'Pakistan',
-            '朝鲜': 'North Korea',
-            '越南': 'Vietnam',
-            '泰国': 'Thailand',
-            '马来西亚': 'Malaysia',
-            '印度尼西亚': 'Indonesia',
-            '菲律宾': 'Philippines',
-            '波兰': 'Poland',
-            '乌克兰': 'Ukraine',
-            '瑞典': 'Sweden',
-            '挪威': 'Norway',
-            '芬兰': 'Finland',
-            '丹麦': 'Denmark',
-            '荷兰': 'Netherlands',
-            '比利时': 'Belgium',
-            '瑞士': 'Switzerland',
-            '奥地利': 'Austria',
-            '捷克': 'Czech Republic',
-            '匈牙利': 'Hungary',
-            '罗马尼亚': 'Romania',
-            '希腊': 'Greece',
-            '新西兰': 'New Zealand'
-        };
-        
-        // 构建地图数据，直接使用数据库中的经纬度坐标
-        const mapData = countries
-            .filter(country => country.latitude !== null && country.longitude !== null) // 过滤掉没有坐标的国家
-            .map(country => {
-                const englishName = countryNameMapping[country.name] || country.name;
-                return {
-                    id: country.id,
-                    chineseName: country.name,
-                    englishName: englishName,
-                    code: country.code || '',
-                    weaponCount: country.weaponCount || 0,
-                    latitude: country.latitude,
-                    longitude: country.longitude,
-                    coordinates: [country.longitude, country.latitude] // [lng, lat] 格式用于D3投影
-                };
-            });
-        
-        // 统计信息
-        const totalCountries = countries.length;
-        const countriesWithCoords = mapData.length;
-        const countriesWithoutCoords = totalCountries - countriesWithCoords;
-        
-        console.log(`世界地图数据: 总计${totalCountries}个国家, ${countriesWithCoords}个有坐标, ${countriesWithoutCoords}个无坐标`);
-        
-        res.json({
-            success: true,
-            data: {
-                countries: mapData,
-                mapping: countryNameMapping,
-                statistics: {
-                    total: totalCountries,
-                    withCoordinates: countriesWithCoords,
-                    withoutCoordinates: countriesWithoutCoords
-                }
-            }
-        });
-        
-    } catch (error) {
-        console.error('获取世界地图数据失败:', error);
-        res.status(500).json({
-            success: false,
-            message: '获取世界地图数据失败',
-            error: error.message
-        });
+// =============================================
+// 地区药材分布数据（替代原 world-map-data）
+// =============================================
+router.get('/region-distribution', (req, res) => {
+  try {
+    const db = new Database(getDbPath());
+
+    const regions = db.prepare(`
+      SELECT hr.id, hr.name, hr.description, COUNT(h.id) as herb_count
+      FROM herb_regions hr
+      LEFT JOIN herbs h ON hr.id = h.region_id
+      GROUP BY hr.id, hr.name
+      ORDER BY herb_count DESC
+    `).all();
+
+    // 每个地区的药材列表
+    const regionHerbs = {};
+    for (const r of regions) {
+      regionHerbs[r.name] = db.prepare(`
+        SELECT h.id, h.name, hc.name as category
+        FROM herbs h
+        LEFT JOIN herb_categories hc ON h.category_id = hc.id
+        WHERE h.region_id = ?
+        ORDER BY h.name
+        LIMIT 20
+      `).all(r.id);
     }
+
+    db.close();
+
+    res.json({
+      success: true,
+      data: {
+        regions,
+        regionHerbs,
+        statistics: {
+          totalRegions: regions.length,
+          totalHerbs: regions.reduce((sum, r) => sum + r.herb_count, 0)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取地区分布数据失败:', error);
+    res.status(500).json({ success: false, message: '获取地区分布数据失败', error: error.message });
+  }
 });
 
 module.exports = router;
