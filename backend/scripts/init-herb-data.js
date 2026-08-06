@@ -1278,16 +1278,23 @@ async function initHerbDatabase() {
 
       for (const herb of herbs) {
         // 插入药材
-        const herbId = await new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
           db.run(
             'INSERT OR IGNORE INTO herbs (name, pinyin, alias, category_id, description, usage_dosage, caution) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [herb.name, herb.pinyin || null, herb.alias || null, categoryId, herb.description, herb.usage_dosage || null, herb.caution || null],
-            function (err) {
-              if (err) reject(err);
-              else resolve(this.lastID);
-            }
+            (err) => err ? reject(err) : resolve()
           );
         });
+
+        // 查回真实 id（INSERT OR IGNORE 跳过已存在药材时 lastID 无效，不能用于关联插入）
+        const herbRow = await new Promise((resolve, reject) => {
+          db.get('SELECT id FROM herbs WHERE name = ?', [herb.name], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          });
+        });
+        const herbId = herbRow ? herbRow.id : null;
+        if (!herbId) continue;
 
         herbCount++;
 
@@ -1355,16 +1362,24 @@ async function initHerbDatabase() {
     let formulaHerbCount = 0;
 
     for (const formula of FORMULAS) {
-      const formulaId = await new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         db.run(
           'INSERT OR IGNORE INTO formulas (name, pinyin, category, description, source) VALUES (?, ?, ?, ?, ?)',
           [formula.name, formula.pinyin || null, formula.category || null, formula.description, formula.source || null],
-          function (err) {
-            if (err) reject(err);
-            else resolve(this.lastID);
-          }
+          (err) => err ? reject(err) : resolve()
         );
       });
+
+      // 查回真实 id（INSERT OR IGNORE 跳过已存在方剂时 lastID 无效）
+      const formulaRow = await new Promise((resolve, reject) => {
+        db.get('SELECT id FROM formulas WHERE name = ?', [formula.name], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      const formulaId = formulaRow ? formulaRow.id : null;
+      if (!formulaId) continue;
+
       formulaCount++;
 
       for (const fh of formula.herbs) {
