@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中药测验 - 本草纲目</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/quiz.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">本草纲目</div>
+            <div class="user-status">
+                <a href="login.html" class="btn">登录</a>
+            </div>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
+                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
+                <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 方剂推荐</a></li>
+                <li><a href="herb-recognition.html"><i class="fas fa-camera"></i> 药材识别</a></li>
+                <li><a href="quiz.html" class="active"><i class="fas fa-bullseye"></i> 中药测验</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
+            </ul>
+        </nav>
+        <div class="content">
+            <div class="test-header">
+                <h1>中医药知识测验</h1>
+                <p>挑战您的中医药知识，传承千年智慧！</p>
+            </div>
+
+            <div id="quizSelection" class="section-container">
+                <div class="selection-card">
+                    <div class="section-header"><h2>测验类别</h2></div>
+                    <div class="category-grid">
+                        <div class="category-item" data-category="herbs">
+                            <div class="category-icon"><i class="fas fa-leaf"></i></div>
+                            <div class="category-title">中药材</div>
+                        </div>
+                        <div class="category-item" data-category="formulas">
+                            <div class="category-icon"><i class="fas fa-book"></i></div>
+                            <div class="category-title">方剂学</div>
+                        </div>
+                        <div class="category-item" data-category="theory">
+                            <div class="category-icon"><i class="fas fa-brain"></i></div>
+                            <div class="category-title">中医理论</div>
+                        </div>
+                        <div class="category-item" data-category="classics">
+                            <div class="category-icon"><i class="fas fa-scroll"></i></div>
+                            <div class="category-title">经典典籍</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="selection-card">
+                    <div class="section-header"><h2>难度级别</h2></div>
+                    <div class="difficulty-selector">
+                        <div class="difficulty-option" data-difficulty="easy">
+                            <div class="difficulty-icon"><i class="fas fa-star"></i></div>
+                            <div class="difficulty-info">
+                                <div class="difficulty-title">入门</div>
+                                <div class="difficulty-desc">适合初学者的基础中医药知识</div>
+                            </div>
+                        </div>
+                        <div class="difficulty-option" data-difficulty="medium">
+                            <div class="difficulty-icon"><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                            <div class="difficulty-info">
+                                <div class="difficulty-title">进阶</div>
+                                <div class="difficulty-desc">中等难度，需要一定中医药知识</div>
+                            </div>
+                        </div>
+                        <div class="difficulty-option" data-difficulty="hard">
+                            <div class="difficulty-icon"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                            <div class="difficulty-info">
+                                <div class="difficulty-title">大师</div>
+                                <div class="difficulty-desc">高难度，考验专业中医药知识</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="start-section">
+                    <button id="startQuizButton" class="start-button" disabled>
+                        <i class="fas fa-play"></i> 开始测验
+                    </button>
+                    <div class="quiz-info">
+                        <div class="info-item">
+                            <i class="fas fa-question-circle"></i>
+                            <span id="questionCount">10个问题</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>时间限制：<span id="timeLimit">10</span>分钟</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="quizContainer" class="quiz-container" style="display: none;">
+                <div class="quiz-top-section">
+                    <div class="quiz-info-bar">
+                        <div class="info-pill category-pill">
+                            <i class="fas fa-folder"></i>
+                            <span id="currentCategory">中药材</span>
+                        </div>
+                        <div class="info-pill difficulty-pill">
+                            <i class="fas fa-signal"></i>
+                            <span id="currentDifficulty">入门</span>
+                        </div>
+                        <div class="info-pill timer-pill">
+                            <i class="fas fa-clock"></i>
+                            <span id="timer">10:00</span>
+                        </div>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="progress-text">
+                            <span id="currentQuestionNum">1</span>/<span id="totalQuestions">10</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" id="progressBar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quizContent">
+                    <div class="quiz-question">
+                        <h3 id="questionText">问题将显示在这里</h3>
+                        <div class="question-image-container" id="questionImageContainer"></div>
+                        <div class="quiz-options" id="optionsContainer"></div>
+                    </div>
+                    <div class="quiz-actions">
+                        <button id="nextButton" class="action-button">
+                            <i class="fas fa-arrow-right"></i> 下一题
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hint-section">
+                    <button id="hintButton" class="hint-button">
+                        <i class="fas fa-lightbulb"></i> 使用提示
+                        <span class="hint-count">3</span>
+                    </button>
+                    <div id="hintContent" class="hint-content" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div id="resultsContainer" class="section-container" style="display: none;">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2>测验完成!</h2>
+                        <div class="score-display">
+                            <div class="score-circle"><span id="scorePercentage">85%</span></div>
+                            <div class="score-text">
+                                <span id="scoreText">您的得分：8/10</span>
+                                <span id="timeUsed">用时：8分32秒</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="badge-section" id="badgeSection">
+                        <div class="section-header"><h3>获得勋章</h3></div>
+                        <div class="badges-container" id="badgesContainer"></div>
+                    </div>
+
+                    <div class="review-section">
+                        <div class="section-header"><h3>答题回顾</h3></div>
+                        <div class="review-list" id="reviewList"></div>
+                    </div>
+
+                    <div class="results-actions">
+                        <button id="restartButton" class="action-button"><i class="fas fa-redo"></i> 重新测验</button>
+                        <button id="shareButton" class="action-button action-button-secondary"><i class="fas fa-share-alt"></i> 分享成绩</button>
+                        <button id="viewLeaderboardButton" class="action-button action-button-secondary"><i class="fas fa-trophy"></i> 查看排行榜</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="leaderboardContainer" class="section-container" style="display: none;">
+                <div class="leaderboard-card">
+                    <div class="section-header">
+                        <h2>测验排行榜</h2>
+                        <div class="leaderboard-tabs">
+                            <button class="tab-button active" data-tab="weekly">本周</button>
+                            <button class="tab-button" data-tab="monthly">本月</button>
+                            <button class="tab-button" data-tab="alltime">总榜</button>
+                        </div>
+                    </div>
+                    <div class="leaderboard-filters">
+                        <select id="categoryFilter">
+                            <option value="all">所有类别</option>
+                            <option value="herbs">中药材</option>
+                            <option value="formulas">方剂学</option>
+                            <option value="theory">中医理论</option>
+                            <option value="classics">经典典籍</option>
+                        </select>
+                        <select id="difficultyFilter">
+                            <option value="all">所有难度</option>
+                            <option value="easy">入门</option>
+                            <option value="medium">进阶</option>
+                            <option value="hard">大师</option>
+                        </select>
+                    </div>
+                    <div class="leaderboard-table-container">
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr><th>排名</th><th>用户</th><th>分类</th><th>难度</th><th>得分</th><th>用时</th><th>日期</th></tr>
+                            </thead>
+                            <tbody id="leaderboardTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="leaderboard-actions">
+                        <button id="backToResultsButton" class="action-button"><i class="fas fa-arrow-left"></i> 返回结果</button>
+                        <button id="newQuizButton" class="action-button action-button-secondary"><i class="fas fa-plus"></i> 新测验</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/quiz.js"></script>
+</body>
+</html>

@@ -81,7 +81,7 @@ function initializeManufacturerSelection() {
 // 加载制造商列表
 async function loadManufacturers() {
     try {
-        const response = await fetch('/api/manufacturers');
+        const response = await fetch('/api/herb-sources');
         const result = await response.json();
         
         if (result.success) {
@@ -498,7 +498,7 @@ function clearManufacturerSelection() {
             
             // 添加图片管理标题
             const imageTitle = document.createElement('h4');
-            imageTitle.textContent = '武器图片管理';
+            imageTitle.textContent = '药材图片管理';
             imageTitle.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
             imageManagementContainer.appendChild(imageTitle);
             
@@ -538,7 +538,7 @@ function clearManufacturerSelection() {
             
             // 添加视频管理标题
             const videoTitle = document.createElement('h4');
-            videoTitle.textContent = '武器视频管理';
+            videoTitle.textContent = '药材视频管理';
             videoTitle.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
             videoManagementContainer.appendChild(videoTitle);
             
@@ -703,7 +703,7 @@ function clearManufacturerSelection() {
             
             // 添加3D模型管理标题
             const modelTitle = document.createElement('h4');
-            modelTitle.textContent = '武器3D模型管理';
+            modelTitle.textContent = '药材3D模型管理';
             modelTitle.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
             modelManagementContainer.appendChild(modelTitle);
             
@@ -1019,7 +1019,7 @@ function clearManufacturerSelection() {
         
         const downloadLink = document.createElement('a');
         downloadLink.href = svgUrl;
-        downloadLink.download = '武器装备知识图谱.svg';
+        downloadLink.download = '药材知识图谱.svg';
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -1206,7 +1206,7 @@ function generateAnalysisCharts(data) {
         data: {
             labels: sortedCountries.map(([country]) => country),
             datasets: [{
-                label: '武器数量',
+                label: '药材数量',
                 data: sortedCountries.map(([, count]) => count),
                 backgroundColor: '#3498db',
                 borderRadius: 4
@@ -1218,11 +1218,11 @@ function generateAnalysisCharts(data) {
                 legend: { display: false },
                 title: {
                     display: true,
-                    text: '各国武器数量排行'
+                    text: '产地药材数量排行'
                 },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `${ctx.raw} 件武器`
+                        label: ctx => `${ctx.raw} 种药材`
                     }
                 }
             },
@@ -1474,7 +1474,7 @@ function initializeBatchAdd() {
             }
 
             // 直接使用direct-add端点，绕过权限验证
-            const response = await fetch('http://localhost:3001/api/weapons/direct-add', {
+            const response = await fetch('http://localhost:3001/api/herbs/direct-add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1541,7 +1541,7 @@ function initializeEditData() {
             showLoading('正在搜索武器...');
             console.log(`搜索武器: ${searchTerm}`);
             
-            const response = await fetch(`http://localhost:3001/api/weapons/search?q=${encodeURIComponent(searchTerm)}`);
+            const response = await fetch(`http://localhost:3001/api/herbs/search?q=${encodeURIComponent(searchTerm)}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -1603,7 +1603,7 @@ function initializeEditData() {
 async function editWeapon(weaponId) {
     try {
         showLoading('正在加载武器信息...');
-        const response = await fetch(`http://localhost:3001/api/weapons/${weaponId}`);
+        const response = await fetch(`http://localhost:3001/api/herbs/${weaponId}`);
         const result = await response.json();
         hideLoading();
 
@@ -1794,7 +1794,7 @@ function showEditForm(weaponData) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-        const response = await fetch(`http://localhost:3001/api/weapons/${document.getElementById('editWeaponId').value}`, {
+        const response = await fetch(`http://localhost:3001/api/herbs/${document.getElementById('editWeaponId').value}`, {
                 method: 'PUT',
                 headers: headers,
                 body: JSON.stringify(weaponData)
@@ -1847,7 +1847,7 @@ async function deleteWeapon(weaponId, weaponName) {
     try {
         showLoading('正在删除武器...');
         
-        const response = await fetch(`http://localhost:3001/api/weapons/direct-delete/${weaponId}`, {
+        const response = await fetch(`http://localhost:3001/api/herbs/direct-delete/${weaponId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -2035,7 +2035,7 @@ function initializeImportExport() {
                         headers['Authorization'] = `Bearer ${token}`;
                     }
 
-                    const response = await fetch('http://localhost:3001/api/weapons/direct-add', {
+                    const response = await fetch('http://localhost:3001/api/herbs/direct-add', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2105,7 +2105,7 @@ function initializeImportExport() {
     exportDataBtn.addEventListener('click', async function() {
         try {
             showLoading('正在导出数据...');
-            const response = await fetch('http://localhost:3001/api/weapons?limit=1000');
+            const response = await fetch('http://localhost:3001/api/herbs?limit=1000');
             const result = await response.json();
             hideLoading();
 
@@ -2269,7 +2269,7 @@ async function tryDirectAdd(weaponData, form, specsContainer) {
                 weapon.manufacturer = manufacturerInfo;
             }
 
-            const response = await fetch('http://localhost:3000/api/weapons/direct-add', {
+            const response = await fetch('http://localhost:3000/api/herbs/direct-add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2337,7 +2337,7 @@ async function tryDirectImport(importData) {
                     weaponData.manufacturer = manufacturerInfo;
                 }
 
-                const response = await fetch('http://localhost:3000/api/weapons/direct-add', {
+                const response = await fetch('http://localhost:3000/api/herbs/direct-add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2491,7 +2491,7 @@ function initializeManufacturerSelection() {
 // 加载现有制造商列表
 async function loadExistingManufacturers() {
     try {
-        const response = await fetch('http://localhost:3001/api/manufacturers');
+        const response = await fetch('http://localhost:3001/api/herb-sources');
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
@@ -2548,7 +2548,7 @@ function populateManufacturerOptions(manufacturers) {
 // 检查制造商是否已存在
 async function checkManufacturerExists(manufacturerName) {
     try {
-        const response = await fetch(`http://localhost:3001/api/manufacturers/check?name=${encodeURIComponent(manufacturerName)}`);
+        const response = await fetch(`http://localhost:3001/api/herb-sources/check?name=${encodeURIComponent(manufacturerName)}`);
         if (response.ok) {
             const result = await response.json();
             if (result.exists) {
@@ -2590,7 +2590,7 @@ async function createManufacturer(manufacturerData) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch('http://localhost:3001/api/manufacturers', {
+        const response = await fetch('http://localhost:3001/api/herb-sources', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(manufacturerData)

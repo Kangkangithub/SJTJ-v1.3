@@ -16,7 +16,7 @@ async function checkWeaponNameDuplicate(weaponName) {
         
         // 首先尝试专用的检查API
         try {
-            const response = await fetch(`http://localhost:3001/api/weapons/check-name?name=${encodeURIComponent(weaponName.trim())}`);
+            const response = await fetch(`http://localhost:3001/api/herbs/check-name?name=${encodeURIComponent(weaponName.trim())}`);
             
             if (response.ok) {
                 const result = await response.json();
@@ -30,7 +30,7 @@ async function checkWeaponNameDuplicate(weaponName) {
         }
         
         // 如果专用API不可用，使用搜索API检查
-        const searchResponse = await fetch(`http://localhost:3001/api/weapons/search?q=${encodeURIComponent(weaponName.trim())}`);
+        const searchResponse = await fetch(`http://localhost:3001/api/herbs/search?q=${encodeURIComponent(weaponName.trim())}`);
         
         if (searchResponse.ok) {
             const searchResult = await searchResponse.json();
@@ -347,7 +347,7 @@ async function submitWeaponData(weaponData, form, specsContainer) {
         }
 
         // 直接使用direct-add端点，绕过权限验证
-        const response = await fetch('http://localhost:3001/api/weapons/direct-add', {
+        const response = await fetch('http://localhost:3001/api/herbs/direct-add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

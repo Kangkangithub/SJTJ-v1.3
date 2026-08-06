@@ -1,19 +1,16 @@
-// 首页图表脚本
+// 首页图表脚本 - 中医药版本
 document.addEventListener('DOMContentLoaded', function() {
-    // 检查是否在正确的页面上（避免在其他页面执行）
-    const weaponCountElement = document.getElementById('weaponCountChart');
-    if (!weaponCountElement) {
+    const herbCategoryElement = document.getElementById('herbCategoryChart');
+    if (!herbCategoryElement) {
         console.log('index-charts.js: 不在首页，跳过图表初始化');
-        return; // 如果不是首页，直接返回
+        return;
     }
-    
-    // 设置Chart.js全局默认值
+
     Chart.defaults.color = '#e0e0e0';
     Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
     Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-    
-    // 自定义主题色
-    const themeColors = {
+
+    const colors = {
         blue: '#3498db',
         green: '#1abc9c',
         yellow: '#f1c40f',
@@ -23,41 +20,33 @@ document.addEventListener('DOMContentLoaded', function() {
         lightGreen: '#2ecc71',
         orange: '#e67e22'
     };
-    
-    // 通用图表配置
+
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: {
-                display: false
-            },
+            legend: { display: false },
             tooltip: {
                 backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                titleFont: {
-                    size: 14
-                },
-                bodyFont: {
-                    size: 13
-                },
+                titleFont: { size: 14 },
+                bodyFont: { size: 13 },
                 padding: 10,
                 borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                displayColors: true
+                borderColor: 'rgba(255, 255, 255, 0.1)'
             }
         }
     };
-    
-    // 1. 武器装备数量统计柱状图
-    const weaponCountCtx = weaponCountElement.getContext('2d');
-    const weaponCountChart = new Chart(weaponCountCtx, {
+
+    // 1. 药材分类统计柱状图
+    const herbCategoryCtx = herbCategoryElement.getContext('2d');
+    const herbCategoryChart = new Chart(herbCategoryCtx, {
         type: 'bar',
         data: {
-            labels: ['防空系统', '战斗机', '坦克', '导弹', '舰艇'],
+            labels: ['补虚药', '清热药', '解表药', '活血化瘀药', '利水渗湿药'],
             datasets: [{
-                label: '数量',
-                data: [68, 79, 58, 47, 39],
-                backgroundColor: themeColors.blue,
+                label: '药材数量',
+                data: [39, 35, 28, 25, 22],
+                backgroundColor: colors.green,
                 borderWidth: 0,
                 borderRadius: 4,
                 barPercentage: 0.6,
@@ -67,43 +56,30 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             ...commonOptions,
             scales: {
-                x: {
-                    grid: {
-                        display: false
-                    }
-                },
+                x: { grid: { display: false } },
                 y: {
                     beginAtZero: true,
-                    max: 80,
-                    ticks: {
-                        stepSize: 20
-                    }
-                }
-            },
-            plugins: {
-                ...commonOptions.plugins,
-                title: {
-                    display: false,
-                    text: '武器装备数量统计'
+                    max: 45,
+                    ticks: { stepSize: 10 }
                 }
             }
         }
     });
-    
-    // 2. 武器装备使用趋势折线图
-    const qaUsageCtx = document.getElementById('qaUsageChart').getContext('2d');
-    const qaUsageChart = new Chart(qaUsageCtx, {
+
+    // 2. 平台使用趋势折线图
+    const usageTrendCtx = document.getElementById('usageTrendChart').getContext('2d');
+    const usageTrendChart = new Chart(usageTrendCtx, {
         type: 'line',
         data: {
             labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
             datasets: [{
-                label: '使用次数',
-                data: [450, 590, 680, 780, 890, 980, 1080],
-                borderColor: themeColors.blue,
+                label: '查询次数',
+                data: [320, 450, 560, 680, 750, 890, 960],
+                borderColor: colors.blue,
                 backgroundColor: 'rgba(52, 152, 219, 0.1)',
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: themeColors.blue,
+                pointBackgroundColor: colors.blue,
                 pointBorderColor: '#fff',
                 pointRadius: 4,
                 pointHoverRadius: 6
@@ -112,90 +88,70 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             ...commonOptions,
             scales: {
-                x: {
-                    grid: {
-                        display: false
-                    }
-                },
+                x: { grid: { display: false } },
                 y: {
                     beginAtZero: true,
                     max: 1200,
-                    ticks: {
-                        stepSize: 200
-                    }
+                    ticks: { stepSize: 200 }
                 }
             }
         }
     });
-    
-    // 3. 推荐系统性能指标雷达图
-    const recommendationMetricsCtx = document.getElementById('recommendationMetricsChart').getContext('2d');
-    const recommendationMetricsChart = new Chart(recommendationMetricsCtx, {
+
+    // 3. 药性分布雷达图
+    const propertyRadarCtx = document.getElementById('propertyRadarChart').getContext('2d');
+    const propertyRadarChart = new Chart(propertyRadarCtx, {
         type: 'radar',
         data: {
-            labels: ['准确性', '可靠性', '防护力', '火力', '机动性'],
+            labels: ['寒', '热', '温', '凉', '平'],
             datasets: [{
-                label: '武器性能',
-                data: [85, 78, 90, 70, 85],
-                backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                borderColor: themeColors.blue,
+                label: '药材数量',
+                data: [62, 35, 48, 28, 57],
+                backgroundColor: 'rgba(26, 188, 156, 0.2)',
+                borderColor: colors.green,
                 borderWidth: 2,
-                pointBackgroundColor: themeColors.blue,
+                pointBackgroundColor: colors.green,
                 pointBorderColor: '#fff',
                 pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: themeColors.blue
+                pointHoverBorderColor: colors.green
             }]
         },
         options: {
             ...commonOptions,
             scales: {
                 r: {
-                    angleLines: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    pointLabels: {
-                        color: '#e0e0e0',
-                        font: {
-                            size: 12
-                        }
-                    },
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    pointLabels: { color: '#e0e0e0', font: { size: 12 } },
                     ticks: {
                         backdropColor: 'transparent',
                         stepSize: 20,
-                        max: 100,
+                        max: 80,
                         min: 0,
                         display: false
                     },
                     suggestedMin: 0,
-                    suggestedMax: 100
-                }
-            },
-            plugins: {
-                ...commonOptions.plugins,
-                legend: {
-                    display: false
+                    suggestedMax: 80
                 }
             }
         }
     });
-    
-    // 4. 武器国别分布饼图
-    const testPassRateCtx = document.getElementById('testPassRateChart').getContext('2d');
-    const testPassRateChart = new Chart(testPassRateCtx, {
+
+    // 4. 道地产区分布饼图
+    const regionPieCtx = document.getElementById('regionPieChart').getContext('2d');
+    const regionPieChart = new Chart(regionPieCtx, {
         type: 'pie',
         data: {
-            labels: ['美国', '中国', '俄罗斯', '法国'],
+            labels: ['甘肃', '四川', '云南', '吉林', '河南'],
             datasets: [{
-                label: '武器分布',
-                data: [38, 32, 18, 12],
+                label: '药材数量',
+                data: [28, 25, 22, 18, 15],
                 backgroundColor: [
-                    themeColors.blue,
-                    themeColors.lightBlue,
-                    themeColors.lightGreen,
-                    themeColors.green
+                    colors.green,
+                    colors.lightGreen,
+                    colors.blue,
+                    colors.yellow,
+                    colors.orange
                 ],
                 borderWidth: 2,
                 borderColor: '#131a27'
@@ -218,63 +174,51 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
-    // 添加刷新按钮功能
+
+    // 刷新按钮事件
     document.querySelectorAll('.card-action-btn').forEach(button => {
         button.addEventListener('click', function() {
             const card = this.closest('.card');
             const chartContainer = card.querySelector('.chart-container');
             const chartId = chartContainer.querySelector('canvas').id;
-            
-            // 模拟刷新数据
+
             switch (chartId) {
-                case 'weaponCountChart':
-                    updateWeaponCountChart(weaponCountChart);
+                case 'herbCategoryChart':
+                    chart.data.datasets[0].data = Array.from({length: 5}, () => Math.floor(Math.random() * 20) + 20);
+                    chart.update();
                     break;
-                case 'qaUsageChart':
-                    updateQaUsageChart(qaUsageChart);
+                case 'usageTrendChart':
+                    updateTrendChart(chart);
                     break;
-                case 'recommendationMetricsChart':
-                    updateRecommendationMetricsChart(recommendationMetricsChart);
+                case 'propertyRadarChart':
+                    chart.data.datasets[0].data = Array.from({length: 5}, () => Math.floor(Math.random() * 40) + 20);
+                    chart.update();
                     break;
-                case 'testPassRateChart':
-                    updateTestPassRateChart(testPassRateChart);
+                case 'regionPieChart':
+                    updateRegionChart(chart);
                     break;
             }
         });
     });
-    
-    // 模拟刷新数据函数
-    function updateWeaponCountChart(chart) {
-        const newData = Array.from({length: 5}, () => Math.floor(Math.random() * 50) + 30);
-        chart.data.datasets[0].data = newData;
-        chart.update();
-    }
-    
-    function updateQaUsageChart(chart) {
-        const baseValue = 400;
-        const newData = [baseValue];
+
+    function updateTrendChart(chart) {
+        const base = 300;
+        const data = [base];
         for (let i = 1; i < 7; i++) {
-            newData.push(newData[i-1] + Math.floor(Math.random() * 150) + 50);
+            data.push(data[i - 1] + Math.floor(Math.random() * 150) + 50);
         }
-        chart.data.datasets[0].data = newData;
+        chart.data.datasets[0].data = data;
         chart.update();
     }
-    
-    function updateRecommendationMetricsChart(chart) {
-        const newData = Array.from({length: 5}, () => Math.floor(Math.random() * 30) + 70);
-        chart.data.datasets[0].data = newData;
-        chart.update();
-    }
-    
-    function updateTestPassRateChart(chart) {
+
+    function updateRegionChart(chart) {
         const total = 100;
-        const excellent = Math.floor(Math.random() * 40) + 20;
-        const good = Math.floor(Math.random() * 30) + 20;
-        const pass = Math.floor(Math.random() * 20) + 10;
-        const fail = total - excellent - good - pass;
-        
-        chart.data.datasets[0].data = [excellent, good, pass, fail];
+        const a = Math.floor(Math.random() * 20) + 15;
+        const b = Math.floor(Math.random() * 20) + 15;
+        const c = Math.floor(Math.random() * 15) + 10;
+        const d = Math.floor(Math.random() * 15) + 10;
+        const e = total - a - b - c - d;
+        chart.data.datasets[0].data = [a, b, c, d, e];
         chart.update();
     }
-}); 
+});

@@ -34,7 +34,7 @@ function initializeManufacturerSelection() {
 // 加载制造商列表
 async function loadManufacturers() {
     try {
-        const response = await fetch('http://localhost:3001/api/manufacturers');
+        const response = await fetch('http://localhost:3001/api/herb-sources');
         const result = await response.json();
         
         if (result.success) {
@@ -157,7 +157,7 @@ async function createManufacturer(manufacturerData) {
             'x-admin-user': 'JunkangShen'
         };
 
-        const response = await fetch('/api/manufacturers', {
+        const response = await fetch('/api/herb-sources', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(manufacturerData)
