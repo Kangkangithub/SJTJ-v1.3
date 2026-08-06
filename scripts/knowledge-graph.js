@@ -1206,6 +1206,12 @@ function initializeDataManagement() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    // 武器时代遗留：弹窗元素已不存在时跳过，避免崩溃
+    if (!modal || !dataManageBtn || !closeBtn) {
+        console.warn('数据管理弹窗元素不存在，跳过初始化');
+        return;
+    }
+
     // 打开弹窗
     dataManageBtn.addEventListener('click', async function() {
         // 检查登录状态
