@@ -60,7 +60,7 @@ try {
     console.log(`  - 健康检查: http://localhost:${process.env.PORT}/health`);
     console.log(`  - API文档: http://localhost:${process.env.PORT}/api`);
     console.log(`  - 药材管理: http://localhost:${process.env.PORT}/api/herbs`);
-    console.log(`  - 知识图谱: http://localhost:${process.env.PORT}/api/knowledge`);
+    console.log(`  - 知识图谱数据: http://localhost:${process.env.PORT}/api/knowledge/graph-data?common=1`);
     console.log('');
     console.log('前端页面:');
     console.log(`  - 知识图谱: 打开 knowledge-graph.html`);

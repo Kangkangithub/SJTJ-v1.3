@@ -293,9 +293,32 @@ class SimpleDatabaseManager {
           completed++;
           if (completed === total) {
             logger.info('所有数据表初始化完成');
-            this.insertReferenceData().then(resolve).catch(reject);
+            this.migrateDatabase().then(() => this.insertReferenceData()).then(resolve).catch(reject);
           }
         });
+      });
+    });
+  }
+
+  // 数据库迁移：给旧版本 schema 补齐缺失的列（如 is_common）
+  async migrateDatabase() {
+    return new Promise((resolve, reject) => {
+      this.db.all(`PRAGMA table_info(herbs)`, (err, columns) => {
+        if (err) { reject(err); return; }
+        const hasIsCommon = columns.some(c => c.name === 'is_common');
+        if (!hasIsCommon) {
+          this.db.run(`ALTER TABLE herbs ADD COLUMN is_common INTEGER DEFAULT 0`, (alterErr) => {
+            if (alterErr) {
+              logger.error('迁移 is_common 列失败:', alterErr);
+              reject(alterErr);
+            } else {
+              logger.info('✅ 已自动迁移：herbs 表新增 is_common 列');
+              resolve();
+            }
+          });
+        } else {
+          resolve();
+        }
       });
     });
   }
