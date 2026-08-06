@@ -300,7 +300,7 @@ GET /api/knowledge/graph-data?common=1
 返回图谱的节点和连线，前端用 D3.js 渲染。
 
 **参数**：
-- `common=1`：只返回常用药（默认，约40+味）
+- `common=1`：只返回常用药（默认，50味）
 - `common=0`：返回全部药材（275味）
 
 **节点字段**：`id`, `labels`（节点类型）, `properties`（名称、拼音、分类、产地等）
