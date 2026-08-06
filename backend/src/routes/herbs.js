@@ -125,7 +125,7 @@ router.get('/', optionalAuth, async (req, res) => {
     const herbs = await new Promise((resolve, reject) => {
       db.all(
         `SELECT h.id, h.name, h.pinyin, h.alias, hc.name as category_name,
-                hr.name as region_name, h.description, h.usage_dosage
+                hr.name as region_name, h.description, h.usage_dosage, h.is_common
          FROM herbs h
          LEFT JOIN herb_categories hc ON h.category_id = hc.id
          LEFT JOIN herb_regions hr ON h.region_id = hr.id
@@ -191,35 +191,58 @@ router.get('/search', async (req, res) => {
 
     const db = databaseManager.getDatabase();
 
-    const herbs = await new Promise((resolve, reject) => {
+    // 搜索匹配的药材ID（加权排序）
+    const matchedIds = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT h.id, h.name, h.pinyin, h.alias, h.description, h.efficacy,
-                hc.name as category_name, hr.name as region_name
-         FROM herbs h
-         LEFT JOIN herb_categories hc ON h.category_id = hc.id
-         LEFT JOIN herb_regions hr ON h.region_id = hr.id
-         WHERE h.name LIKE ?
-            OR h.alias LIKE ?
-            OR h.pinyin LIKE ?
-            OR h.efficacy LIKE ?
-            OR h.description LIKE ?
-         ORDER BY
+        `SELECT h.id,
            CASE
              WHEN h.name = ? THEN 0
              WHEN h.alias = ? THEN 1
              WHEN h.pinyin = ? THEN 2
              ELSE 3
-           END,
-           h.name ASC
+           END as rank,
+           h.name
+         FROM herbs h
+         WHERE h.name LIKE ?
+            OR h.alias LIKE ?
+            OR h.pinyin LIKE ?
+            OR h.efficacy LIKE ?
+            OR h.description LIKE ?
+         ORDER BY rank, h.name ASC
          LIMIT 50`,
-        [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm,
-         term, term, term],
+        [term, term, term, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm],
         (err, rows) => {
           if (err) reject(err);
           else resolve(rows);
         }
       );
     });
+
+    const ids = matchedIds.map(m => m.id);
+
+    // 批量获取完整药材信息（含性味归经功效方剂）
+    const herbs = [];
+    for (const id of ids) {
+      const herb = await getHerbFullInfo(db, id);
+      if (herb) {
+        // 附加包含此药材的方剂
+        herb.formulas = await new Promise((resolve, reject) => {
+          db.all(
+            `SELECT f.id, f.name, fh.dosage, fh.role
+             FROM formula_herbs fh
+             JOIN formulas f ON fh.formula_id = f.id
+             WHERE fh.herb_id = ?
+             ORDER BY f.name`,
+            [id],
+            (err, rows) => {
+              if (err) reject(err);
+              else resolve(rows);
+            }
+          );
+        });
+        herbs.push(herb);
+      }
+    }
 
     res.json({
       success: true,
@@ -283,7 +306,42 @@ router.get('/statistics', async (req, res) => {
       );
     });
 
-    const statsData = { total_herbs: totalHerbs, by_category: categoryStats, by_region: regionStats };
+    // 功效统计（按药材关联的功效计数）
+    const efficacyStats = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT e.name, COUNT(DISTINCT he.herb_id) as count
+         FROM herb_efficacies he
+         JOIN efficacies e ON he.efficacy_id = e.id
+         GROUP BY e.name ORDER BY count DESC LIMIT 20`,
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+
+    // 常用药材分类统计
+    const commonCategoryStats = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT hc.name, COUNT(*) as count
+         FROM herbs h
+         JOIN herb_categories hc ON h.category_id = hc.id
+         WHERE h.is_common = 1
+         GROUP BY hc.name ORDER BY count DESC`,
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+
+    const statsData = {
+      total_herbs: totalHerbs,
+      by_category: categoryStats,
+      by_region: regionStats,
+      by_efficacy: efficacyStats,
+      common_by_category: commonCategoryStats
+    };
     setCached('statistics', statsData);
     res.json({ success: true, data: statsData });
   } catch (error) {

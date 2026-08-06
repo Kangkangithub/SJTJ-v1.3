@@ -1,11 +1,13 @@
 /**
  * 药材知识库初始化脚本
- * 使用方式: node backend/scripts/init-herb-data.js
+ * 使用方式: node backend/scripts/init-herb-data.js（npm run init-herb-db）
  *
  * 插入数据：
- * - 300+ 味常用药材（含性味、归经、功效关联）
+ * - 275 味药材（227 基础 + 48 新增，含性味、归经、功效、产地关联）
  * - 参考方剂
  * - 核心配伍规则（十八反十九畏等）
+ *
+ * 脚本可重复运行（幂等）：已存在的药材/方剂/规则自动跳过，不会重复插入。
  */
 
 const path = require('path');
@@ -1218,6 +1220,288 @@ const HERB_EFFICACIES = {
 // 主逻辑
 // =============================================
 
+// =============================================
+// 药材产地映射（275味，来源：工作库导出）
+// =============================================
+
+const HERB_REGION_MAP = {
+  '麻黄': '山西',
+  '桂枝': '广东',
+  '紫苏叶': '广东',
+  '生姜': '四川',
+  '荆芥': '江苏',
+  '防风': '黑龙江',
+  '羌活': '甘肃',
+  '白芷': '四川',
+  '细辛': '辽宁',
+  '薄荷': '江苏',
+  '牛蒡子': '吉林',
+  '蝉蜕': '山东',
+  '桑叶': '浙江',
+  '菊花': '浙江',
+  '葛根': '河南',
+  '柴胡': '山西',
+  '升麻': '四川',
+  '淡豆豉': '广东',
+  '石膏': '湖北',
+  '知母': '河北',
+  '栀子': '江西',
+  '夏枯草': '江苏',
+  '黄芩': '甘肃',
+  '黄连': '四川',
+  '黄柏': '四川',
+  '龙胆': '辽宁',
+  '金银花': '河南',
+  '连翘': '山西',
+  '蒲公英': '江苏',
+  '板蓝根': '安徽',
+  '鱼腥草': '四川',
+  '射干': '湖北',
+  '白头翁': '吉林',
+  '大青叶': '江苏',
+  '青黛': '福建',
+  '穿心莲': '广东',
+  '生地黄': '河南',
+  '玄参': '浙江',
+  '牡丹皮': '安徽',
+  '赤芍': '内蒙古',
+  '紫草': '新疆',
+  '地骨皮': '宁夏',
+  '白薇': '山东',
+  '胡黄连': '西藏',
+  '大黄': '甘肃',
+  '芒硝': '山西',
+  '番泻叶': '云南',
+  '火麻仁': '山东',
+  '郁李仁': '内蒙古',
+  '甘遂': '陕西',
+  '巴豆': '四川',
+  '独活': '湖北',
+  '威灵仙': '安徽',
+  '秦艽': '甘肃',
+  '防己': '江西',
+  '桑寄生': '广东',
+  '五加皮': '湖北',
+  '木瓜': '安徽',
+  '乌梢蛇': '江苏',
+  '广藿香': '广东',
+  '佩兰': '江苏',
+  '苍术': '江苏',
+  '厚朴': '四川',
+  '砂仁': '广东',
+  '豆蔻': '广东',
+  '茯苓': '云南',
+  '薏苡仁': '湖南',
+  '猪苓': '陕西',
+  '泽泻': '福建',
+  '车前草': '江西',
+  '车前子': '江西',
+  '茵陈': '陕西',
+  '金钱草': '四川',
+  '虎杖': '江苏',
+  '木通': '四川',
+  '瞿麦': '河北',
+  '海金沙': '广东',
+  '石韦': '浙江',
+  '附子': '四川',
+  '干姜': '四川',
+  '肉桂': '广西',
+  '吴茱萸': '贵州',
+  '小茴香': '内蒙古',
+  '花椒': '四川',
+  '丁香': '广东',
+  '高良姜': '广东',
+  '陈皮': '广东',
+  '青皮': '广东',
+  '枳实': '江西',
+  '木香': '云南',
+  '香附': '山东',
+  '川楝子': '四川',
+  '乌药': '浙江',
+  '佛手': '广东',
+  '薤白': '陕西',
+  '大腹皮': '海南',
+  '山楂': '山东',
+  '神曲': '福建',
+  '麦芽': '江苏',
+  '莱菔子': '河北',
+  '鸡内金': '山东',
+  '大蓟': '江苏',
+  '小蓟': '江苏',
+  '侧柏叶': '山东',
+  '白茅根': '河北',
+  '三七': '云南',
+  '茜草': '陕西',
+  '蒲黄': '江苏',
+  '艾叶': '湖北',
+  '地榆': '山西',
+  '白及': '贵州',
+  '仙鹤草': '浙江',
+  '川芎': '四川',
+  '延胡索': '浙江',
+  '郁金': '浙江',
+  '姜黄': '四川',
+  '乳香': '广东',
+  '没药': '广东',
+  '丹参': '四川',
+  '红花': '西藏',
+  '桃仁': '河北',
+  '牛膝': '河南',
+  '益母草': '江苏',
+  '鸡血藤': '广西',
+  '莪术': '广西',
+  '三棱': '江苏',
+  '水蛭': '山东',
+  '穿山甲': '广东',
+  '王不留行': '河北',
+  '半夏': '四川',
+  '天南星': '四川',
+  '白前': '浙江',
+  '前胡': '安徽',
+  '桔梗': '安徽',
+  '川贝母': '四川',
+  '浙贝母': '浙江',
+  '瓜蒌': '河南',
+  '竹茹': '浙江',
+  '苦杏仁': '河北',
+  '紫苏子': '湖北',
+  '百部': '湖南',
+  '款冬花': '甘肃',
+  '紫菀': '河北',
+  '桑白皮': '河南',
+  '葶苈子': '山东',
+  '白果': '广西',
+  '酸枣仁': '山西',
+  '柏子仁': '山东',
+  '远志': '山西',
+  '合欢皮': '湖北',
+  '首乌藤': '江苏',
+  '朱砂': '贵州',
+  '磁石': '河北',
+  '天麻': '贵州',
+  '钩藤': '贵州',
+  '全蝎': '山东',
+  '蜈蚣': '湖北',
+  '地龙': '广东',
+  '僵蚕': '浙江',
+  '石决明': '广东',
+  '珍珠母': '江苏',
+  '牡蛎': '广东',
+  '代赭石': '河北',
+  '麝香': '西藏',
+  '冰片': '广东',
+  '石菖蒲': '浙江',
+  '苏合香': '广东',
+  '人参': '吉林',
+  '红参': '吉林',
+  '西洋参': '吉林',
+  '党参': '甘肃',
+  '太子参': '江苏',
+  '黄芪': '甘肃',
+  '白术': '浙江',
+  '山药': '河南',
+  '白扁豆': '浙江',
+  '甘草': '甘肃',
+  '大枣': '山东',
+  '绞股蓝': '湖北',
+  '鹿茸': '吉林',
+  '巴戟天': '广东',
+  '淫羊藿': '陕西',
+  '仙茅': '四川',
+  '杜仲': '贵州',
+  '续断': '湖北',
+  '肉苁蓉': '内蒙古',
+  '锁阳': '内蒙古',
+  '补骨脂': '四川',
+  '益智仁': '海南',
+  '菟丝子': '山东',
+  '沙苑子': '陕西',
+  '蛤蚧': '广西',
+  '冬虫夏草': '青海',
+  '紫河车': '浙江',
+  '当归': '甘肃',
+  '熟地黄': '河南',
+  '白芍': '浙江',
+  '何首乌': '贵州',
+  '阿胶': '山东',
+  '龙眼肉': '广东',
+  '枸杞子': '宁夏',
+  '北沙参': '山东',
+  '南沙参': '江苏',
+  '麦冬': '四川',
+  '天冬': '贵州',
+  '石斛': '安徽',
+  '玉竹': '湖南',
+  '黄精': '贵州',
+  '百合': '湖南',
+  '墨旱莲': '江苏',
+  '女贞子': '浙江',
+  '桑椹': '江苏',
+  '龟甲': '浙江',
+  '鳖甲': '湖北',
+  '五味子': '辽宁',
+  '乌梅': '四川',
+  '山茱萸': '浙江',
+  '诃子': '广东',
+  '肉豆蔻': '广东',
+  '芡实': '江苏',
+  '莲子': '福建',
+  '金樱子': '广东',
+  '覆盆子': '浙江',
+  '桑螵蛸': '浙江',
+  '海螵蛸': '浙江',
+  '浮小麦': '河南',
+  '糯稻根须': '四川',
+  '五灵脂': '河北',
+  '人参切片': '吉林',
+  '决明子': '安徽',
+  '北沙参块': '山东',
+  '北沙参条': '山东',
+  '土鳖虫': '江苏',
+  '大血藤': '湖北',
+  '天葵子': '湖南',
+  '天麻块': '云南',
+  '天麻片': '云南',
+  '枳壳条': '江西',
+  '枳壳片': '江西',
+  '槐花': '河北',
+  '水牛角': '广东',
+  '水红花子': '江苏',
+  '沉香': '广东',
+  '泽兰': '江苏',
+  '灵芝': '浙江',
+  '炮姜': '四川',
+  '玉竹条': '湖南',
+  '玉竹片': '湖南',
+  '白矾': '浙江',
+  '白花蛇舌草': '福建',
+  '白蔻': '海南',
+  '紫花地丁': '江苏',
+  '红蔻': '广东',
+  '络石藤': '江苏',
+  '罗汉果': '广西',
+  '肉苁蓉根': '内蒙古',
+  '肉苁蓉片': '内蒙古',
+  '苦参': '山西',
+  '草寇': '广东',
+  '草果': '云南',
+  '荔枝核': '广东',
+  '莲子心': '湖南',
+  '虫草': '青海',
+  '蛇床子': '河北',
+  '谷芽': '江苏',
+  '贯众': '黑龙江',
+  '赤石脂': '福建',
+  '路路通': '江苏',
+  '辛夷': '河南',
+  '通草': '贵州',
+  '野菊花': '湖北',
+  '青蒿': '四川',
+  '首乌藤块': '河南',
+  '首乌藤片': '河南',
+  '龙骨': '山西'
+};
+
 async function initHerbDatabase() {
   try {
     logger.info('🔄 开始初始化药材知识库...');
@@ -1278,16 +1562,23 @@ async function initHerbDatabase() {
 
       for (const herb of herbs) {
         // 插入药材
-        const herbId = await new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
           db.run(
             'INSERT OR IGNORE INTO herbs (name, pinyin, alias, category_id, description, usage_dosage, caution) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [herb.name, herb.pinyin || null, herb.alias || null, categoryId, herb.description, herb.usage_dosage || null, herb.caution || null],
-            function (err) {
-              if (err) reject(err);
-              else resolve(this.lastID);
-            }
+            (err) => err ? reject(err) : resolve()
           );
         });
+
+        // 查回真实 id（INSERT OR IGNORE 跳过已存在药材时 lastID 无效，不能用于关联插入）
+        const herbRow = await new Promise((resolve, reject) => {
+          db.get('SELECT id FROM herbs WHERE name = ?', [herb.name], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          });
+        });
+        const herbId = herbRow ? herbRow.id : null;
+        if (!herbId) continue;
 
         herbCount++;
 
@@ -1350,21 +1641,162 @@ async function initHerbDatabase() {
     logger.info(`   归经关联: ${meridianCount} 条`);
     logger.info(`   功效关联: ${efficacyCount} 条`);
 
+    // 2.5 导入新增药材（import-herbs-data.json，48味，含产地/常用药标记）
+    const newHerbsData = require('./import-herbs-data.json');
+    const COMMON_HERBS = ['麻黄', '桂枝', '生姜', '薄荷', '菊花', '葛根', '柴胡', '黄芩', '黄连', '金银花', '连翘', '茯苓', '陈皮', '山楂', '麦芽', '川芎', '丹参', '红花', '桃仁', '半夏', '酸枣仁', '远志', '天麻', '钩藤', '石菖蒲', '人参', '黄芪', '白术', '山药', '甘草', '大枣', '杜仲', '续断', '菟丝子', '当归', '熟地黄', '白芍', '枸杞子', '五味子', '山茱萸', '决明子', '灵芝', '罗汉果', '苦参', '莲子心', '虫草', '辛夷', '通草', '野菊花', '青蒿'];
+
+    // 修正名称：草蔻 → 草寇
+    newHerbsData.forEach(h => { if (h.name === '草蔻') h.name = '草寇'; });
+
+    let newHerbCount = 0, newSkipped = 0, newCatCount = 0, newRegionCount = 0, newEffCount = 0;
+
+    for (const h of newHerbsData) {
+      // 1. 分类（不存在则创建）
+      let catId = categoryMap[h.category];
+      if (!catId && h.category) {
+        await new Promise((resolve, reject) => {
+          db.run('INSERT OR IGNORE INTO herb_categories (name) VALUES (?)', [h.category], (err) => err ? reject(err) : resolve());
+        });
+        const row = await new Promise((resolve, reject) =>
+          db.get('SELECT id FROM herb_categories WHERE name = ?', [h.category], (e, r) => e ? reject(e) : resolve(r)));
+        categoryMap[h.category] = row.id;
+        catId = row.id;
+        newCatCount++;
+      }
+
+      // 2. 产地（多个省取第一个为主产地，不存在则创建）
+      let regionId = null;
+      if (h.region) {
+        const firstRegion = h.region.split(/[、,，]/)[0].trim();
+        regionId = regionMap[firstRegion];
+        if (!regionId && firstRegion) {
+          await new Promise((resolve, reject) => {
+            db.run('INSERT OR IGNORE INTO herb_regions (name) VALUES (?)', [firstRegion], (err) => err ? reject(err) : resolve());
+          });
+          const row = await new Promise((resolve, reject) =>
+            db.get('SELECT id FROM herb_regions WHERE name = ?', [firstRegion], (e, r) => e ? reject(e) : resolve(r)));
+          regionMap[firstRegion] = row.id;
+          regionId = row.id;
+          newRegionCount++;
+        }
+      }
+
+      // 3. 插入药材（已存在则跳过）
+      const existing = await new Promise((resolve, reject) =>
+        db.get('SELECT id FROM herbs WHERE name = ?', [h.name], (e, r) => e ? reject(e) : resolve(r)));
+      if (existing) { newSkipped++; continue; }
+
+      const herbId = await new Promise((resolve, reject) => {
+        db.run(
+          `INSERT INTO herbs (name, pinyin, category_id, region_id, description, usage_dosage, caution, is_common, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+          [h.name, h.pinyin || null, catId, regionId, h.description || '', h.usage_dosage || null, h.caution || null,
+           COMMON_HERBS.includes(h.name) ? 1 : 0],
+          function(err) { if (err) reject(err); else resolve(this.lastID); }
+        );
+      });
+      newHerbCount++;
+
+      // 4. 性味关联
+      for (const p of h.properties || []) {
+        const pid = propertyMap[p];
+        if (pid) {
+          await new Promise((resolve, reject) =>
+            db.run('INSERT OR IGNORE INTO herb_properties (herb_id, property_id) VALUES (?, ?)', [herbId, pid], (e) => e ? reject(e) : resolve()));
+        } else {
+          logger.warn(`药材 ${h.name} 的属性 "${p}" 不存在，跳过`);
+        }
+      }
+
+      // 5. 归经关联
+      for (const m of h.meridians || []) {
+        const mid = meridianMap[m];
+        if (mid) {
+          await new Promise((resolve, reject) =>
+            db.run('INSERT OR IGNORE INTO herb_meridians (herb_id, meridian_id) VALUES (?, ?)', [herbId, mid], (e) => e ? reject(e) : resolve()));
+        } else {
+          logger.warn(`药材 ${h.name} 的归经 "${m}" 不存在，跳过`);
+        }
+      }
+
+      // 6. 功效关联（不存在则创建功效标签）
+      for (const eName of h.efficacies || []) {
+        let eid = efficacyMap[eName];
+        if (!eid) {
+          await new Promise((resolve, reject) => {
+            db.run('INSERT OR IGNORE INTO efficacies (name) VALUES (?)', [eName], (err) => err ? reject(err) : resolve());
+          });
+          const row = await new Promise((resolve, reject) =>
+            db.get('SELECT id FROM efficacies WHERE name = ?', [eName], (e, r) => e ? reject(e) : resolve(r)));
+          efficacyMap[eName] = row.id;
+          eid = row.id;
+          newEffCount++;
+        }
+        await new Promise((resolve, reject) =>
+          db.run('INSERT OR IGNORE INTO herb_efficacies (herb_id, efficacy_id) VALUES (?, ?)', [herbId, eid], (e) => e ? reject(e) : resolve()));
+      }
+    }
+
+    logger.info(`✅ 新增药材导入完成: ${newHerbCount} 味（已存在跳过 ${newSkipped}）`);
+    if (newCatCount || newRegionCount || newEffCount) {
+      logger.info(`   新增分类: ${newCatCount}，新增产地: ${newRegionCount}，新增功效标签: ${newEffCount}`);
+    }
+
+    // 2.6 全量产地回填（保证所有药材都有产地，来源：HERB_REGION_MAP）
+    let regionFillCount = 0;
+    for (const [herbName, regionName] of Object.entries(HERB_REGION_MAP)) {
+      let rid = regionMap[regionName];
+      if (!rid) {
+        await new Promise((resolve, reject) => {
+          db.run('INSERT OR IGNORE INTO herb_regions (name) VALUES (?)', [regionName], (err) => err ? reject(err) : resolve());
+        });
+        const row = await new Promise((resolve, reject) =>
+          db.get('SELECT id FROM herb_regions WHERE name = ?', [regionName], (e, r) => e ? reject(e) : resolve(r)));
+        if (!row) continue;
+        regionMap[regionName] = row.id;
+        rid = row.id;
+      }
+      await new Promise((resolve, reject) => {
+        db.run('UPDATE herbs SET region_id = ? WHERE name = ?', [rid, herbName], (err) => err ? reject(err) : resolve());
+      });
+      regionFillCount++;
+    }
+    logger.info(`✅ 产地回填完成: ${regionFillCount} 味`);
+
+    // 2.7 全量常用药标记（50味常用药 is_common=1）
+    for (const commonName of COMMON_HERBS) {
+      await new Promise((resolve, reject) => {
+        db.run('UPDATE herbs SET is_common = 1 WHERE name = ?', [commonName], (err) => err ? reject(err) : resolve());
+      });
+    }
+    const commonCount = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as c FROM herbs WHERE is_common = 1', (err, row) => err ? reject(err) : resolve(row));
+    });
+    logger.info(`✅ 常用药标记完成: ${commonCount ? commonCount.c : 0} 味`);
+
     // 3. 插入方剂
     let formulaCount = 0;
     let formulaHerbCount = 0;
 
     for (const formula of FORMULAS) {
-      const formulaId = await new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         db.run(
           'INSERT OR IGNORE INTO formulas (name, pinyin, category, description, source) VALUES (?, ?, ?, ?, ?)',
           [formula.name, formula.pinyin || null, formula.category || null, formula.description, formula.source || null],
-          function (err) {
-            if (err) reject(err);
-            else resolve(this.lastID);
-          }
+          (err) => err ? reject(err) : resolve()
         );
       });
+
+      // 查回真实 id（INSERT OR IGNORE 跳过已存在方剂时 lastID 无效）
+      const formulaRow = await new Promise((resolve, reject) => {
+        db.get('SELECT id FROM formulas WHERE name = ?', [formula.name], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      const formulaId = formulaRow ? formulaRow.id : null;
+      if (!formulaId) continue;
+
       formulaCount++;
 
       for (const fh of formula.herbs) {
@@ -1452,7 +1884,8 @@ async function initHerbDatabase() {
     logger.info('');
     logger.info('='.repeat(50));
     logger.info('📊 药材知识库初始化完成！');
-    logger.info(`   - 药材: ${herbCount} 味`);
+    logger.info(`   - 基础药材: ${herbCount} 味`);
+    logger.info(`   - 新增药材: ${newHerbCount} 味（跳过 ${newSkipped}）`);
     logger.info(`   - 方剂: ${formulaCount} 首`);
     logger.info(`   - 配伍规则: ${compatCount} 条`);
     logger.info(`   - 性味关联: ${propertyCount} 条`);

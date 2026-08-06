@@ -51,7 +51,7 @@ GET /api/herbs?page=1&limit=20&category_id=1&region_id=2
     "pagination": {
       "current_page": 1,
       "total_pages": 12,
-      "total_items": 230,
+      "total_items": 275,
       "items_per_page": 20
     }
   }
@@ -75,7 +75,7 @@ GET /api/herbs?page=1&limit=20&category_id=1&region_id=2
 GET /api/herbs/search?q=麻黄
 ```
 
-搜索按匹配度排序：名称精确匹配 > 别名匹配 > 拼音匹配 > 功效/描述匹配。
+搜索按匹配度排序：名称精确匹配 > 别名匹配 > 拼音匹配 > 功效/描述匹配。返回**完整药材信息**（含性味、归经、功效、方剂）。
 
 **响应**:
 ```json
@@ -91,7 +91,10 @@ GET /api/herbs/search?q=麻黄
         "category_name": "解表药",
         "region_name": "山西",
         "description": "发汗解表，宣肺平喘，利水消肿",
-        "efficacy": null
+        "properties": [ { "name": "辛" }, { "name": "温" } ],
+        "meridians": [ { "name": "肺" }, { "name": "膀胱" } ],
+        "efficacies": [ { "name": "发汗解表" } ],
+        "formulas": [ { "name": "麻黄汤" } ]
       }
     ],
     "total": 1
@@ -150,18 +153,32 @@ GET /api/herbs/statistics
 {
   "success": true,
   "data": {
-    "total_herbs": 230,
+    "total_herbs": 275,
     "by_category": [
-      { "name": "补虚药", "count": 39 },
-      { "name": "清热药", "count": 26 }
+      { "name": "补虚药", "count": 56 },
+      { "name": "清热药", "count": 37 }
     ],
     "by_region": [
-      { "name": "甘肃", "count": 12 },
-      { "name": "四川", "count": 9 }
+      { "name": "广东", "count": 27 },
+      { "name": "四川", "count": 25 }
+    ],
+    "by_efficacy": [
+      { "name": "清热解毒", "count": 174 },
+      { "name": "补阴", "count": 144 }
+    ],
+    "common_by_category": [
+      { "name": "补虚药", "count": 15 }
     ]
   }
 }
 ```
+
+**字段说明**：
+- `total_herbs`：药材总数
+- `by_category`：各分类药材数量
+- `by_region`：各产地药材数量
+- `by_efficacy`：各功效关联的药材数量（前20）
+- `common_by_category`：常用药材在各分类的分布
 
 ---
 
@@ -277,10 +294,16 @@ role: `君 | 臣 | 佐 | 使`
 ## 5. 知识图谱 API
 
 ```
-GET /api/knowledge/graph-data
+GET /api/knowledge/graph-data?common=1
 ```
 
 返回图谱的节点和连线，前端用 D3.js 渲染。
+
+**参数**：
+- `common=1`：只返回常用药（默认，50味）
+- `common=0`：返回全部药材（275味）
+
+**节点字段**：`id`, `labels`（节点类型）, `properties`（名称、拼音、分类、产地等）
 
 ```json
 {
@@ -534,4 +557,4 @@ POST /api/ai-gateway/python-proxy
 | `ENTERS_MERIDIAN` | Herb | Meridian | 归某条经 |
 | `HAS_EFFICACY` | Herb | Efficacy | 具有某种功效 |
 
-**导入数据量**：230 味药材，17 个分类，12 个产地，3 个来源，12 种性味，12 条归经，54 种功效，约 1751 条关系。
+**导入数据量**：275 味药材，17 个分类，27 个产地，3 个来源，12 种性味，12 条归经，200+ 种功效，约 2000+ 条关系。
