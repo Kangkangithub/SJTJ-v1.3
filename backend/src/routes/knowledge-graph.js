@@ -34,17 +34,21 @@ function getDbPath() {
 router.get('/graph-data', (req, res) => {
   try {
     // 缓存命中直接返回
-    const cached = getCached('graph-data');
+    // 支持 ?common=1 只返回常用药
+    const commonOnly = req.query.common === '1';
+    const cacheKey = commonOnly ? 'graph-data-common' : 'graph-data';
+    const cached = getCached(cacheKey);
     if (cached) return res.json({ success: true, data: cached, cached: true });
 
     const db = new Database(getDbPath());
 
-    // 获取所有药材
+    // 获取药材（可筛选常用药）
     const herbs = db.prepare(`
       SELECT h.id, h.name, h.pinyin, h.description, hc.name as category, hr.name as region
       FROM herbs h
       LEFT JOIN herb_categories hc ON h.category_id = hc.id
       LEFT JOIN herb_regions hr ON h.region_id = hr.id
+      ${commonOnly ? 'WHERE h.is_common = 1' : ''}
       ORDER BY h.id
     `).all();
 
@@ -73,17 +77,20 @@ router.get('/graph-data', (req, res) => {
       SELECT id, name FROM meridians ORDER BY id
     `).all();
 
-    // 获取药材-性味关联
+    // 获取药材-性味关联（常用药模式只取常用药关联）
     const herbProperties = db.prepare(`
       SELECT hp.herb_id, hp.property_id, h.name as herb_name
       FROM herb_properties hp
       JOIN herbs h ON hp.herb_id = h.id
+      ${commonOnly ? 'WHERE h.is_common = 1' : ''}
     `).all();
 
     // 获取药材-归经关联
     const herbMeridians = db.prepare(`
       SELECT hm.herb_id, hm.meridian_id
       FROM herb_meridians hm
+      JOIN herbs h ON hm.herb_id = h.id
+      ${commonOnly ? 'WHERE h.is_common = 1' : ''}
     `).all();
 
     // 获取药材-功效关联
@@ -91,6 +98,8 @@ router.get('/graph-data', (req, res) => {
       SELECT he.herb_id, he.efficacy_id, e.name as efficacy_name
       FROM herb_efficacies he
       JOIN efficacies e ON he.efficacy_id = e.id
+      JOIN herbs h ON he.herb_id = h.id
+      ${commonOnly ? 'WHERE h.is_common = 1' : ''}
     `).all();
 
     // 获取功效
@@ -214,8 +223,8 @@ router.get('/graph-data', (req, res) => {
 
     // 写入缓存
     const result = { nodes, links };
-    setCache('graph-data', result);
-    res.json({ success: true, data: result });
+    setCache(cacheKey, result);
+    res.json({ success: true, data: result, common: commonOnly });
   } catch (error) {
     console.error('获取知识图谱数据失败:', error);
     res.status(500).json({

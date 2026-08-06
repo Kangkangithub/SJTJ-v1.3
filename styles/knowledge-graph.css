@@ -322,46 +322,64 @@
 }
 
 .graph-analysis .card {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    border: 1px solid #475569;
-    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(28, 41, 66, 0.72) 0%, rgba(20, 29, 48, 0.88) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(93, 195, 219, 0.28);
+    border-radius: 14px;
     padding: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
+/* 玻璃高光线 */
 .graph-analysis .card::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    left: 16px;
+    right: 16px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(93, 195, 219, 0.6), transparent);
+    z-index: 1;
+}
+
+/* 植物纹理装饰 */
+.graph-analysis .card::after {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 130px;
+    height: 130px;
+    background: radial-gradient(circle, rgba(64, 145, 108, 0.08) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .graph-analysis .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    border-color: var(--secondary-color);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    border-color: rgba(93, 195, 219, 0.5);
 }
 
 .graph-analysis .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #475569;
+    margin: -1.5rem -1.5rem 1.25rem;
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid rgba(93, 195, 219, 0.14);
+    background: linear-gradient(90deg, rgba(93, 195, 219, 0.06), transparent);
 }
 
 .graph-analysis .card-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    color: #f1f5f9;
+    color: #e8eef6;
     margin: 0;
+    letter-spacing: 0.5px;
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
 }
 
 .graph-analysis .card-actions {
@@ -370,10 +388,10 @@
 }
 
 .graph-analysis .card-action-btn {
-    background: rgba(52, 152, 219, 0.2);
-    border: 1px solid rgba(52, 152, 219, 0.3);
-    border-radius: 6px;
-    color: var(--secondary-color);
+    background: rgba(93, 195, 219, 0.08);
+    border: 1px solid rgba(93, 195, 219, 0.25);
+    border-radius: 8px;
+    color: #8ecae6;
     padding: 0.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -386,9 +404,10 @@
 }
 
 .graph-analysis .card-action-btn:hover {
-    background: var(--secondary-color);
-    color: white;
+    background: rgba(93, 195, 219, 0.2);
+    color: #fff;
     transform: rotate(180deg);
+    border-color: rgba(93, 195, 219, 0.5);
 }
 
 .chart-container {
@@ -402,6 +421,7 @@
 .chart-container canvas {
     max-height: 100%;
     border-radius: 4px;
+    filter: drop-shadow(0 0 6px rgba(93, 195, 219, 0.18));
 }
 
 /* 图表加载状态 */

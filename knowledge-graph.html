@@ -24,6 +24,8 @@
     <!-- 引入Neo4j JavaScript驱动 -->
     <script src="https://unpkg.com/neo4j-driver"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入ECharts（中国地图渲染） -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -51,7 +53,10 @@
             <h1>药材知识图谱</h1>
 
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="搜索药材...">
+                <div class="autocomplete" style="position:relative; flex:1;">
+                    <input type="text" id="searchInput" placeholder="搜索药材...">
+                    <div id="autocompleteList" class="autocomplete-list" style="display:none; position:absolute; top:100%; left:0; right:0; max-height:300px; overflow-y:auto; background:#1a2234; border:1px solid rgba(52,152,219,0.3); border-radius:6px; z-index:1000;"></div>
+                </div>
                 <button id="searchButton">搜索</button>
             </div>
 
@@ -66,6 +71,12 @@
                         <label class="toggle-btn" data-type="Efficacy" style="background:#f97316">功效</label>
                         <label class="toggle-btn" data-type="Region" style="background:#45b7d1">产地</label>
                     </div>
+                </div>
+                <div class="filter-group" style="margin-left:12px">
+                    <label class="toggle-btn active" id="commonModeToggle" style="background:#2ecc71;opacity:1">🌿 常用药模式</label>
+                </div>
+                <div class="filter-group" style="margin-left:12px">
+                    <label class="toggle-btn" id="mapViewToggle" style="background:#3498db">🗺️ 地图视图</label>
                 </div>
             </div>
 
@@ -127,41 +138,38 @@
                 </div>
             </div>
 
-            <!-- 世界地图容器 -->
+            <!-- 中国地图容器（图例由ECharts visualMap提供） -->
             <div id="map-container" class="world-map-container" style="display: none;">
-                <div class="map-legend">
-                    <h3>地图图例</h3>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background-color: #4ecdc4;"></span>
-                        <span class="legend-label">国家</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background-color: #ff6b6b;"></span>
-                        <span class="legend-label">武器节点</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background-color: #ffbe0b;"></span>
-                        <span class="legend-label">制造商节点</span>
-                    </div>
-                </div>
                 <div id="map-visualization" class="map-visualization">
-                    <!-- D3.js将在这里渲染世界地图 -->
+                    <!-- ECharts将在这里渲染中国地图 -->
                 </div>
-                <div class="map-info">
-                    <h3>地图信息</h3>
-                    <div id="mapDetails">
-                        <p>点击国家或节点查看详细信息</p>
+            </div>
+
+            <!-- 中药药材详情抽屉面板 -->
+            <div id="regionDetailsPanel" class="herb-region-panel">
+                <div class="panel-header">
+                    <button class="panel-close" onclick="document.getElementById('regionDetailsPanel').classList.remove('open')">✕</button>
+                    <div class="panel-title">
+                        <span class="title-stamp">药</span>
+                        <div class="title-text">
+                            <h2 id="panelRegionCn">省份</h2>
+                            <span id="panelRegionEn">Province</span>
+                        </div>
                     </div>
+                    <div class="header-ornament">🌿</div>
+                </div>
+                <div class="panel-body" id="regionPanelBody">
+                    <p style="color:#B08968; text-align:center; padding:40px 0;">点击地图省份查看药材详情</p>
                 </div>
             </div>
 
             <section class="graph-analysis">
                 <h2>知识图谱数据可视化分析</h2>
                 <div class="graph-analysis-panels">
-                    <!-- 节点类型分布 -->
+                    <!-- 药材节点类型分布 -->
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title">节点类型分布</div>
+                            <div class="card-title">药材节点类型分布</div>
                             <div class="card-actions">
                                 <button class="card-action-btn" title="刷新数据">
                                     <i class="fas fa-sync-alt"></i>
@@ -173,40 +181,10 @@
                         </div>
                     </div>
 
-                    <!-- 武器年代分布 -->
+                    <!-- 药材分类分布 -->
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title">武器年代分布</div>
-                            <div class="card-actions">
-                                <button class="card-action-btn" title="刷新数据">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="weaponYearChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- 国家武器数量排行 -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">国家武器数量排行</div>
-                            <div class="card-actions">
-                                <button class="card-action-btn" title="刷新数据">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="countryWeaponChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- 武器类型分布 -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">武器类型分布</div>
+                            <div class="card-title">药材分类分布</div>
                             <div class="card-actions">
                                 <button class="card-action-btn" title="刷新数据">
                                     <i class="fas fa-sync-alt"></i>
@@ -218,10 +196,10 @@
                         </div>
                     </div>
 
-                    <!-- 制造商武器数量统计 -->
+                    <!-- 药材性味分布 -->
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title">制造商武器数量统计</div>
+                            <div class="card-title">药材性味分布</div>
                             <div class="card-actions">
                                 <button class="card-action-btn" title="刷新数据">
                                     <i class="fas fa-sync-alt"></i>
@@ -229,14 +207,29 @@
                             </div>
                         </div>
                         <div class="chart-container">
-                            <canvas id="manufacturerChart"></canvas>
+                            <canvas id="weaponYearChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- 国家制造商分布 -->
+                    <!-- 药材归经分布 -->
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title">国家制造商分布</div>
+                            <div class="card-title">药材归经分布</div>
+                            <div class="card-actions">
+                                <button class="card-action-btn" title="刷新数据">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="countryWeaponChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 主要功效分布 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">主要功效分布</div>
                             <div class="card-actions">
                                 <button class="card-action-btn" title="刷新数据">
                                     <i class="fas fa-sync-alt"></i>
@@ -245,6 +238,21 @@
                         </div>
                         <div class="chart-container">
                             <canvas id="countryManufacturerChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 产地药材数量统计 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">产地药材数量统计</div>
+                            <div class="card-actions">
+                                <button class="card-action-btn" title="刷新数据">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="manufacturerChart"></canvas>
                         </div>
                     </div>
                 </div>

@@ -143,6 +143,7 @@ class SimpleDatabaseManager {
           caution TEXT,
           quality TEXT DEFAULT '{}',
           images TEXT DEFAULT '[]',
+          is_common INTEGER DEFAULT 0,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (category_id) REFERENCES herb_categories(id),

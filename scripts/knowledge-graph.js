@@ -410,13 +410,93 @@ function clearManufacturerSelection() {
     }
     
     // 显示节点详情
+    // 加载药材图片和视频（点击药材节点时显示）
+    async function loadHerbMedia(node, container) {
+        // 从节点ID提取药材ID
+        let herbId = node.id;
+        if (typeof herbId === 'string' && herbId.startsWith('herb_')) {
+            herbId = herbId.replace('herb_', '');
+        }
+        herbId = parseInt(herbId);
+        if (isNaN(herbId)) return;
+
+        // 创建媒体容器
+        const mediaContainer = document.createElement('div');
+        mediaContainer.style.cssText = 'margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;';
+
+        // 标题
+        const title = document.createElement('h4');
+        title.textContent = '药材图片';
+        title.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
+        mediaContainer.appendChild(title);
+
+        // 图片展示区
+        const imgArea = document.createElement('div');
+        imgArea.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+        imgArea.innerHTML = '<span style="color:#999;font-size:12px">加载中...</span>';
+        mediaContainer.appendChild(imgArea);
+
+        // 视频展示区
+        const videoTitle = document.createElement('h4');
+        videoTitle.textContent = '药材视频';
+        videoTitle.style.cssText = 'margin: 15px 0 10px 0; color: #fff; font-size: 14px;';
+        mediaContainer.appendChild(videoTitle);
+
+        const videoArea = document.createElement('div');
+        videoArea.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+        videoArea.innerHTML = '<span style="color:#999;font-size:12px">暂无视频</span>';
+        mediaContainer.appendChild(videoArea);
+
+        container.appendChild(mediaContainer);
+
+        try {
+            // 从API获取药材详情（含图片）
+            const response = await fetch('http://localhost:3001/api/herbs/' + herbId);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const herb = result.data;
+
+                // 显示图片
+                if (herb.images && herb.images.length > 0) {
+                    imgArea.innerHTML = '';
+                    herb.images.forEach(img => {
+                        const imgEl = document.createElement('img');
+                        imgEl.src = 'http://localhost:3001' + img.path;
+                        imgEl.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255,255,255,0.15);';
+                        imgEl.title = herb.name;
+                        // 点击查看大图
+                        imgEl.onclick = () => window.open('http://localhost:3001' + img.path, '_blank');
+                        imgArea.appendChild(imgEl);
+                    });
+                } else {
+                    imgArea.innerHTML = '<span style="color:#999;font-size:12px">暂无图片</span>';
+                }
+            }
+        } catch (error) {
+            console.error('加载药材媒体失败:', error);
+            imgArea.innerHTML = '<span style="color:#e74c3c;font-size:12px">加载失败</span>';
+        }
+    }
+
+    // 节点类型英文 → 中文映射
+    const nodeTypeNames = {
+        'Herb': '药材',
+        'Category': '分类',
+        'Property': '性味',
+        'Meridian': '归经',
+        'Efficacy': '功效',
+        'Region': '产地',
+        'Source': '来源'
+    };
+
     function displayNodeDetails(node) {
         const detailsContainer = document.getElementById('nodeDetails');
-        
+
         // 创建详情HTML
         let html = '<div class="detail-group">';
         html += `<div class="detail-label">类型</div>`;
-        html += `<div class="detail-value">${node.labels.join(', ')}</div>`;
+        html += `<div class="detail-value">${(node.labels || []).map(l => nodeTypeNames[l] || l).join(', ')}</div>`;
         html += '</div>';
         
         html += '<div class="detail-group">';
@@ -475,6 +555,22 @@ function clearManufacturerSelection() {
                 }
                 break;
                 
+            case 'Herb':
+                // 药材描述
+                if (node.properties.description) {
+                    html += '<div class="detail-group">';
+                    html += `<div class="detail-label">描述</div>`;
+                    html += `<div class="detail-value">${node.properties.description}</div>`;
+                    html += '</div>';
+                }
+                if (node.properties.pinyin) {
+                    html += '<div class="detail-group">';
+                    html += `<div class="detail-label">拼音</div>`;
+                    html += `<div class="detail-value">${node.properties.pinyin}</div>`;
+                    html += '</div>';
+                }
+                break;
+
             case 'Type':
                 // 显示武器类型描述
                 if (node.properties.description) {
@@ -489,326 +585,19 @@ function clearManufacturerSelection() {
         // 显示详情
         detailsContainer.innerHTML = html;
         
-        // 如果是武器节点，添加图片和视频管理功能
-        if (node.labels.includes('Weapon')) {
-            // 创建图片管理容器
-            const imageManagementContainer = document.createElement('div');
-            imageManagementContainer.className = 'weapon-image-management';
-            imageManagementContainer.style.cssText = 'margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;';
-            
-            // 添加图片管理标题
-            const imageTitle = document.createElement('h4');
-            imageTitle.textContent = '武器图片管理';
-            imageTitle.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
-            imageManagementContainer.appendChild(imageTitle);
-            
-            // 创建图片显示区域
-            const imageDisplayArea = document.createElement('div');
-            imageDisplayArea.id = 'weapon-image-display-area';
-            imageDisplayArea.className = 'weapon-image-display-area';
-            imageManagementContainer.appendChild(imageDisplayArea);
-            
-            // 创建图片操作按钮组
-            const imageButtonGroup = document.createElement('div');
-            imageButtonGroup.className = 'weapon-image-buttons';
-            imageButtonGroup.style.cssText = 'display: flex; gap: 8px; margin-top: 10px;';
-            
-            // 查看图片按钮
-            const viewButton = document.createElement('button');
-            viewButton.className = 'weapon-image-btn btn-primary';
-            viewButton.innerHTML = '<i class="fas fa-images"></i> 查看';
-            viewButton.style.cssText = 'flex: 1; padding: 8px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer; font-size: 12px;';
-            
-            // 上传图片按钮
-            const uploadButton = document.createElement('button');
-            uploadButton.className = 'weapon-image-btn btn-success';
-            uploadButton.innerHTML = '<i class="fas fa-upload"></i> 上传';
-            uploadButton.style.cssText = 'flex: 1; padding: 8px; border: none; border-radius: 4px; background: #28a745; color: white; cursor: pointer; font-size: 12px;';
-            
-            // 管理图片按钮
-            const manageButton = document.createElement('button');
-            manageButton.className = 'weapon-image-btn btn-warning';
-            manageButton.innerHTML = '<i class="fas fa-cog"></i> 管理';
-            manageButton.style.cssText = 'flex: 1; padding: 8px; border: none; border-radius: 4px; background: #ffc107; color: #212529; cursor: pointer; font-size: 12px;';
-
-            // 创建视频管理容器
-            const videoManagementContainer = document.createElement('div');
-            videoManagementContainer.className = 'weapon-video-management';
-            videoManagementContainer.style.cssText = 'margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;';
-            
-            // 添加视频管理标题
-            const videoTitle = document.createElement('h4');
-            videoTitle.textContent = '武器视频管理';
-            videoTitle.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
-            videoManagementContainer.appendChild(videoTitle);
-            
-            // 创建视频显示区域
-            const videoDisplayArea = document.createElement('div');
-            videoDisplayArea.id = 'weapon-video-display-area';
-            videoDisplayArea.className = 'weapon-video-display-area';
-            videoManagementContainer.appendChild(videoDisplayArea);
-            
-            // 创建视频操作按钮组
-            const videoButtonGroup = document.createElement('div');
-            videoButtonGroup.className = 'weapon-video-buttons';
-            videoButtonGroup.style.cssText = 'display: flex; gap: 8px; margin-top: 10px;';
-            
-            // 查看视频按钮
-            const viewVideoButton = document.createElement('button');
-            viewVideoButton.className = 'weapon-video-btn btn-primary';
-            viewVideoButton.innerHTML = '<i class="fas fa-video"></i> 查看';
-            viewVideoButton.style.cssText = 'flex: 1; padding: 8px; border: none; border-radius: 4px; background: #6f42c1; color: white; cursor: pointer; font-size: 12px;';
-            
-            // 管理视频按钮
-            const manageVideoButton = document.createElement('button');
-            manageVideoButton.className = 'weapon-video-btn btn-info';
-            manageVideoButton.innerHTML = '<i class="fas fa-cogs"></i> 管理';
-            manageVideoButton.style.cssText = 'flex: 1; padding: 8px; border: none; border-radius: 4px; background: #17a2b8; color: white; cursor: pointer; font-size: 12px;';
-            
-            // 添加悬停效果
-            [viewButton, uploadButton, manageButton].forEach(btn => {
-                btn.addEventListener('mouseenter', () => {
-                    btn.style.opacity = '0.8';
-                });
-                btn.addEventListener('mouseleave', () => {
-                    btn.style.opacity = '1';
-                });
-            });
-            
-            // 获取武器ID
-            function getWeaponId() {
-                let weaponId = node.id;
-                console.log('点击武器节点，原始ID:', node.id, '节点类型:', node.labels);
-                
-                // 如果是武器节点且ID包含weapon_前缀，提取数字部分
-                if (typeof weaponId === 'string' && weaponId.startsWith('weapon_')) {
-                    weaponId = weaponId.replace('weapon_', '');
-                    console.log('提取武器ID:', weaponId);
-                } else if (typeof weaponId === 'string' && weaponId.includes('_')) {
-                    // 处理其他格式的ID
-                    const parts = weaponId.split('_');
-                    weaponId = parts[parts.length - 1];
-                    console.log('分割后的ID:', weaponId);
-                }
-                
-                // 确保ID是数字
-                const numericId = parseInt(weaponId);
-                if (isNaN(numericId)) {
-                    console.error('无法解析武器ID:', weaponId);
-                    return null;
-                }
-                
-                console.log('最终武器ID:', numericId);
-                return numericId;
-            }
-            
-            // 查看图片按钮事件
-            viewButton.addEventListener('click', () => {
-                const weaponId = getWeaponId();
-                if (weaponId === null) {
-                    alert('无法获取武器ID，请稍后重试');
-                    return;
-                }
-                
-                if (window.weaponImageManager) {
-                    window.weaponImageManager.showWeaponImages(weaponId, node.properties.name);
-                } else {
-                    alert('图片功能正在加载中，请稍后重试');
-                }
-            });
-            
-            // 上传图片按钮事件
-            uploadButton.addEventListener('click', () => {
-                const weaponId = getWeaponId();
-                if (weaponId === null) {
-                    alert('无法获取武器ID，请稍后重试');
-                    return;
-                }
-                
-                if (window.weaponImageManager) {
-                    window.weaponImageManager.showUploadDialog(weaponId, node.properties.name);
-                } else {
-                    alert('图片功能正在加载中，请稍后重试');
-                }
-            });
-            
-            // 管理图片按钮事件
-            manageButton.addEventListener('click', () => {
-                const weaponId = getWeaponId();
-                if (weaponId === null) {
-                    alert('无法获取武器ID，请稍后重试');
-                    return;
-                }
-                
-                if (window.weaponImageManager) {
-                    window.weaponImageManager.showManagementDialog(weaponId, node.properties.name);
-                } else {
-                    alert('图片功能正在加载中，请稍后重试');
-                }
-            });
-            
-            // 查看视频按钮事件
-            viewVideoButton.addEventListener('click', () => {
-                const weaponId = getWeaponId();
-                if (weaponId === null) {
-                    alert('无法获取武器ID，请稍后重试');
-                    return;
-                }
-                
-                // 检查视频管理器是否已加载并且有showWeaponVideos方法
-                if (window.weaponVideoManager && typeof window.weaponVideoManager.showWeaponVideos === 'function') {
-                    window.weaponVideoManager.showWeaponVideos(weaponId, node.properties.name);
-                } else {
-                    // 如果视频管理器还没加载，尝试动态加载
-                    console.log('视频管理器未加载，尝试动态加载...');
-                    loadVideoManagerAndShow(weaponId, node.properties.name, 'showWeaponVideos');
-                }
-            });
-            
-            // 管理视频按钮事件
-            manageVideoButton.addEventListener('click', () => {
-                const weaponId = getWeaponId();
-                if (weaponId === null) {
-                    alert('无法获取武器ID，请稍后重试');
-                    return;
-                }
-                
-                // 检查视频管理器是否已加载并且有showManagementDialog方法
-                if (window.weaponVideoManager && typeof window.weaponVideoManager.showManagementDialog === 'function') {
-                    window.weaponVideoManager.showManagementDialog(weaponId, node.properties.name);
-                } else {
-                    // 如果视频管理器还没加载，尝试动态加载
-                    console.log('视频管理器未加载，尝试动态加载...');
-                    loadVideoManagerAndShow(weaponId, node.properties.name, 'showManagementDialog');
-                }
-            });
-            
-            // 将图片按钮添加到按钮组
-            imageButtonGroup.appendChild(viewButton);
-            imageButtonGroup.appendChild(uploadButton);
-            imageButtonGroup.appendChild(manageButton);
-            
-            // 将视频按钮添加到按钮组
-            videoButtonGroup.appendChild(viewVideoButton);
-            videoButtonGroup.appendChild(manageVideoButton);
-            
-            // 将按钮组添加到容器
-            imageManagementContainer.appendChild(imageButtonGroup);
-            videoManagementContainer.appendChild(videoButtonGroup);
-            
-            // 创建3D模型管理容器
-            const modelManagementContainer = document.createElement('div');
-            modelManagementContainer.className = 'weapon-model-management';
-            modelManagementContainer.style.cssText = 'margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;';
-            
-            // 添加3D模型管理标题
-            const modelTitle = document.createElement('h4');
-            modelTitle.textContent = '武器3D模型管理';
-            modelTitle.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
-            modelManagementContainer.appendChild(modelTitle);
-            
-            // 创建3D模型显示区域
-            const modelDisplayArea = document.createElement('div');
-            modelDisplayArea.id = 'weapon-model-display-area';
-            modelDisplayArea.className = 'weapon-model-display-area';
-            modelManagementContainer.appendChild(modelDisplayArea);
-            
-            // 创建3D模型操作按钮组
-            const modelButtonGroup = document.createElement('div');
-            modelButtonGroup.className = 'weapon-model-buttons';
-            modelButtonGroup.style.cssText = 'display: flex; gap: 8px; margin-top: 10px;';
-            
-            // 查看3D模型按钮
-            const view3DButton = document.createElement('button');
-            view3DButton.className = 'weapon-model-btn btn-primary';
-            view3DButton.innerHTML = '<i class="fas fa-cube"></i> 查看3D';
-            view3DButton.style.cssText = 'flex: 1; padding: 8px; border: none; border-radius: 4px; background: #e74c3c; color: white; cursor: pointer; font-size: 12px;';
-            
-            // 管理3D模型按钮
-            const manage3DButton = document.createElement('button');
-            manage3DButton.className = 'weapon-model-btn btn-info';
-            manage3DButton.innerHTML = '<i class="fas fa-cogs"></i> 管理3D';
-            manage3DButton.style.cssText = 'flex: 1; padding: 8px; border: none; border-radius: 4px; background: #f39c12; color: white; cursor: pointer; font-size: 12px;';
-            
-            // 添加悬停效果
-            [view3DButton, manage3DButton].forEach(btn => {
-                btn.addEventListener('mouseenter', () => {
-                    btn.style.opacity = '0.8';
-                });
-                btn.addEventListener('mouseleave', () => {
-                    btn.style.opacity = '1';
-                });
-            });
-            
-            // 查看3D模型按钮事件
-            view3DButton.addEventListener('click', () => {
-                const weaponId = getWeaponId();
-                if (weaponId === null) {
-                    alert('无法获取武器ID，请稍后重试');
-                    return;
-                }
-                
-                // 检查3D模型管理器是否已加载
-                if (window.weaponModelManager && typeof window.weaponModelManager.showModelViewer === 'function') {
-                    window.weaponModelManager.showModelViewer(weaponId, node.properties.name);
-                } else {
-                    // 如果3D模型管理器还没加载，尝试动态加载
-                    console.log('3D模型管理器未加载，尝试动态加载...');
-                    loadModelManagerAndShow(weaponId, node.properties.name, 'showModelViewer');
-                }
-            });
-            
-            // 管理3D模型按钮事件
-            manage3DButton.addEventListener('click', () => {
-                const weaponId = getWeaponId();
-                if (weaponId === null) {
-                    alert('无法获取武器ID，请稍后重试');
-                    return;
-                }
-                
-                // 检查3D模型管理器是否已加载
-                if (window.weaponModelManager && typeof window.weaponModelManager.showModelManagement === 'function') {
-                    window.weaponModelManager.showModelManagement(weaponId, node.properties.name);
-                } else {
-                    // 如果3D模型管理器还没加载，尝试动态加载
-                    console.log('3D模型管理器未加载，尝试动态加载...');
-                    loadModelManagerAndShow(weaponId, node.properties.name, 'showModelManagement');
-                }
-            });
-            
-            // 将3D模型按钮添加到按钮组
-            modelButtonGroup.appendChild(view3DButton);
-            modelButtonGroup.appendChild(manage3DButton);
-            
-            // 将按钮组添加到容器
-            modelManagementContainer.appendChild(modelButtonGroup);
-            
-            // 将整个管理容器添加到详情容器
-            detailsContainer.appendChild(imageManagementContainer);
-            detailsContainer.appendChild(videoManagementContainer);
-            detailsContainer.appendChild(modelManagementContainer);
-            
-            // 自动加载并显示武器图片、视频和3D模型缩略图
-            const weaponId = getWeaponId();
-            if (weaponId !== null) {
-                if (window.weaponImageManager) {
-                    window.weaponImageManager.loadWeaponImageThumbnails(weaponId, imageDisplayArea);
-                }
-                if (window.weaponVideoManager) {
-                    window.weaponVideoManager.loadWeaponVideoThumbnails(weaponId, videoDisplayArea);
-                }
-                if (window.weaponModelManager) {
-                    window.weaponModelManager.loadWeaponModelThumbnails(weaponId, modelDisplayArea);
-                }
-            }
+        // 如果是药材节点，显示图片和视频可视化窗口
+        if (node.labels.includes('Herb')) {
+            loadHerbMedia(node, detailsContainer);
         }
     }
-    
+
     // 查询数据库数据
     window.queryNeo4j = async function queryNeo4j() {
         try {
-            // 从后端API获取知识图谱数据
-            const response = await fetch('http://localhost:3001/api/knowledge/graph-data');
+            // 从后端API获取知识图谱数据（默认常用药模式）
+            const commonMode = document.getElementById('commonModeToggle') ?
+                document.getElementById('commonModeToggle').classList.contains('active') : true;
+            const response = await fetch('http://localhost:3001/api/knowledge/graph-data?common=' + (commonMode ? '1' : '0'));
             if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
 
             const apiResponse = await response.json();
@@ -879,35 +668,113 @@ function clearManufacturerSelection() {
         }
     }
     
-    // 搜索功能
-    document.getElementById('searchButton').addEventListener('click', function() {
-        const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-        
-        if (!searchTerm) {
+    // ===== 搜索自动补全 =====
+    const searchInput = document.getElementById('searchInput');
+    const autocompleteList = document.getElementById('autocompleteList');
+    let autocompleteItems = [];
+
+    // 触发搜索（共用函数）：设置搜索范围后走统一的 applyFilters
+    function doSearch() {
+        const term = searchInput.value.trim().toLowerCase();
+        if (!term) {
+            searchScope = null; // 清空搜索范围
             applyFilters();
             return;
         }
-        
-        // 过滤节点
-        const filteredNodes = graphData.nodes.filter(node => 
-            node.properties.name.toLowerCase().includes(searchTerm)
+
+        const matchedHerbs = graphData.nodes.filter(node =>
+            node.labels[0] === 'Herb' && node.properties.name.toLowerCase().includes(term)
         );
-        
-        const nodeIds = new Set(filteredNodes.map(node => node.id));
-        
-        // 过滤连接，仅保留与过滤后节点相关的连接
-        const filteredLinks = graphData.links.filter(link => 
-            nodeIds.has(link.source.id || link.source) && nodeIds.has(link.target.id || link.target)
-        );
-        
-        renderGraph({
-            nodes: filteredNodes,
-            links: filteredLinks
+        if (matchedHerbs.length === 0) { alert('未找到匹配的药材'); return; }
+
+        const herbIds = new Set(matchedHerbs.map(n => n.id));
+        const relatedNodeIds = new Set(herbIds);
+        graphData.links.forEach(link => {
+            const s = link.source.id || link.source;
+            const t = link.target.id || link.target;
+            if (herbIds.has(s)) relatedNodeIds.add(t);
+            if (herbIds.has(t)) relatedNodeIds.add(s);
         });
+
+        if (toggleGroup) {
+            toggleGroup.querySelectorAll('.toggle-btn').forEach(btn => {
+                if (!btn.classList.contains('active')) {
+                    btn.classList.add('active');
+                    const type = btn.dataset.type;
+                    if (type !== 'Herb') activeNodeTypes.add(type);
+                }
+            });
+        }
+
+        // 保存搜索范围，供 applyFilters 使用
+        searchScope = relatedNodeIds;
+        applyFilters();
+        hideAutocomplete();
+    }
+
+    // 输入时显示补全建议
+    if (searchInput && autocompleteList) {
+        searchInput.addEventListener('input', function() {
+            const term = this.value.trim().toLowerCase();
+            if (!term) { hideAutocomplete(); return; }
+
+            // 从药材节点中匹配名称/拼音/别名
+            autocompleteItems = graphData.nodes.filter(node =>
+                node.labels[0] === 'Herb' && (
+                    node.properties.name.toLowerCase().includes(term) ||
+                    (node.properties.pinyin || '').toLowerCase().includes(term) ||
+                    (node.properties.alias || '').toLowerCase().includes(term)
+                )
+            ).slice(0, 10);
+
+            if (autocompleteItems.length === 0) { hideAutocomplete(); return; }
+
+            autocompleteList.innerHTML = '';
+            autocompleteItems.forEach((item, i) => {
+                const div = document.createElement('div');
+                div.textContent = item.properties.name + (item.properties.pinyin ? ' (' + item.properties.pinyin + ')' : '');
+                div.style.cssText = 'padding:8px 12px; cursor:pointer; font-size:13px; color:#e0e0e0; border-bottom:1px solid rgba(255,255,255,0.06);';
+                div.onmouseenter = () => div.style.background = 'rgba(52,152,219,0.2)';
+                div.onmouseleave = () => div.style.background = 'transparent';
+                div.onclick = () => {
+                    searchInput.value = item.properties.name;
+                    doSearch();
+                };
+                autocompleteList.appendChild(div);
+            });
+            autocompleteList.style.display = 'block';
+        });
+
+        // 键盘上下选择 + Enter
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown' && autocompleteList.style.display === 'block') {
+                e.preventDefault();
+                const items = autocompleteList.children;
+                if (items.length) items[0].focus();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        // 点击外部隐藏
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete')) hideAutocomplete();
+        });
+    }
+
+    function hideAutocomplete() {
+        if (autocompleteList) autocompleteList.style.display = 'none';
+    }
+
+    // 搜索按钮：自动展示药材的全部关联信息
+    document.getElementById('searchButton').addEventListener('click', function() {
+        doSearch();
     });
-    
+
     // ===== 节点类型切换按钮 =====
     let activeNodeTypes = new Set(['Herb', 'Category']); // 默认只显示药材+分类
+    let searchScope = null; // 搜索范围（null = 未搜索）
     const toggleGroup = document.getElementById('nodeTypeToggle');
 
     if (toggleGroup) {
@@ -926,6 +793,25 @@ function clearManufacturerSelection() {
         });
     }
 
+    // 常用药/全部模式切换（重新加载图谱数据）
+    const commonModeToggle = document.getElementById('commonModeToggle');
+    if (commonModeToggle) {
+        // 更新按钮文字
+        commonModeToggle.updateLabel = function() {
+            if (this.classList.contains('active')) {
+                this.textContent = '🌿 常用药模式';
+            } else {
+                this.textContent = '📂 展开全部药材';
+            }
+        };
+        commonModeToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            this.updateLabel();
+            window.queryNeo4j(); // 重新请求数据
+        });
+        commonModeToggle.updateLabel();
+    }
+
     // 关系类型过滤
     const relationTypeFilterElement = document.getElementById('relationTypeFilter');
     if (relationTypeFilterElement) {
@@ -940,20 +826,27 @@ function clearManufacturerSelection() {
 
         const relationTypeFilter = relationTypeFilterElement ? relationTypeFilterElement.value : 'all';
 
-        // 过滤节点：只保留选中类型的节点
+        // 过滤节点：先按搜索范围，再按节点类型
         let filteredNodes = graphData.nodes.filter(node => {
+            // 搜索范围过滤
+            if (searchScope && !searchScope.has(node.id)) return false;
+            // 节点类型过滤
             const label = node.labels && node.labels[0];
             return activeNodeTypes.has(label);
         });
 
         const nodeIds = new Set(filteredNodes.map(node => node.id));
 
-        // 过滤连接
+        // 过滤连接：搜索范围 + 节点 + 关系类型
         let filteredLinks = graphData.links.filter(link => {
             const sourceId = link.source.id || link.source;
             const targetId = link.target.id || link.target;
+            // 搜索范围过滤
+            if (searchScope && !(searchScope.has(sourceId) && searchScope.has(targetId))) return false;
+            // 节点过滤
             const hasValidNodes = nodeIds.has(sourceId) && nodeIds.has(targetId);
             if (!hasValidNodes) return false;
+            // 关系类型过滤
             if (relationTypeFilter !== 'all' && link.type !== relationTypeFilter) return false;
             return true;
         });
@@ -1027,75 +920,36 @@ function clearManufacturerSelection() {
     
     // 生成模拟数据
    
-    // 视图模式切换功能
-    const viewModeSelect = document.getElementById('viewMode');
-    if (viewModeSelect) {
-        viewModeSelect.addEventListener('change', function() {
-            const selectedMode = this.value;
+    // 地图视图切换功能
+    const mapViewToggle = document.getElementById('mapViewToggle');
+    if (mapViewToggle) {
+        mapViewToggle.addEventListener('click', function() {
+            const isMapMode = this.classList.contains('active');
             const graphContainer = document.getElementById('graph-container');
             const mapContainer = document.getElementById('map-container');
-            
-            if (selectedMode === 'map') {
+
+            if (!isMapMode) {
                 // 切换到地图模式
+                this.classList.add('active');
                 graphContainer.style.display = 'none';
                 mapContainer.style.display = 'block';
-                
-                // 初始化地图可视化
+
                 if (window.worldMapVisualization) {
                     window.worldMapVisualization.initialize();
                 } else {
-                    console.warn('世界地图可视化模块未加载');
+                    console.warn('中国地图可视化模块未加载');
                 }
             } else {
-                // 切换到知识图谱模式
-                graphContainer.style.display = 'block';
+                // 切换回知识图谱模式
+                this.classList.remove('active');
+                // 用空字符串恢复CSS默认display（grid），避免覆盖布局
+                graphContainer.style.display = '';
                 mapContainer.style.display = 'none';
-            }
-        });
-    }
-    
-    // 国家数据加载和地图渲染功能
-    async function loadCountryDataAndRenderMap() {
-        try {
-            // 检查API集成模块是否已加载
-            if (!window.mapApiIntegration) {
-                console.error('地图API集成模块未加载');
-                return;
-            }
-            
-            // 加载国家数据
-            const countryData = await window.mapApiIntegration.getCountries();
-            
-            // 加载TopoJSON地图数据 - 使用正确的Natural Earth数据URL
-            const topoJsonUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@1.1.4/world/110m.json';
-            const topoData = await d3.json(topoJsonUrl);
-            
-            // 初始化地图可视化
-            if (window.worldMapVisualization) {
-                await window.worldMapVisualization.render(topoData, countryData);
-            }
-        } catch (error) {
-            console.error('加载地图数据失败:', error);
-        }
-    }
-    
-    // 监听地图容器显示事件
-    const mapContainer = document.getElementById('map-container');
-    if (mapContainer) {
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    if (mapContainer.style.display === 'block') {
-                        // 地图容器显示时加载数据
-                        loadCountryDataAndRenderMap();
-                    }
+                // 销毁地图实例，下次进入时全新创建（避免图例布局错乱）
+                if (window.worldMapVisualization) {
+                    window.worldMapVisualization.destroy();
                 }
-            });
-        });
-        
-        observer.observe(mapContainer, {
-            attributes: true,
-            attributeFilter: ['style']
+            }
         });
     }
     
@@ -1107,15 +961,38 @@ function clearManufacturerSelection() {
     originalRenderGraph(data);
     generateAnalysisCharts(data);
 };
-    // === 分析图表模块开始 ===
+    // === 分析图表模块（医药版） ===
 let nodeTypeChart = null;
-let weaponYearChart = null;
-let countryWeaponChart = null;
+let propertyChart = null;
+let meridianChart = null;
+
+// 节点类型中文映射
+const analysisTypeNames = {
+    'Herb': '药材',
+    'Category': '分类',
+    'Region': '产地',
+    'Property': '性味',
+    'Meridian': '归经',
+    'Efficacy': '功效',
+    'Source': '来源'
+};
+
+// 图表颜色（与图谱图例一致）
+const analysisColors = {
+    'Herb': '#ff6b6b',
+    'Category': '#4ecdc4',
+    'Region': '#45b7d1',
+    'Property': '#ffbe0b',
+    'Meridian': '#a786df',
+    'Efficacy': '#f97316',
+    'Source': '#96ceb4',
+    'default': '#999999'
+};
 
 function generateAnalysisCharts(data) {
     const nodeTypeCount = {};
-    const weaponYearCount = {};
-    const countryWeaponCount = {};
+    const propertyCount = {};
+    const meridianCount = {};
 
     // 先构建节点映射
     const nodeMap = {};
@@ -1123,117 +1000,152 @@ function generateAnalysisCharts(data) {
         nodeMap[n.id] = n;
         const type = n.labels[0];
         nodeTypeCount[type] = (nodeTypeCount[type] || 0) + 1;
+    });
 
-        if (type === 'Weapon') {
-            const year = n.properties.year;
-            if (year) weaponYearCount[year] = (weaponYearCount[year] || 0) + 1;
+    // 统计药材性味分布（药材 -[性]-> 性味）
+    data.links.forEach(link => {
+        const sourceNode = nodeMap[link.source.id || link.source];
+        const targetNode = nodeMap[link.target.id || link.target];
+        if (!sourceNode || !targetNode) return;
+
+        // 药材 -> 性味
+        if (sourceNode.labels.includes('Herb') && targetNode.labels.includes('Property')) {
+            const name = targetNode.properties.name;
+            if (name) propertyCount[name] = (propertyCount[name] || 0) + 1;
+        }
+        // 性味 -> 药材
+        else if (sourceNode.labels.includes('Property') && targetNode.labels.includes('Herb')) {
+            const name = sourceNode.properties.name;
+            if (name) propertyCount[name] = (propertyCount[name] || 0) + 1;
+        }
+
+        // 药材 -> 归经
+        if (sourceNode.labels.includes('Herb') && targetNode.labels.includes('Meridian')) {
+            const name = targetNode.properties.name;
+            if (name) meridianCount[name] = (meridianCount[name] || 0) + 1;
+        }
+        // 归经 -> 药材
+        else if (sourceNode.labels.includes('Meridian') && targetNode.labels.includes('Herb')) {
+            const name = sourceNode.properties.name;
+            if (name) meridianCount[name] = (meridianCount[name] || 0) + 1;
         }
     });
 
     // 销毁现有图表
-    if (nodeTypeChart) {
-        nodeTypeChart.destroy();
-    }
-    if (weaponYearChart) {
-        weaponYearChart.destroy();
-    }
-    if (countryWeaponChart) {
-        countryWeaponChart.destroy();
-    }
+    if (nodeTypeChart) nodeTypeChart.destroy();
+    if (propertyChart) propertyChart.destroy();
+    if (meridianChart) meridianChart.destroy();
 
-    // 创建新图表
+    // 1. 节点类型分布（饼图，中文标签，颜色与图例一致）
+    const typeKeys = Object.keys(nodeTypeCount);
+    const typeLabels = typeKeys.map(t => analysisTypeNames[t] || t);
+    const typeColors = typeKeys.map(t => analysisColors[t] || analysisColors.default);
     nodeTypeChart = new Chart(document.getElementById('nodeTypeDistributionChart'), {
         type: 'pie',
         data: {
-            labels: Object.keys(nodeTypeCount),
+            labels: typeLabels,
             datasets: [{
                 data: Object.values(nodeTypeCount),
-                backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffbe0b', '#a786df', '#999']
-            }]
-        }
-    });
-
-    weaponYearChart = new Chart(document.getElementById('weaponYearChart'), {
-        type: 'bar',
-        data: {
-            labels: Object.keys(weaponYearCount).sort(),
-            datasets: [{
-                label: '数量',
-                data: Object.keys(weaponYearCount).sort().map(y => weaponYearCount[y]),
-                backgroundColor: '#3498db'
-            }]
-        },
-        options: {
-            scales: {
-                x: { title: { display: true, text: '年份' } },
-                y: { beginAtZero: true, title: { display: true, text: '数量' } }
-            }
-        }
-    });
-
-    // 从图数据库中统计国家武器数量
-    data.links.forEach(link => {
-        const sourceNode = nodeMap[link.source.id || link.source];
-        const targetNode = nodeMap[link.target.id || link.target];
-        
-        // 查找武器与国家的关系（制造、使用等）
-        if (sourceNode && targetNode) {
-            // 武器 -> 国家 的关系
-            if (sourceNode.labels.includes('Weapon') && targetNode.labels.includes('Country')) {
-                const countryName = targetNode.properties.name;
-                if (countryName) {
-                    countryWeaponCount[countryName] = (countryWeaponCount[countryName] || 0) + 1;
-                }
-            }
-            // 国家 -> 武器 的关系
-            else if (sourceNode.labels.includes('Country') && targetNode.labels.includes('Weapon')) {
-                const countryName = sourceNode.properties.name;
-                if (countryName) {
-                    countryWeaponCount[countryName] = (countryWeaponCount[countryName] || 0) + 1;
-                }
-            }
-        }
-    });
-
-    // 按武器数量排序，取前10个国家
-    const sortedCountries = Object.entries(countryWeaponCount)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 10);
-
-    // 渲染国家武器数量排行图表
-    countryWeaponChart = new Chart(document.getElementById('countryWeaponChart'), {
-        type: 'bar',
-        data: {
-            labels: sortedCountries.map(([country]) => country),
-            datasets: [{
-                label: '武器数量',
-                data: sortedCountries.map(([, count]) => count),
-                backgroundColor: '#3498db',
-                borderRadius: 4
+                backgroundColor: typeColors
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { display: false },
-                title: {
-                    display: true,
-                    text: '各国武器数量排行'
+                legend: { position: 'bottom', labels: { color: '#e0e0e0' } }
+            }
+        }
+    });
+
+    // 2. 药材性味分布（柱状图，性味图例色金色渐变）
+    const sortedProperties = Object.entries(propertyCount).sort(([,a], [,b]) => b - a);
+    propertyChart = new Chart(document.getElementById('weaponYearChart'), {
+        type: 'bar',
+        data: {
+            labels: sortedProperties.map(([name]) => name),
+            datasets: [{
+                label: '药材数量',
+                data: sortedProperties.map(([, count]) => count),
+                backgroundColor: (context) => {
+                    const { ctx, chartArea } = context.chart;
+                    if (!chartArea) return '#ffbe0b';
+                    const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    g.addColorStop(0, '#ffd166');
+                    g.addColorStop(1, '#ffbe0b');
+                    return g;
                 },
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: '药材性味分布', color: '#e0e0e0', font: { size: 14, weight: 'bold' } },
                 tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.raw} 件武器`
-                    }
+                    backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#e0e0e0', bodyColor: '#e0e0e0',
+                    callbacks: { label: ctx => `${ctx.raw} 味药材` }
                 }
             },
             scales: {
                 x: {
-                    title: { display: true, text: '国家' },
-                    ticks: { autoSkip: false, maxRotation: 60, minRotation: 30 }
+                    title: { display: true, text: '性味', color: '#e0e0e0' },
+                    ticks: { color: '#e0e0e0' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
                 },
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: '数量' }
+                    title: { display: true, text: '数量', color: '#e0e0e0' },
+                    ticks: { color: '#e0e0e0', stepSize: 1, precision: 0 },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                }
+            }
+        }
+    });
+
+    // 3. 药材归经分布（柱状图，紫色渐变）
+    const sortedMeridians = Object.entries(meridianCount).sort(([,a], [,b]) => b - a);
+    meridianChart = new Chart(document.getElementById('countryWeaponChart'), {
+        type: 'bar',
+        data: {
+            labels: sortedMeridians.map(([name]) => name),
+            datasets: [{
+                label: '药材数量',
+                data: sortedMeridians.map(([, count]) => count),
+                backgroundColor: (context) => {
+                    const { ctx, chartArea } = context.chart;
+                    if (!chartArea) return '#c084fc';
+                    const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    g.addColorStop(0, '#c084fc');
+                    g.addColorStop(1, '#a786df');
+                    return g;
+                },
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: '药材归经分布', color: '#e0e0e0', font: { size: 14, weight: 'bold' } },
+                tooltip: {
+                    backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#e0e0e0', bodyColor: '#e0e0e0',
+                    callbacks: { label: ctx => `${ctx.raw} 味药材` }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: '归经', color: '#e0e0e0' },
+                    ticks: { color: '#e0e0e0' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: '数量', color: '#e0e0e0' },
+                    ticks: { color: '#e0e0e0', stepSize: 1, precision: 0 },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
                 }
             }
         }

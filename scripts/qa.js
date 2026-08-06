@@ -93,8 +93,8 @@ function initAPIKey() {
             }
             return null;
         },
-        // 4. 默认测试密钥（仅开发环境使用）
-        () => 'sk-4630f98e641741b781450a092538b8bb'
+        // 4. 默认测试密钥（仅开发环境使用，从环境变量读取，不硬编码）
+        () => process.env?.DEEPSEEK_API_KEY || null
     ];
 
     // 按优先级尝试获取API密钥

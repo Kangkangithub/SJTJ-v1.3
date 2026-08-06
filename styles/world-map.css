@@ -1,7 +1,5 @@
 /* ==================== 世界地图样式 ==================== */
 .world-map-container {
-    display: flex;
-    flex-direction: column;
     height: 600px;
     background: #00000000;
     border-radius: 8px;
@@ -11,9 +9,9 @@
 }
 
 .map-visualization {
-    flex: 1;
+    width: 100%;
+    height: 600px;
     position: relative;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .map-legend {
@@ -331,4 +329,302 @@
 
 .country-details-panel ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+/* ==================== 中药药材详情抽屉面板 ==================== */
+/* 颜色方案 */
+.herb-region-panel {
+    --ink-green: #1B4332;
+    --herb-green: #40916C;
+    --beige: #F8F1E3;
+    --bronze: #B08968;
+    --dark-brown: #2d1f14;
+    --sage: #6b8f71;
+}
+
+/* 抽屉面板主体 */
+.herb-region-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 380px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1B4332 0%, #143a2b 40%, #0f2c20 100%);
+    color: #F8F1E3;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.45);
+    z-index: 9999;
+    transform: translateX(100%);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 2px solid rgba(176, 137, 104, 0.4);
+}
+
+.herb-region-panel.open {
+    transform: translateX(0);
+}
+
+/* 顶部标题区域 */
+.panel-header {
+    position: relative;
+    padding: 28px 20px 22px;
+    background: linear-gradient(135deg, #1B4332 0%, #2d6a4f 60%, #B08968 160%);
+    border-bottom: 1px solid rgba(176, 137, 104, 0.35);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.panel-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -30px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(176,137,104,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.panel-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 30px; height: 30px;
+    border: 1px solid rgba(248,241,227,0.4);
+    background: rgba(248,241,227,0.08);
+    color: #F8F1E3;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.3s;
+    z-index: 2;
+}
+.panel-close:hover {
+    background: rgba(248,241,227,0.25);
+    transform: rotate(90deg);
+}
+
+.panel-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* 中药印章图标 */
+.title-stamp {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #B08968;
+    color: #1B4332;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 6px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border: 2px solid rgba(248,241,227,0.3);
+    flex-shrink: 0;
+}
+
+.title-text h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: #F8F1E3;
+    letter-spacing: 4px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.title-text span {
+    font-size: 13px;
+    color: rgba(248,241,227,0.7);
+    letter-spacing: 1px;
+}
+
+.header-ornament {
+    position: absolute;
+    bottom: 8px;
+    right: 14px;
+    font-size: 22px;
+    opacity: 0.35;
+}
+
+/* 面板主体 - 可滚动 */
+.panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 16px 30px;
+    scrollbar-width: thin;
+    scrollbar-color: #B08968 rgba(255,255,255,0.1);
+}
+.panel-body::-webkit-scrollbar { width: 5px; }
+.panel-body::-webkit-scrollbar-thumb { background: #B08968; border-radius: 4px; }
+
+.panel-loading, .panel-error, .panel-empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: #B08968;
+    font-size: 14px;
+}
+
+/* 药材概况 - 三个数据卡片 */
+.herb-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #F8F1E3;
+    border: 1px solid #B08968;
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.15);
+    position: relative;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 8px; right: 8px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(176,137,104,0.4), transparent);
+}
+
+.stat-num {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1B4332;
+    line-height: 1.2;
+}
+.stat-label {
+    font-size: 12px;
+    color: #B08968;
+    margin-top: 4px;
+    letter-spacing: 1px;
+}
+
+/* 区块标题 */
+.panel-section {
+    margin-bottom: 22px;
+}
+.section-title {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #F8F1E3;
+    letter-spacing: 1px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(176,137,104,0.3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.star-title { color: #ffd166; }
+
+/* 分类标签 */
+.category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.category-tag {
+    background: rgba(64,145,108,0.18);
+    border: 1px solid rgba(64,145,108,0.4);
+    color: #95d5b2;
+    border-radius: 14px;
+    padding: 4px 12px;
+    font-size: 12px;
+}
+.category-tag b {
+    color: #ffd166;
+    margin-left: 4px;
+}
+
+/* 药材标签 */
+.herb-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.herb-tag {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(248,241,227,0.2);
+    color: #F8F1E3;
+    border-radius: 14px;
+    padding: 4px 12px;
+    font-size: 12px;
+}
+.herb-tag.common {
+    background: rgba(255,209,102,0.12);
+    border-color: rgba(255,209,102,0.4);
+    color: #ffd166;
+}
+
+/* 药材信息卡片（药典风格） */
+.herb-card {
+    background: #F8F1E3;
+    border: 1px solid #B08968;
+    border-left: 4px solid #40916C;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    position: relative;
+}
+.herb-card::after {
+    content: '藥';
+    position: absolute;
+    right: 12px; bottom: 6px;
+    font-size: 32px;
+    color: rgba(64,145,108,0.08);
+    font-weight: bold;
+}
+
+.herb-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(176,137,104,0.4);
+}
+.herb-icon { font-size: 18px; }
+.herb-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1B4332;
+    letter-spacing: 2px;
+}
+.herb-common-badge {
+    background: #ffd166;
+    color: #1B4332;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.herb-card-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+.row-label {
+    color: #B08968;
+    flex-shrink: 0;
+    width: 40px;
+    font-weight: 600;
+}
+.row-value {
+    color: #4a4038;
+    flex: 1;
+}
+
+@media (max-width: 480px) {
+    .herb-region-panel {
+        width: 100%;
+    }
 }
