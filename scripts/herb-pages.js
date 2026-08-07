@@ -274,7 +274,7 @@
         <div class="section-header">
           <div>
             <h2 class="section-title">首页概览</h2>
-            <p class="section-note">${state.apiOnline ? '已接入后端统计与药材接口。' : '后端未连接时使用离线演示数据。'}</p>
+            <p class="section-note">${state.apiOnline ? '已加载后端药材数据。' : '当前使用演示数据浏览。'}</p>
           </div>
         </div>
         <div class="grid grid-4">
@@ -288,7 +288,7 @@
         <div class="section-header">
           <div>
             <h2 class="section-title">分类统计</h2>
-            <p class="section-note">来自 /api/herbs/statistics，失败时回退到本地数据。</p>
+            <p class="section-note">统计药材在各类别下的数量分布。</p>
           </div>
         </div>
         <div class="grid grid-3">
@@ -299,7 +299,7 @@
         <div class="section-header">
           <div>
             <h2 class="section-title">重点药材</h2>
-            <p class="section-note">优先展示后端常用药材列表。</p>
+            <p class="section-note">浏览精选常用药材。</p>
           </div>
           <a class="link-btn" href="herb-search.html">查看全部药材</a>
         </div>
@@ -336,7 +336,7 @@
         <div class="section-header" style="margin-top: 18px;">
           <div>
             <h2 class="section-title">匹配结果</h2>
-            <p class="section-note">当前显示 ${state.herbs.length} 味药材。${state.loading ? '正在尝试连接后端接口。' : ''}</p>
+            <p class="section-note">当前显示 ${state.herbs.length} 味药材。${state.loading ? '正在加载...' : ''}</p>
           </div>
         </div>
         <div class="grid grid-2">${state.herbs.map(renderHerbCard).join('') || '<div class="empty-state">没有找到匹配药材，请调整筛选条件。</div>'}</div>
@@ -354,7 +354,7 @@
         <div class="section-header">
           <div>
             <h2 class="section-title">药材详情</h2>
-            <p class="section-note">优先来自 /api/herbs/:id 或 /api/knowledge/herb-details/:herbName。</p>
+            <p class="section-note">查看药材的性味、归经、功效等完整信息。</p>
           </div>
           <div class="page-actions">
             <a class="btn btn-secondary" href="herb-search.html"><i class="fa-solid fa-arrow-left"></i> 返回查询</a>
@@ -411,7 +411,7 @@
         <div class="section-header">
           <div>
             <h2 class="section-title">知识图谱</h2>
-            <p class="section-note">优先使用 /api/knowledge/graph-data?common=1，接口失败时回退到静态图谱。</p>
+            <p class="section-note">通过关系网络直观展示药材之间的关联结构。</p>
           </div>
         </div>
         <div class="graph-layout">
@@ -430,7 +430,7 @@
             <div class="graph-legend">${graphView.legend.map((item) => `<span class="legend-item"><span class="legend-dot" style="--color:${item.color}"></span>${escapeHtml(item.label)}</span>`).join('')}</div>
           </div>
           <aside>
-            <div class="card pad"><h3>图谱规模</h3><p>节点 ${graphView.totalNodes} 个，关系 ${graphView.totalLinks} 条。</p><div class="chip-row"><span class="chip">${state.graph ? '真实图谱' : '静态兜底'}</span><span class="chip">常用药视图</span></div></div>
+            <div class="card pad"><h3>图谱规模</h3><p>节点 ${graphView.totalNodes} 个，关系 ${graphView.totalLinks} 条。</p><div class="chip-row"><span class="chip">常用药视图</span></div></div>
             ${renderRegionDistribution()}
           </aside>
         </div>
@@ -441,7 +441,7 @@
   function renderQA() {
     return `
       <section class="section">
-        <div class="section-header"><div><h2 class="section-title">AI 问答</h2><p class="section-note">当前为前端模拟问答，药材答案会优先引用已加载数据。</p></div><a class="link-btn" href="formula-library.html">打开方剂库</a></div>
+        <div class="section-header"><div><h2 class="section-title">AI 问答</h2><p class="section-note">通过常用问答了解药材功效、配伍和适应证。</p></div><a class="link-btn" href="formula-library.html">打开方剂库</a></div>
         <div class="qa-layout">
           <div class="chat-panel">
             <div class="chat-feed" id="chatFeed">${state.chat.map(renderMessage).join('')}</div>
@@ -459,7 +459,7 @@
     const selected = state.formulas.find((item) => item.id === state.selectedFormulaId) || formulas[0] || state.formulas[0];
     return `
       <section class="section">
-        <div class="section-header"><div><h2 class="section-title">方剂库</h2><p class="section-note">方剂库当前继续使用离线数据，药材详情会联动真实药材接口。</p></div><a class="link-btn" href="qa.html">去 AI 问答</a></div>
+        <div class="section-header"><div><h2 class="section-title">方剂库</h2><p class="section-note">浏览经典方剂及其组成药材与配伍步骤。</p></div><a class="link-btn" href="qa.html">去 AI 问答</a></div>
         <div class="toolbar">
           <div class="field"><label for="formulaTerm">方剂名称</label><input class="input js-formula-term" id="formulaTerm" value="${escapeAttr(state.formulaTerm)}" placeholder="输入方剂名或组成药材"></div>
           <div class="field"><label for="formulaCategory">分类</label><select class="select js-formula-category" id="formulaCategory">${renderOptions(['全部', ...new Set(state.formulas.map((item) => item.category))], state.formulaCategory)}</select></div>
@@ -474,10 +474,10 @@
   function renderDesign() {
     return `
       <section class="section">
-        <div class="section-header"><div><h2 class="section-title">设计系统</h2><p class="section-note">当前页面结构保持不变，数据层已支持 API 优先和静态兜底。</p></div></div>
+        <div class="section-header"><div><h2 class="section-title">设计系统</h2><p class="section-note">集中展示本草前端用到的颜色、按钮和组件样式。</p></div></div>
         <div class="grid grid-2">
           <div class="card pad"><h3>颜色 token</h3><table class="token-table"><thead><tr><th>名称</th><th>值</th><th>用途</th><th>预览</th></tr></thead><tbody>${(FALLBACK.tokens || []).map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.value)}</td><td>${escapeHtml(item.usage)}</td><td><span class="swatch" style="--color:${item.value}"></span></td></tr>`).join('')}</tbody></table></div>
-          <div class="card pad"><h3>数据策略</h3><div class="list-stack"><div class="list-item"><span><strong>API 优先</strong><p>/api/herbs、/api/herbs/statistics、/api/knowledge/graph-data</p></span><i class="fa-solid fa-plug"></i></div><div class="list-item"><span><strong>静态兜底</strong><p>接口失败时继续使用 scripts/herb-data.js</p></span><i class="fa-solid fa-shield"></i></div></div></div>
+          <div class="card pad"><h3>颜色 token</h3><table class="token-table"><thead><tr><th>名称</th><th>值</th><th>用途</th><th>预览</th></tr></thead><tbody>${(FALLBACK.tokens || []).map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.value)}</td><td>${escapeHtml(item.usage)}</td><td><span class="swatch" style="--color:${item.value}"></span></td></tr>`).join('')}</tbody></table></div>
         </div>
       </section>
     `;
@@ -757,7 +757,7 @@
 
   function renderRegionDistribution() {
     const regions = state.regionDistribution?.regions || [];
-    if (!regions.length) return `<div class="card pad" style="margin-top: 16px;"><h3>产地分布</h3><p>后端产地分布接口不可用时，此处保留为图谱说明面板。</p></div>`;
+    if (!regions.length) return `<div class="card pad" style="margin-top: 16px;"><h3>产地分布</h3><p>暂无产地分布数据。</p></div>`;
     return `
       <div class="card pad" style="margin-top: 16px;">
         <h3>产地分布</h3>
@@ -859,16 +859,16 @@
     const commonStats = [
       { value: displayCount(stats.total_herbs || FALLBACK_HERBS.length), label: '药材总数' },
       { value: displayCount(stats.by_category.length || state.categories.length), label: '分类维度' },
-      { value: state.apiOnline ? 'API' : '离线', label: '数据来源' }
+      { value: displayCount(state.formulas.length), label: '方剂条目' }
     ];
     const copy = {
       home: ['本草知识图谱', '把药材、方剂、图谱和问答放进同一个前端', '围绕真实后端药材数据，提供查询、详情、图谱、问答和方剂浏览。'],
-      search: ['药材查询', '按名称、分类和产地筛选药材', '优先使用后端 275 味药材接口，接口不可用时使用静态兜底。'],
+      search: ['药材查询', '按名称、分类和产地筛选药材', '搜索 275 味药材，支持关键词、分类和产地筛选。'],
       detail: ['药材详情', '查看单味药材的性味、功效与配伍', '详情页会优先请求后端完整药材信息，并兼容知识图谱详情接口。'],
       graph: ['知识图谱', '把药材、功效、归经和产地串起来', '优先展示后端常用药图谱，并补充产地分布统计。'],
-      qa: ['AI 问答', '围绕药材和方剂进行自然语言提问', '当前保留前端模拟问答，答案会引用已加载的药材和方剂数据。'],
+      qa: ['AI 问答', '围绕药材和方剂进行自然语言提问', '提出药材功效、归经、配伍和方剂组成等问题。'],
       formula: ['方剂库', '按方名与分类浏览经典方剂', '方剂库继续使用离线数据，并与真实药材详情页互相跳转。'],
-      design: ['设计系统', '统一颜色、字体、组件和数据状态', '记录当前前端的视觉 token 与 API 优先、静态兜底策略。']
+      design: ['设计系统', '统一颜色、字体、组件和数据状态', '集中展示颜色 token、按钮样式和组件示例。']
     }[state.page] || [];
     return {
       kicker: copy[0],
