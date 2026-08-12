@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 const { optionalAuth, authenticateToken, requireAdmin } = require('../middleware/auth');
 const { validate, herbSchema } = require('../middleware/validation');
@@ -19,6 +21,31 @@ function setCached(key, value, ttl = CACHE_TTL) {
 }
 function clearCache() {
   routeCache.clear();
+}
+
+// =============================================
+// 图片兜底目录：backend/uploads/herbs
+// =============================================
+const HERB_IMAGE_DIR = path.join(__dirname, '../../uploads', 'herbs');
+
+// 当数据库未记录图片时，按「文件名 = 药材名」约定兜底，返回动态图片条目
+// 使图片文件在仓库内即可直接显示，不依赖每台机器的私有数据库
+function resolveHerbImages(herbName, dbImages) {
+  if (dbImages && dbImages.length > 0) return dbImages;
+  const filename = `${herbName}.png`;
+  const filePath = path.join(HERB_IMAGE_DIR, filename);
+  if (fs.existsSync(filePath)) {
+    return [{
+      id: `fallback_${herbName}`,
+      filename,
+      originalName: filename,
+      path: `/uploads/herbs/${filename}`,
+      size: fs.statSync(filePath).size,
+      description: '',
+      uploadedAt: null
+    }];
+  }
+  return [];
 }
 
 // =============================================
@@ -94,7 +121,7 @@ async function getHerbFullInfo(db, herbId) {
     properties,
     meridians,
     efficacies,
-    images: JSON.parse(herb.images || '[]'),
+    images: resolveHerbImages(herb.name, JSON.parse(herb.images || '[]')),
     quality: JSON.parse(herb.quality || '{}')
   };
 }
