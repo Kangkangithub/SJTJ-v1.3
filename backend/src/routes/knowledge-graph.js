@@ -7,7 +7,8 @@ const neo4jManager = require("../config/neo4j-simple");
 const router = express.Router();
 
 const cache = new Map();
-const CACHE_TTL = 3600 * 1000;
+const pendingBuilds = new Map();
+const CACHE_TTL = 30 * 60 * 1000;
 
 function getCached(key) {
   const item = cache.get(key);
@@ -20,6 +21,10 @@ function setCache(key, value, ttl = CACHE_TTL) {
   cache.set(key, { value, expires: Date.now() + ttl });
 }
 
+function getGraphCacheKey(commonOnly) {
+  return commonOnly ? 'graph-data-common' : 'graph-data';
+}
+
 // 辅助：将 Neo4j Integer 转为 JS number
 function toNumber(val) {
   if (val === null || val === undefined) return null;
@@ -30,13 +35,7 @@ function toNumber(val) {
 }
 
 // ==================== 知识图谱图数据 ====================
-router.get('/graph-data', async (req, res) => {
-  try {
-    const commonOnly = req.query.common === '1';
-    const cacheKey = commonOnly ? 'graph-data-common' : 'graph-data';
-    const cached = getCached(cacheKey);
-    if (cached) return res.json({ success: true, data: cached, cached: true });
-
+async function buildGraphData(commonOnly) {
     const session = neo4jManager.getSession();
     const nodes = [];
     const links = [];
@@ -215,15 +214,43 @@ router.get('/graph-data', async (req, res) => {
           }
         });
       } catch (e) {}
-
-      setCache(cacheKey, { nodes, links });
-      res.json({ success: true, data: { nodes, links } });
+      return { nodes, links };
     } finally {
       await session.close();
     }
+}
+
+async function getGraphData(commonOnly = false) {
+  const cacheKey = getGraphCacheKey(commonOnly);
+  const cached = getCached(cacheKey);
+  if (cached) return { data: cached, cached: true };
+
+  if (!pendingBuilds.has(cacheKey)) {
+    pendingBuilds.set(cacheKey, buildGraphData(commonOnly)
+      .then((data) => {
+        setCache(cacheKey, data);
+        return data;
+      })
+      .finally(() => pendingBuilds.delete(cacheKey)));
+  }
+
+  const data = await pendingBuilds.get(cacheKey);
+  return { data, cached: false };
+}
+
+async function warmupGraphCache(options = {}) {
+  const commonOnly = options.commonOnly !== false;
+  return getGraphData(commonOnly);
+}
+
+router.get('/graph-data', async (req, res) => {
+  try {
+    const commonOnly = req.query.common === '1';
+    const result = await getGraphData(commonOnly);
+    res.json({ success: true, data: result.data, cached: result.cached });
   } catch (error) {
     console.error('[knowledge-graph] graph-data error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: '知识图谱加载失败，请稍后重试' });
   }
 });
 
@@ -353,3 +380,6 @@ router.get('/region-distribution', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.warmupGraphCache = warmupGraphCache;
+module.exports.CACHE_TTL = CACHE_TTL;
+

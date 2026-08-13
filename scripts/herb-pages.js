@@ -36,6 +36,7 @@
     regions: [],
     stats: normalizeStats({}),
     graph: null,
+    graphError: false,
     regionDistribution: null,
     chat: [
       {
@@ -197,11 +198,13 @@
 
   async function loadGraphData() {
     try {
+      state.graphError = false;
       const graph = await apiGet('/api/knowledge/graph-data?common=1');
       state.graph = normalizeGraph(unwrap(graph));
       state.apiOnline = true;
     } catch (error) {
       state.graph = null;
+      state.graphError = true;
     }
   }
 
@@ -464,6 +467,11 @@
   function renderGraph() {
     const graphView = buildGraphView();
     const hasGraph = graphView.nodes.length > 0;
+    const graphStatusMessage = state.loading
+      ? '正在加载知识图谱...'
+      : state.graphError
+        ? '知识图谱加载失败，请稍后重试。'
+        : '暂无知识图谱数据。';
     const graphToolbar = hasGraph ? `
       <div class="toolbar" style="grid-template-columns: minmax(0, 1fr) auto;">
         <div class="field">
@@ -472,13 +480,13 @@
         </div>
         <a class="btn btn-primary" href="herb-detail.html?herb=${encodeURIComponent(graphView.focusName)}"><i class="fa-solid fa-circle-info"></i> 打开详情</a>
       </div>
-    ` : '<div class="empty-state">暂无知识图谱数据。</div>'; 
+    ` : `<div class="empty-state">${graphStatusMessage}</div>`; 
     const graphCanvas = hasGraph ? `
       <div class="graph-canvas" role="img" aria-label="药材知识图谱关系图">
         <svg class="graph-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${graphView.lines.map((item) => `<line x1="${item.x1}" y1="${item.y1}" x2="${item.x2}" y2="${item.y2}" stroke="${item.stroke}" stroke-width="0.7" stroke-linecap="round" />`).join('')}</svg>
         ${graphView.nodes.map((item) => renderGraphNode(item)).join('')}
       </div>
-    ` : '<div class="graph-canvas empty-graph"><div class="empty-state">暂无可展示的图谱节点或关系。</div></div>'; 
+    ` : `<div class="graph-canvas empty-graph"><div class="empty-state">${graphStatusMessage}</div></div>`; 
     return `
       <section class="section">
         <div class="section-header">
@@ -735,11 +743,12 @@
   async function apiGet(path) {
     if (apiCache.has(path)) return apiCache.get(path);
     const urls = buildApiUrls(path);
+    const timeoutMs = getApiTimeout(path);
     let lastError;
     for (const url of urls) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 6000);
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
           const response = await fetch(url, { signal: controller.signal, credentials: 'same-origin' });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -756,6 +765,12 @@
       }
     }
     throw lastError || new Error('API unavailable');
+  }
+
+  function getApiTimeout(path) {
+    if (path.includes('/api/knowledge/graph-data')) return 30000;
+    if (path.includes('/api/knowledge/region-distribution')) return 12000;
+    return 6000;
   }
 
   async function apiPost(path, body) {

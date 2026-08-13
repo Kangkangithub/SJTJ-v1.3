@@ -47,6 +47,7 @@ const authRoutes = require('./routes/auth-simple');
 const herbRoutes = require('./routes/herbs');
 const herbsManageRoutes = require('./routes/herbs-manage');
 const conversationsRoutes = require('./routes/conversations');
+const knowledgeGraphRoutes = require('./routes/knowledge-graph');
 
 class SimpleApp {
   constructor() {
@@ -73,7 +74,7 @@ class SimpleApp {
           scriptSrcAttr: ["'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
           imgSrc: ["'self'", "data:", "blob:"],
-          connectSrc: ["'self'", "http://localhost:3001", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+          connectSrc: ["'self'", "http://localhost:3001", "http://127.0.0.1:3001", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
           fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "data:"]
         }
       }
@@ -179,7 +180,7 @@ class SimpleApp {
     this.app.use('/api/herb-recognition', require('./routes/herb-recognition'));
     this.app.use('/api/formulas', require('./routes/formulas'));
     this.app.use('/api/quiz', require('./routes/quiz'));
-    this.app.use('/api/knowledge', require('./routes/knowledge-graph'));
+    this.app.use('/api/knowledge', knowledgeGraphRoutes);
     this.app.use('/api/herbs-manage', herbsManageRoutes);
     this.app.use('/api/conversations', conversationsRoutes);
     this.app.use('/api/ai-gateway', require('./routes/ai-gateway'));
@@ -334,6 +335,7 @@ class SimpleApp {
         logger.info(`数据库: SQLite + Neo4j AuraDB`);
         logger.info(`健康检查: http://localhost:${port}/health`);
         logger.info(`API文档: http://localhost:${port}/api`);
+        this.warmupKnowledgeGraphCache();
       });
 
       return this.server;
@@ -341,6 +343,19 @@ class SimpleApp {
       logger.error('服务器启动失败:', error);
       process.exit(1);
     }
+  }
+
+  warmupKnowledgeGraphCache() {
+    setTimeout(async () => {
+      try {
+        if (typeof knowledgeGraphRoutes.warmupGraphCache !== 'function') return;
+        const startedAt = Date.now();
+        await knowledgeGraphRoutes.warmupGraphCache({ commonOnly: true });
+        logger.info(`知识图谱缓存预热完成，用时 ${Date.now() - startedAt}ms`);
+      } catch (error) {
+        logger.warn('知识图谱缓存预热失败:', error.message);
+      }
+    }, 1000);
   }
 
   // 获取Express应用实例
