@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 中国地图可视化模块
  * 基于ECharts实现中国地图，展示药材产地分布
  */
@@ -288,13 +288,11 @@ class WorldMapVisualization {
         document.getElementById('panelRegionEn').textContent = (this.provinceEnNames[shortName] || '') + ' Province';
 
         try {
-            // 获取该产地的药材
+            // 获取该产地的药材（使用 Neo4j herbs-manage API，按产地名称查询）
             let herbs = [];
-            if (region) {
-                const response = await fetch(`http://localhost:3001/api/herbs?region_id=${region.id}&limit=100`);
+            const response = await fetch(`http://localhost:3001/api/herbs-manage?region=${encodeURIComponent(shortName)}&limit=100`);
                 const result = await response.json();
                 herbs = result.data && result.data.herbs ? result.data.herbs : [];
-            }
 
             // 分类统计（按药材分类）
             const catMap = {};
@@ -311,7 +309,7 @@ class WorldMapVisualization {
             const detailHerbs = [...commonHerbs, ...normalHerbs].slice(0, 10);
             const details = await Promise.all(detailHerbs.map(async h => {
                 try {
-                    const r = await fetch(`http://localhost:3001/api/herbs/${h.id}`);
+                    const r = await fetch(`http://localhost:3001/api/herbs-manage/${encodeURIComponent(h.name)}`);
                     const d = await r.json();
                     return d.data ? { ...h, ...d.data } : h;
                 } catch (e) {
@@ -323,7 +321,7 @@ class WorldMapVisualization {
             const effSet = new Set();
             details.forEach(d => (d.efficacies || []).forEach(e => effSet.add(e.name)));
             const mainEffCount = effSet.size || categories.length;
-            const herbCount = region ? region.herbCount : herbs.length;
+            const herbCount = herbs.length;
             const catCount = categories.length;
 
             // 生成内容
@@ -484,3 +482,7 @@ window.worldMapVisualization = new WorldMapVisualization();
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = WorldMapVisualization;
 }
+
+
+
+

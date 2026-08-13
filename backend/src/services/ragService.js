@@ -17,58 +17,99 @@ class RAGService {
   // =============================================
   // 搜索知识库（药材 + 方剂 + 配伍）
   // =============================================
-  async searchKnowledgeBase(query) {
+    async searchKnowledgeBase(query) {
+    // 优先从 Neo4j 搜索
+    let herbs = [], formulas = [], propertiesMeridians = [];
+    try {
+      const session = neo4jManager.getSession();
+      try {
+        // 搜索药材（模糊匹配名称、拼音、别名、功效、描述）
+        const herbResult = await session.run(
+          'MATCH (h:Herb) WHERE h.name CONTAINS $q OR h.pinyin CONTAINS $q OR h.alias CONTAINS $q OR h.efficacy CONTAINS $q OR h.description CONTAINS $q OPTIONAL MATCH (h)-[:BELONGS_TO_CATEGORY]->(c:Category) RETURN h, c.name AS category LIMIT 8',
+          { q: query }
+        );
+        for (const record of herbResult.records) {
+          const h = record.get('h');
+          herbs.push({
+            id: h.identity.toString(),
+            name: h.properties.name,
+            pinyin: h.properties.pinyin || '',
+            alias: h.properties.alias || '',
+            description: h.properties.description || '',
+            efficacy: h.properties.efficacy || '',
+            usage_dosage: h.properties.usage_dosage || '',
+            caution: h.properties.caution || '',
+            category: record.get('category') || ''
+          });
+        }
+
+        // 获取药材的性味
+        if (herbs.length > 0) {
+          const herbNames = herbs.map(h => h.name);
+          const propResult = await session.run(
+            'MATCH (h:Herb)-[:HAS_PROPERTY]->(p:Property) WHERE h.name IN $names WITH h, collect(DISTINCT p.name) AS props RETURN h.name AS herb_name, props',
+            { names: herbNames }
+          );
+          for (const record of propResult.records) {
+            propertiesMeridians.push({
+              herb_id: record.get('herb_name'),
+              properties: (record.get('props') || []).join('、')
+            });
+          }
+        }
+
+        // 搜索方剂
+        try {
+          const formulaResult = await session.run(
+            'MATCH (f:Formula) WHERE f.name CONTAINS $q OR f.description CONTAINS $q RETURN f.name AS name, f.pinyin AS pinyin, f.category AS category, f.description AS description LIMIT 5',
+            { q: query }
+          );
+          for (const record of formulaResult.records) {
+            formulas.push({
+              name: record.get('name'),
+              pinyin: record.get('pinyin') || '',
+              category: record.get('category') || '',
+              description: record.get('description') || ''
+            });
+          }
+        } catch (e) { /* 方剂数据可能不存在 */ }
+
+        return { herbs, formulas, propertiesMeridians };
+      } finally {
+        await session.close();
+      }
+    } catch (neoError) {
+      console.warn('[ragService] Neo4j 搜索失败，回退到 SQLite:', neoError.message);
+    }
+
+    // 回退：SQLite 查询
     const db = databaseManager.getDatabase();
-    const term = `%${query}%`;
+    const term = '%' + query + '%';
 
-    // 搜索药材
-    const herbs = await new Promise((resolve, reject) => {
+    herbs = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT h.id, h.name, h.pinyin, h.alias, h.description, h.efficacy, h.usage_dosage, h.caution,
-                hc.name as category
-         FROM herbs h
-         LEFT JOIN herb_categories hc ON h.category_id = hc.id
-         WHERE h.name LIKE ? OR h.pinyin LIKE ? OR h.alias LIKE ? OR h.description LIKE ? OR h.efficacy LIKE ?
-         LIMIT 8`,
+        'SELECT h.id, h.name, h.pinyin, h.alias, h.description, h.efficacy, h.usage_dosage, h.caution, hc.name as category FROM herbs h LEFT JOIN herb_categories hc ON h.category_id = hc.id WHERE h.name LIKE ? OR h.pinyin LIKE ? OR h.alias LIKE ? OR h.description LIKE ? OR h.efficacy LIKE ? LIMIT 8',
         [term, term, term, term, term],
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
+        (err, rows) => { if (err) reject(err); else resolve(rows); }
       );
     });
 
-    // 搜索方剂
-    const formulas = await new Promise((resolve, reject) => {
+    formulas = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT f.id, f.name, f.pinyin, f.category, f.description
-         FROM formulas f
-         WHERE f.name LIKE ? OR f.pinyin LIKE ? OR f.description LIKE ?
-         LIMIT 5`,
+        'SELECT f.id, f.name, f.pinyin, f.category, f.description FROM formulas f WHERE f.name LIKE ? OR f.pinyin LIKE ? OR f.description LIKE ? LIMIT 5',
         [term, term, term],
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
+        (err, rows) => { if (err) reject(err); else resolve(rows); }
       );
     });
 
-    // 如果药材有结果，获取性味归经
-    let propertiesMeridians = [];
     if (herbs.length > 0) {
       const herbIds = herbs.map(h => h.id);
+      const placeholders = herbIds.map(() => "?").join(",");
       propertiesMeridians = await new Promise((resolve, reject) => {
         db.all(
-          `SELECT hp.herb_id, GROUP_CONCAT(DISTINCT p.name) as properties
-           FROM herb_properties hp
-           JOIN properties p ON hp.property_id = p.id
-           WHERE hp.herb_id IN (${herbIds.join(',')})
-           GROUP BY hp.herb_id`,
-          [],
-          (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-          }
+          'SELECT hp.herb_id, GROUP_CONCAT(DISTINCT p.name) as properties FROM herb_properties hp JOIN properties p ON hp.property_id = p.id WHERE hp.herb_id IN (' + placeholders + ') GROUP BY hp.herb_id',
+          herbIds,
+          (err, rows) => { if (err) reject(err); else resolve(rows); }
         );
       });
     }

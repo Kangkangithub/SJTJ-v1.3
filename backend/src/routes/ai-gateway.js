@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const databaseManager = require('../config/database-simple');
@@ -79,32 +79,47 @@ async function callPythonService(endpoint, body) {
 // 获取药材知识库上下文
 // =============================================
 async function getHerbContext(query) {
-  const db = databaseManager.getDatabase();
-
-  // 搜索相关药材
-  const herbs = await new Promise((resolve, reject) => {
-    const term = `%${query}%`;
-    db.all(
-      `SELECT h.name, h.pinyin, h.description, h.efficacy, h.usage_dosage, h.caution,
-              hc.name as category, GROUP_CONCAT(DISTINCT p.name) as properties,
-              GROUP_CONCAT(DISTINCT m.name) as meridians
-       FROM herbs h
-       LEFT JOIN herb_categories hc ON h.category_id = hc.id
-       LEFT JOIN herb_properties hp ON h.id = hp.herb_id
-       LEFT JOIN properties p ON hp.property_id = p.id
-       LEFT JOIN herb_meridians hm ON h.id = hm.herb_id
-       LEFT JOIN meridians m ON hm.meridian_id = m.id
-       WHERE h.name LIKE ? OR h.pinyin LIKE ? OR h.alias LIKE ? OR h.efficacy LIKE ?
-       GROUP BY h.id
-       LIMIT 10`,
-      [term, term, term, term],
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
-  });
-
+  // 优先从 Neo4j 搜索药材上下文
+  let herbs = [];
+  try {
+    const neo4jManager = require('../config/neo4j-simple');
+    const session = neo4jManager.getSession();
+    try {
+      const result = await session.run(
+        'MATCH (h:Herb) WHERE h.name CONTAINS $q OR h.pinyin CONTAINS $q OR h.alias CONTAINS $q OR h.efficacy CONTAINS $q OPTIONAL MATCH (h)-[:BELONGS_TO_CATEGORY]->(c:Category) OPTIONAL MATCH (h)-[:HAS_PROPERTY]->(p:Property) OPTIONAL MATCH (h)-[:MERIDIAN_AFFINITY]->(m:Meridian) RETURN h, c.name AS category, collect(DISTINCT p.name) AS properties, collect(DISTINCT m.name) AS meridians LIMIT 10',
+        { q: query }
+      );
+      herbs = result.records.map(record => {
+        const h = record.get('h');
+        return {
+          name: h.properties.name,
+          pinyin: h.properties.pinyin || '',
+          description: h.properties.description || '',
+          efficacy: h.properties.efficacy || '',
+          usage_dosage: h.properties.usage_dosage || '',
+          caution: h.properties.caution || '',
+          category: record.get('category') || '',
+          properties: (record.get('properties') || []).join('、'),
+          meridians: (record.get('meridians') || []).join('、')
+        };
+      });
+    } finally {
+      await session.close();
+    }
+  } catch (neoError) {
+    console.warn('[ai-gateway] Neo4j 搜索失败，回退到 SQLite:', neoError.message);
+    
+    // 回退：SQLite 查询
+    const db = databaseManager.getDatabase();
+    const term = "%" + query + "%";
+    herbs = await new Promise((resolve, reject) => {
+      db.all(
+        'SELECT h.name, h.pinyin, h.description, h.efficacy, h.usage_dosage, h.caution, hc.name as category, GROUP_CONCAT(DISTINCT p.name) as properties, GROUP_CONCAT(DISTINCT m.name) as meridians FROM herbs h LEFT JOIN herb_categories hc ON h.category_id = hc.id LEFT JOIN herb_properties hp ON h.id = hp.herb_id LEFT JOIN properties p ON hp.property_id = p.id LEFT JOIN herb_meridians hm ON h.id = hm.herb_id LEFT JOIN meridians m ON hm.meridian_id = m.id WHERE h.name LIKE ? OR h.pinyin LIKE ? OR h.alias LIKE ? OR h.efficacy LIKE ? GROUP BY h.id LIMIT 10',
+        [term, term, term, term],
+        (err, rows) => { if (err) reject(err); else resolve(rows); }
+      );
+    });
+  }
   return herbs;
 }
 
@@ -287,4 +302,110 @@ router.get('/health', async (req, res) => {
   });
 });
 
+
+// =============================================
+// POST /ai-gateway/qa-chat — 公共智能问答（无需登录，SSE流式）
+// =============================================
+router.post('/qa-chat', async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ success: false, message: '请提供消息列表' });
+    }
+
+    if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY === 'YOUR_DEEPSEEK_API_KEY_HERE') {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'DeepSeek API Key 未配置，请在 backend/.env 中设置 DEEPSEEK_API_KEY' 
+      });
+    }
+
+    // 设置 SSE 响应头
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+
+    // 监听客户端断开
+    req.on('close', () => {
+      controller.abort();
+      clearTimeout(timeout);
+    });
+
+    try {
+      const response = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + DEEPSEEK_API_KEY
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: messages,
+          stream: true,
+          temperature: 0.7,
+          max_tokens: 2000
+        }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        res.write('data: ' + JSON.stringify({ error: 'DeepSeek API 返回 ' + response.status + ': ' + errText }) + '\n\n');
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
+
+      // 流式转发 DeepSeek 的 SSE 响应
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          if (line.startsWith('data: ')) {
+            // 直接转发 DeepSeek 的数据行
+            res.write(line + '\n\n');
+          }
+        }
+      }
+
+      // 处理剩余 buffer
+      if (buffer.trim()) {
+        res.write(buffer + '\n\n');
+      }
+
+      res.write('data: [DONE]\n\n');
+      res.end();
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        // 客户端断开或超时，正常结束
+      } else {
+        res.write('data: ' + JSON.stringify({ error: error.message }) + '\n\n');
+        res.write('data: [DONE]\n\n');
+      }
+      res.end();
+    } finally {
+      clearTimeout(timeout);
+    }
+  } catch (error) {
+    console.error('[qa-chat] 错误:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: '服务暂时不可用' });
+    }
+  }
+});
 module.exports = router;

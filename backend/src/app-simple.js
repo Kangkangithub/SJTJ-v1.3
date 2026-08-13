@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -6,8 +6,10 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const config = require('./config');
 const databaseManager = require('./config/database-simple');
+const neo4jManager = require('./config/neo4j-simple');
 const logger = require('./utils/logger');
 
 // 导入简化版服务
@@ -43,6 +45,8 @@ function clearApiCache(pattern) {
 // 导入路由（需要创建简化版）
 const authRoutes = require('./routes/auth-simple');
 const herbRoutes = require('./routes/herbs');
+const herbsManageRoutes = require('./routes/herbs-manage');
+const conversationsRoutes = require('./routes/conversations');
 
 class SimpleApp {
   constructor() {
@@ -68,8 +72,7 @@ class SimpleApp {
           ],
           scriptSrcAttr: ["'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
-          imgSrc: ["'self'", "data:", "blob:", "http://localhost:3001", "http://127.0.0.1:3001"],
-          mediaSrc: ["'self'", "http://localhost:3001", "http://127.0.0.1:3001"],
+          imgSrc: ["'self'", "data:", "blob:"],
           connectSrc: ["'self'", "http://localhost:3001", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
           fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "data:"]
         }
@@ -129,15 +132,6 @@ class SimpleApp {
         database: 'SQLite'
       });
     });
-    this.app.use('/api/health', (req, res) => {
-      res.json({
-        success: true,
-        message: '服务运行正常',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        database: 'SQLite'
-      });
-    });
   }
 
   // 设置路由
@@ -160,16 +154,13 @@ class SimpleApp {
           herbImages: '/api/herb-images/:herbId',
           formulas: '/api/formulas',
           formulaDetail: '/api/formulas/:id',
-          recommendations: '/api/recommendations',
-          quizQuestions: '/api/quiz/questions',
-          quizLeaderboard: '/api/quiz/leaderboard',
-          herbRecognition: '/api/herb-recognition',
           aiChat: '/api/ai-gateway/chat (需登录)',
           aiAnalyzeHerb: '/api/ai-gateway/analyze-herb (需登录)',
           aiCheckCompatibility: '/api/ai-gateway/check-compatibility (需登录)',
           knowledgeGraph: '/api/knowledge/graph-data',
           herbDetailsAPI: '/api/knowledge/herb-details/:name',
           regionDistribution: '/api/knowledge/region-distribution',
+          mockData: '/api/mock',
           health: '/api/health',
           auth: '/api/auth/login'
         }
@@ -184,11 +175,12 @@ class SimpleApp {
     this.app.use('/api/herb-sources', cacheMiddleware('herb-sources'), require('./routes/herb-sources'));
     this.app.use('/api/herb-images', require('./routes/herb-images'));
     this.app.use('/api/formulas', require('./routes/formulas'));
-    this.app.use('/api/recommendations', require('./routes/recommendations'));
-    this.app.use('/api/quiz', require('./routes/quiz'));
-    this.app.use('/api/herb-recognition', require('./routes/herb-recognition'));
     this.app.use('/api/knowledge', require('./routes/knowledge-graph'));
+    this.app.use('/api/herbs-manage', herbsManageRoutes);
+    this.app.use('/api/conversations', conversationsRoutes);
     this.app.use('/api/ai-gateway', require('./routes/ai-gateway'));
+    this.app.use('/api/ai-engine', require('./routes/ai-engine')); // 6合1 AI 引擎
+    this.app.use('/api/mock', require('./routes/mock'));
 
     // 手动清缓存（管理员用）
     this.app.post('/api/cache/clear', (req, res) => {
@@ -196,6 +188,14 @@ class SimpleApp {
       res.json({ success: true, message: 'API 缓存已清空' });
     });
 
+    // ===== 旧武器 API → 新药材 API 重定向（B 更新前端前的临时方案） =====
+    this.app.use('/api/weapons', (req, res) => res.redirect(301, '/api/herbs' + req.url.replace(/^\/api\/weapons/, '')));
+    this.app.use('/api/weapon-types', (req, res) => res.redirect(301, '/api/herb-categories'));
+    this.app.use('/api/weapon-countries', (req, res) => res.redirect(301, '/api/herb-regions'));
+    this.app.use('/api/manufacturers', (req, res) => res.redirect(301, '/api/herb-sources'));
+    this.app.use('/api/weapon-images', (req, res) => res.redirect(301, '/api/herb-images'));
+    this.app.get('/api/weapon-models*', (req, res) => res.status(410).json({ success: false, message: '3D模型功能已迁移' }));
+    this.app.get('/api/weapon-videos*', (req, res) => res.status(410).json({ success: false, message: '视频功能已迁移' }));
 
     // 404处理
     this.app.use('*', (req, res) => {
@@ -282,6 +282,7 @@ class SimpleApp {
     try {
       logger.info('正在关闭数据库连接...');
       await databaseManager.close();
+      try { await neo4jManager.close(); } catch (e) { /* ignore */ }
       logger.info('数据库连接已关闭');
       process.exit(0);
     } catch (error) {
@@ -293,17 +294,40 @@ class SimpleApp {
   // 启动服务器
   async start() {
     try {
-      // 初始化数据库连接
-      logger.info('正在初始化SQLite数据库...');
+      // 初始化 SQLite 数据库
+      logger.info('正在初始化 SQLite 数据库...');
       await databaseManager.connect();
 
-      // 启动HTTP服务器
+      // 🆕 初始化 Neo4j AuraDB 连接
+      logger.info('正在初始化 Neo4j AuraDB 连接...');
+      try {
+        await neo4jManager.connect();
+        logger.info('Neo4j AuraDB 连接成功');
+
+        // 🆕 AuraDB 保活：Free 版 3 天无活动会休眠，每 30 分钟 ping 一次
+        const KEEP_ALIVE_INTERVAL = 30 * 60 * 1000;
+        setInterval(async () => {
+          try {
+            const session = neo4jManager.getSession();
+            await session.run('RETURN 1');
+            await session.close();
+            console.log('[KeepAlive] Neo4j AuraDB ping 成功');
+          } catch (e) {
+            console.warn('[KeepAlive] Neo4j AuraDB ping 失败:', e.message);
+          }
+        }, KEEP_ALIVE_INTERVAL);
+        console.log('[KeepAlive] 已注册 Neo4j 保活定时器（间隔 30 分钟）');
+      } catch (neoError) {
+        logger.warn('Neo4j AuraDB 连接失败（知识图谱功能将回退到 SQLite）:', neoError.message);
+      }
+
+      // 启动 HTTP 服务器
       const port = config.server.port;
       this.server = this.app.listen(port, () => {
-        logger.info(`兵智世界后端服务启动成功 (简化版)`);
+        logger.info(`神机图鉴后端服务启动成功 (简化版)`);
         logger.info(`服务器运行在端口: ${port}`);
         logger.info(`环境: ${config.server.env}`);
-        logger.info(`数据库: SQLite`);
+        logger.info(`数据库: SQLite + Neo4j AuraDB`);
         logger.info(`健康检查: http://localhost:${port}/health`);
         logger.info(`API文档: http://localhost:${port}/api`);
       });
@@ -328,3 +352,5 @@ if (require.main === module) {
 }
 
 module.exports = SimpleApp;
+
+

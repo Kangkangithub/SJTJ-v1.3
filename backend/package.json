@@ -19,6 +19,9 @@
   "author": "兵智世界开发团队",
   "license": "MIT",
   "dependencies": {
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.2.5",
+    "@langchain/openai": "^1.5.6",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.2.0",
@@ -30,8 +33,10 @@
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
+    "langchain": "^1.5.5",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "neo4j-driver": "^6.2.0",
     "node-fetch": "^3.3.2",
     "sqlite3": "^5.1.6",
     "winston": "^3.11.0"
