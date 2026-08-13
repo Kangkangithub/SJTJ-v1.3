@@ -66,6 +66,7 @@ img {
   position: sticky;
   top: 0;
   z-index: 40;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
   background: rgba(250, 252, 248, 0.94);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(14px);
@@ -121,7 +122,8 @@ img {
 
 .brand-name {
   font-size: 18px;
-  font-weight: 800;
+  color: #0f1f17;
+  font-weight: 900;
 }
 
 .brand-subtitle {
@@ -618,6 +620,116 @@ img {
   align-items: start;
 }
 
+.ai-tool-card {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.herb-enrich-tool {
+  margin-top: 16px;
+}
+
+.ai-tool-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-tool-header h3 {
+  margin: 0;
+}
+
+.ai-tool-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.ai-tool-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-tool-form .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-subject {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border: 1px solid rgba(47, 118, 81, 0.18);
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+
+.ai-tool-result:empty {
+  display: none;
+}
+
+.tool-message {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.tool-message.success {
+  color: var(--primary-dark);
+}
+
+.tool-message.warning {
+  color: #9a5b12;
+}
+
+.tool-message.error {
+  color: var(--red);
+}
+
+.tool-result-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.tool-result-list li + li {
+  margin-top: 8px;
+}
+
+.tool-result-list p {
+  margin: 4px 0 0;
+}
+
+.tool-muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tool-result-dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.tool-result-dl div {
+  display: grid;
+  gap: 4px;
+}
+
+.tool-result-dl dt {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.tool-result-dl dd {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.7;
+}
+
 .formula-meta-tags,
 .formula-card-herbs {
   margin-top: 12px;
@@ -926,8 +1038,10 @@ img {
 }
 
 .footer {
+  margin-top: 0;
   padding-top: 26px;
   padding-bottom: 34px;
+  text-align: left;
   color: var(--muted);
   border-top: 1px solid var(--line);
 }

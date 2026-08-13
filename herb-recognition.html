@@ -12,23 +12,33 @@
 </head>
 <body>
   <a class="skip-link" href="#mainContent">跳到主内容</a>
-  <div class="container">
-    <header role="banner">
-      <a class="logo" href="index.html">神农AI</a>
-      <div class="user-status"><a href="login.html" class="btn">登录</a></div>
+  <div class="page-shell">
+    <header class="topbar" role="banner">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html">
+          <div class="brand-mark"><img src="assets/herb-ornament.svg" alt="神农AI图标"></div>
+          <div class="brand-copy">
+            <p class="brand-name">神农AI</p>
+            <p class="brand-subtitle">中药药材知识图谱系统</p>
+          </div>
+        </a>
+        <div class="user-entry user-status"><a href="login.html" class="btn btn-primary">登录</a></div>
+      </div>
+      <nav class="nav" aria-label="主导航">
+      <div class="nav-inner">
+        <a class="nav-link" href="index.html"><i class="fa-solid fa-house"></i>首页</a>
+        <a class="nav-link" href="herb-search.html"><i class="fa-solid fa-magnifying-glass"></i>药材查询</a>
+        <a class="nav-link" href="knowledge-graph.html"><i class="fa-solid fa-diagram-project"></i>知识图谱</a>
+        <a class="nav-link" href="qa.html"><i class="fa-solid fa-comments"></i>AI 问答</a>
+        <a class="nav-link" href="formula-library.html"><i class="fa-solid fa-book-medical"></i>方剂库</a>
+        <a class="nav-link" href="recommendation.html"><i class="fa-solid fa-thumbs-up"></i>方剂推荐</a>
+        <a class="nav-link" href="quiz.html"><i class="fa-solid fa-bullseye"></i>知识测评</a>
+        <a class="nav-link active" href="herb-recognition.html"><i class="fa-solid fa-camera"></i>药材识别</a>
+      </div>
+      </nav>
     </header>
-    <nav aria-label="主导航">
-      <ul>
-        <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
-        <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
-        <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
-        <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 方剂推荐</a></li>
-        <li><a href="herb-recognition.html" class="active"><i class="fas fa-camera"></i> 药材识别</a></li>
-        <li><a href="quiz.html"><i class="fas fa-bullseye"></i> 中药测评</a></li>
-        <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
-      </ul>
-    </nav>
 
+    <div class="container">
     <main id="mainContent">
       <section class="intro" aria-labelledby="recognitionTitle">
         <h1 id="recognitionTitle">药材智能识别</h1>
@@ -94,7 +104,8 @@
       </div>
     </main>
 
-    <footer><p>&copy; 2026 神农AI - 中药药材知识图谱系统</p></footer>
+  </div>
+    <footer class="footer"><div><strong>神农AI</strong><div>中药药材知识图谱系统</div></div></footer>
   </div>
 
   <div id="cameraModal" class="camera-modal" hidden>

@@ -7,6 +7,9 @@ window.HerbData = {
     { id: 'graph', label: '知识图谱', href: 'knowledge-graph.html', icon: 'fa-diagram-project' },
     { id: 'qa', label: 'AI 问答', href: 'qa.html', icon: 'fa-comments' },
     { id: 'formula', label: '方剂库', href: 'formula-library.html', icon: 'fa-book-medical' },
+    { id: 'recommendation', label: '方剂推荐', href: 'recommendation.html', icon: 'fa-thumbs-up' },
+    { id: 'quiz', label: '知识测评', href: 'quiz.html', icon: 'fa-bullseye' },
+    { id: 'recognition', label: '药材识别', href: 'herb-recognition.html', icon: 'fa-camera' },
   ],
   tokens: [
     { name: 'Primary', value: '#2f7651', usage: '主按钮、重点节点、选中态' },

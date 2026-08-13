@@ -18,7 +18,7 @@
 
 .section-container,
 .quiz-container {
-  width: min(100%, 920px);
+  width: min(100%, var(--container));
   margin: 0 auto;
 }
 

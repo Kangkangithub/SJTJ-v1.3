@@ -10,13 +10,13 @@ function updateUserStatusDisplay() {
 
     const token = localStorage.getItem('authToken') || localStorage.getItem('token');
     if (!token) {
-        userStatusElement.innerHTML = '<a href="login.html" class="btn">登录</a>';
+        userStatusElement.innerHTML = '<a href="login.html" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> 登录</a>';
         return;
     }
 
     const userName = getStoredUserName();
     userStatusElement.innerHTML = `
-        <a href="profile.html" class="btn secondary">${escapeHtml(userName || '个人中心')}</a>
+        <a href="profile.html" class="btn btn-secondary secondary"><i class="fa-solid fa-user"></i> ${escapeHtml(userName || '个人中心')}</a>
     `;
 }
 

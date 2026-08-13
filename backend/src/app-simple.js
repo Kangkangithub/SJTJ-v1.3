@@ -152,8 +152,10 @@ class SimpleApp {
           herbRegions: '/api/herb-regions',
           herbSources: '/api/herb-sources',
           herbImages: '/api/herb-images/:herbId',
+          herbRecognition: '/api/herb-recognition',
           formulas: '/api/formulas',
           formulaDetail: '/api/formulas/:id',
+          quiz: '/api/quiz',
           aiChat: '/api/ai-gateway/chat (需登录)',
           aiAnalyzeHerb: '/api/ai-gateway/analyze-herb (需登录)',
           aiCheckCompatibility: '/api/ai-gateway/check-compatibility (需登录)',
@@ -174,7 +176,9 @@ class SimpleApp {
     this.app.use('/api/herb-regions', cacheMiddleware('herb-regions'), require('./routes/herb-regions'));
     this.app.use('/api/herb-sources', cacheMiddleware('herb-sources'), require('./routes/herb-sources'));
     this.app.use('/api/herb-images', require('./routes/herb-images'));
+    this.app.use('/api/herb-recognition', require('./routes/herb-recognition'));
     this.app.use('/api/formulas', require('./routes/formulas'));
+    this.app.use('/api/quiz', require('./routes/quiz'));
     this.app.use('/api/knowledge', require('./routes/knowledge-graph'));
     this.app.use('/api/herbs-manage', herbsManageRoutes);
     this.app.use('/api/conversations', conversationsRoutes);

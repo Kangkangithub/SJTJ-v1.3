@@ -432,6 +432,7 @@
               </div>
             </div>
             ${renderHerbVideo(herb)}
+            ${renderHerbEnrichTool(herb)}
             <div class="grid grid-2" style="margin-top: 16px;">
               ${renderInfoCard('性味', herb.nature || herb.properties.join('、') || '暂无')}
               ${renderInfoCard('用法用量', herb.usage || '暂无')}
@@ -524,6 +525,7 @@
     return `
       <section class="section">
         <div class="section-header"><div><h2 class="section-title">推荐</h2><p class="section-note">基于药材库与方剂库整理常用推荐。</p></div><a class="link-btn" href="herb-search.html">继续查询药材</a></div>
+        ${renderCompatibilityTool()}
         <div class="grid grid-2">
           <div class="card pad"><h3>推荐药材</h3><div class="list-stack">${herbs.map(renderRecommendationHerbItem).join('') || '<div class="empty-state">暂无推荐药材。</div>'}</div></div>
           <div class="card pad"><h3>推荐方剂</h3><div class="list-stack">${formulas.map(renderRecommendationFormulaItem).join('') || '<div class="empty-state">暂无推荐方剂。</div>'}</div></div>
@@ -583,6 +585,8 @@
     if (state.page === 'graph') bindGraph();
     if (state.page === 'qa') bindQA();
     if (state.page === 'formula') bindFormula();
+    if (state.page === 'recommendation') bindRecommendation();
+    if (state.page === 'detail') bindDetailTools();
   }
 
   function bindSearch() {
@@ -612,6 +616,65 @@
       state.region = '全部';
       await loadHerbs({ limit: 50, useFilters: true });
       render();
+    });
+  }
+
+  function bindDetailTools() {
+    const form = document.querySelector('.js-herb-enrich-form');
+    if (!form || !state.detailHerb?.name) return;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const result = document.querySelector('.js-herb-enrich-result');
+      const button = form.querySelector('button[type="submit"]');
+      if (result) result.innerHTML = '<div class="tool-message">正在生成增强信息...</div>';
+      if (button) button.disabled = true;
+      try {
+        const herb = state.detailHerb;
+        const response = await apiPost('/api/ai-engine/herb-enrich', {
+          herbName: herb.name,
+          herbContext: {
+            category_name: herb.category,
+            region_name: herb.region,
+            properties: herb.properties.map((name) => ({ name })),
+            meridians: herb.meridian.map((name) => ({ name })),
+            efficacies: herb.efficacy.map((name) => ({ name })),
+            description: herb.description,
+            usage_dosage: herb.usage,
+            caution: herb.caution
+          }
+        });
+        if (result) result.innerHTML = renderHerbEnrichResult(unwrap(response));
+      } catch (error) {
+        if (result) result.innerHTML = '<div class="tool-message error">药材知识增强失败，请稍后重试</div>';
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  }
+
+  function bindRecommendation() {
+    const form = document.querySelector('.js-compatibility-form');
+    if (!form) return;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const input = form.querySelector('.js-compatibility-input');
+      const result = document.querySelector('.js-compatibility-result');
+      const button = form.querySelector('button[type="submit"]');
+      const herbs = parseToolHerbNames(input?.value || '');
+      if (herbs.length < 2) {
+        if (result) result.innerHTML = '<div class="tool-message warning">请至少输入两味药材</div>';
+        return;
+      }
+      if (result) result.innerHTML = '<div class="tool-message">正在检测...</div>';
+      if (button) button.disabled = true;
+      try {
+        const response = await apiPost('/api/ai-engine/compatibility', { herbs });
+        if (result) result.innerHTML = renderCompatibilityResult(unwrap(response));
+      } catch (error) {
+        if (result) result.innerHTML = '<div class="tool-message error">配伍检测失败，请稍后重试</div>';
+      } finally {
+        if (button) button.disabled = false;
+      }
     });
   }
 
@@ -1062,6 +1125,64 @@
 
   function renderFormulaFieldCard(title, text) {
     return text ? `<div class="card pad formula-detail-card"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p></div>` : '';
+  }
+
+  function renderCompatibilityTool() {
+    return `
+      <div class="card pad ai-tool-card compatibility-tool">
+        <div class="ai-tool-header"><div><h3>配伍检测</h3><p>输入多味药材，检测是否存在明确配伍冲突。</p></div></div>
+        <form class="ai-tool-form js-compatibility-form">
+          <label class="sr-only" for="compatibilityHerbs">药材名称</label>
+          <input class="input js-compatibility-input" id="compatibilityHerbs" placeholder="例如：人参, 藜芦" autocomplete="off">
+          <button class="btn btn-primary" type="submit">检测配伍</button>
+        </form>
+        <div class="ai-tool-result js-compatibility-result" aria-live="polite"></div>
+      </div>
+    `;
+  }
+
+  function renderHerbEnrichTool(herb) {
+    if (!herb?.name) return '';
+    return `
+      <div class="card pad ai-tool-card herb-enrich-tool">
+        <div class="ai-tool-header"><div><h3>药材知识增强</h3><p>基于当前药材资料生成补充信息，结果来自后端 AI 引擎。</p></div></div>
+        <form class="ai-tool-form js-herb-enrich-form">
+          <span class="tool-subject">${escapeHtml(herb.name)}</span>
+          <button class="btn btn-secondary" type="submit">增强知识</button>
+        </form>
+        <div class="ai-tool-result js-herb-enrich-result" aria-live="polite"></div>
+      </div>
+    `;
+  }
+
+  function renderCompatibilityResult(data) {
+    const conflicts = Array.isArray(data?.conflicts) ? data.conflicts : [];
+    const summary = data?.summary || (conflicts.length ? '检测到配伍冲突，请谨慎使用' : '未检测到明确配伍冲突');
+    let html = `<div class="tool-message ${conflicts.length ? 'warning' : 'success'}">${escapeHtml(summary)}</div>`;
+    if (conflicts.length) {
+      html += `<ul class="tool-result-list">${conflicts.map((item) => {
+        const names = [item.herb_a, item.herb_b].filter(Boolean).join(' / ');
+        const desc = [item.relation, item.description].filter(Boolean).join('：');
+        return `<li><strong>${escapeHtml(names)}</strong>${desc ? `<p>${escapeHtml(desc)}</p>` : ''}${item.source ? `<p class="tool-muted">${escapeHtml(item.source)}</p>` : ''}</li>`;
+      }).join('')}</ul>`;
+    }
+    return html;
+  }
+
+  function renderHerbEnrichResult(data) {
+    const fields = [
+      ['主治', data?.indications],
+      ['用法用量', data?.usage_dosage],
+      ['注意事项', data?.caution],
+      ['现代药理', data?.pharmacology],
+      ['临床应用', data?.clinical_application]
+    ].filter((item) => item[1]);
+    if (!fields.length) return '<div class="tool-message">未返回可展示的增强信息</div>';
+    return `<dl class="tool-result-dl">${fields.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl>`;
+  }
+
+  function parseToolHerbNames(value) {
+    return String(value || '').split(/[，,、\s]+/).map((item) => item.trim()).filter(Boolean);
   }
 
   function renderInfoCard(title, text) {

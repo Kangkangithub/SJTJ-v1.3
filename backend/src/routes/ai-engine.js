@@ -599,6 +599,8 @@ router.get("/status", async (req, res) => {
         "POST /api/ai-engine/rag-stream",
         "POST /api/ai-engine/compatibility",
         "POST /api/ai-engine/extract",
+        "POST /api/ai-engine/herb-enrich",
+        "GET  /api/ai-engine/herb-detail/:name",
         "GET  /api/ai-engine/health",
         "GET  /api/ai-engine/status"
       ]

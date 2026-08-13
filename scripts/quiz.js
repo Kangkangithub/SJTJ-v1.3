@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const reviewList = document.getElementById('reviewList');
 
   const restartButton = document.getElementById('restartButton');
-  const shareButton = document.getElementById('shareButton');
   const viewLeaderboardButton = document.getElementById('viewLeaderboardButton');
   const backToResultsButton = document.getElementById('backToResultsButton');
   const newQuizButton = document.getElementById('newQuizButton');
@@ -118,9 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
     resultsContainer.style.display = 'none';
     leaderboardContainer.style.display = 'block';
     loadLeaderboard();
-  });
-  shareButton.addEventListener('click', function() {
-    alert('分享功能暂不可用。');
   });
   leaderboardTabs.forEach(tab => tab.addEventListener('click', function() {
     leaderboardTabs.forEach(t => t.classList.remove('active'));
@@ -206,6 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
     currentQuestionNumElem.textContent = index + 1;
     progressBarElem.style.width = `${((index + 1) / quizState.questions.length) * 100}%`;
     hintContent.style.display = 'none';
+    nextButton.innerHTML = index === quizState.questions.length - 1
+      ? '<i class="fas fa-check"></i> 查看结果'
+      : '<i class="fas fa-arrow-right"></i> 下一题';
     nextButton.style.display = 'none';
   }
 

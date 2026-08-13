@@ -248,8 +248,8 @@ document.addEventListener('DOMContentLoaded', function() {
     herbInfo.hidden = true;
     relatedHerbs.hidden = true;
     viewKnowledgeButton.hidden = true;
-    videoResults.hidden = true;
-    videoResultList.innerHTML = '';
+    if (videoResults) videoResults.hidden = true;
+    if (videoResultList) videoResultList.innerHTML = '';
   }
 
   function showStatus(message) {
