@@ -292,7 +292,8 @@ DELETE /api/herbs/:id
 2. **地图**：前端用ECharts，`registerMap('china', geoJson)` 从 `/public/china.json` 加载，产地数据用 `region-distribution`。
 3. **常用药优先**：图谱默认 `?common=1`（50味常用药），点击"展开全部"用 `?common=0`（275味）。
 4. **图片展示**：药材详情中的 `images[].path` 拼接 `http://localhost:3001` 为完整URL。
-5. **完整对接文档**：见 `backend/API.md`，包含所有接口的请求/响应示例。
+5. **视频展示**：药材详情中的 `video.path` 拼接 `http://localhost:3001` 作为 `<video controls>` 的 src，无视频时 `video` 为 `null`。
+6. **完整对接文档**：见 `backend/API.md`，包含所有接口的请求/响应示例。
 
 ### 当前遗留的前端武器残留（需替换为药材）
 
