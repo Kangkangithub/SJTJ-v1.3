@@ -136,10 +136,27 @@ GET /api/herbs/:id
       { "id": 3, "name": "宣肺平喘" },
       { "id": 44, "name": "利水渗湿" }
     ],
-    "images": []
+    "images": [
+      {
+        "id": "fallback_麻黄",
+        "filename": "麻黄.png",
+        "path": "/uploads/herbs/麻黄.png",
+        "size": 1542473,
+        "description": ""
+      }
+    ],
+    "video": null
   }
 }
 ```
+
+**字段说明**:
+- `images`：药材图片数组。优先取数据库 `herbs.images` 记录（`id` 为数字）；数据库为空时按「文件名=药材名」约定兜底，从 `uploads/herbs/<药材名>.png` 动态返回（此时 `id` 形如 `fallback_麻黄`，前端如用 `id` 做键/删除需注意）。
+- `video`：药材视频对象或 `null`。按「文件名=药材名」约定从 `uploads/videos/<药材名>.mp4|.webm` 动态返回，不依赖数据库。有视频时形如：
+  ```json
+  { "filename": "人参.mp4", "path": "/uploads/videos/人参.mp4", "size": 57205042, "mimeType": "video/mp4" }
+  ```
+  前端可用 `<video controls src="http://localhost:3001 + video.path">` 渲染，后端静态服务支持 Range 请求（可拖动进度）。
 
 ---
 
