@@ -472,6 +472,18 @@ function clearManufacturerSelection() {
                 } else {
                     imgArea.innerHTML = '<span style="color:#999;font-size:12px">暂无图片</span>';
                 }
+
+                // 显示视频（后端按「文件名=药材名」兜底返回，未找到时为 null）
+                if (herb.video) {
+                    videoArea.innerHTML = '';
+                    const videoEl = document.createElement('video');
+                    videoEl.src = 'http://localhost:3001' + herb.video.path;
+                    videoEl.controls = true;
+                    videoEl.preload = 'metadata';
+                    videoEl.style.cssText = 'width: 100%; max-width: 320px; border-radius: 6px; background: #000;';
+                    videoEl.title = herb.name;
+                    videoArea.appendChild(videoEl);
+                }
             }
         } catch (error) {
             console.error('加载药材媒体失败:', error);
