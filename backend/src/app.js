@@ -1,4 +1,4 @@
-const express = require('express');
+﻿﻿const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -21,6 +21,10 @@ const weaponManufacturersRoutes = require('./routes/weapon-manufacturers');
 const manufacturerStatisticsRoutes = require('./routes/manufacturer-statistics');
 const weaponTypesRoutes = require('./routes/weapon-types');
 const weaponCountriesRoutes = require('./routes/weapon-countries');
+const herbsManageRoutes = require('./routes/herbs-manage');
+const aiEngineRoutes = require('./routes/ai-engine');
+const aiGatewayRoutes = require('./routes/ai-gateway');
+const conversationsRoutes = require('./routes/conversations');
 
 class App {
   constructor() {
@@ -133,6 +137,10 @@ class App {
     this.app.use('/api/manufacturer-statistics', manufacturerStatisticsRoutes);
     this.app.use('/api/weapon-types', weaponTypesRoutes);
     this.app.use('/api/weapon-countries', weaponCountriesRoutes);
+    this.app.use('/api/herbs-manage', herbsManageRoutes);
+    this.app.use('/api/ai-engine', aiEngineRoutes);
+    this.app.use('/api/ai-gateway', aiGatewayRoutes);
+    this.app.use('/api/conversations', conversationsRoutes);
 
     // 404处理
     this.app.use('*', (req, res) => {

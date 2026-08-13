@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="styles/weapon-model-integration.css">
     <!-- 引入世界地图样式 -->
     <link rel="stylesheet" href="styles/world-map.css">
+    <link rel="stylesheet" href="styles/herb-manage.css">
     <!-- 引入D3.js库（v7版本已包含所有必要模块） -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <!-- 引入TopoJSON库 -->
@@ -49,7 +50,7 @@
             </ul>
         </nav>
 
-        <main>
+        <main id="graph-panel-wrapper">
             <h1>药材知识图谱</h1>
 
             <div class="search-bar">
@@ -58,6 +59,16 @@
                     <div id="autocompleteList" class="autocomplete-list" style="display:none; position:absolute; top:100%; left:0; right:0; max-height:300px; overflow-y:auto; background:#1a2234; border:1px solid rgba(52,152,219,0.3); border-radius:6px; z-index:1000;"></div>
                 </div>
                 <button id="searchButton">搜索</button>
+            </div>
+
+            <!-- 模块切换 Tab 栏 -->
+            <div class="herb-tab-bar" id="herbTabBar">
+                <button class="herb-tab-btn active" data-tab="graph">
+                    <i class="fas fa-project-diagram"></i> 图谱浏览
+                </button>
+                <button class="herb-tab-btn" data-tab="manage">
+                    <i class="fas fa-database"></i> 药材管理
+                </button>
             </div>
 
             <div class="graph-filters">
@@ -584,6 +595,192 @@
             </div>
         </div>
 
+
+            <!-- ========== 药材管理面板 ========== -->
+            <div id="herb-manage-panel">
+                <!-- 管理工具栏 -->
+                <div class="herb-manage-toolbar">
+                <button class="btn-back-graph" onclick="document.querySelector('.herb-tab-btn[data-tab=graph]').click()" title="返回知识图谱">
+                    <i class="fas fa-arrow-left"></i> 返回图谱
+                </button>
+                    <div class="search-group">
+                        <input type="text" id="herbSearchInput" placeholder="搜索药材名称、拼音...">
+                        <button class="btn-primary-sm" id="herbSearchBtn"><i class="fas fa-search"></i> 搜索</button>
+                    </div>
+                    <select id="herbCategoryFilter">
+                        <option value="">全部分类</option>
+                    </select>
+                    <select id="herbRegionFilter">
+                        <option value="">全部产地</option>
+                    </select>
+                    <select id="herbCommonFilter">
+                        <option value="">全部类型</option>
+                        <option value="1">常用药材</option>
+                        <option value="0">非常用药材</option>
+                    </select>
+                    <button class="btn-primary-sm" id="herbAddBtn"><i class="fas fa-plus"></i> 新增药材</button>
+                </div>
+
+                <!-- 统计信息 -->
+                <div style="margin-bottom: 12px; color: #8892b0; font-size: 13px;">
+                    <span id="herbTotalCount">加载中...</span>
+                </div>
+
+                <!-- 药材表格 -->
+                <div class="herb-table-wrapper">
+                    <table class="herb-table">
+                        <thead>
+                            <tr>
+                                <th>药材名称</th>
+                                <th>拼音</th>
+                                <th>分类</th>
+                                <th>产地</th>
+                                <th>常用</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="herbTableBody">
+                            <tr><td colspan="7" class="herb-loading"><i class="fas fa-spinner fa-spin"></i>加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="pagination" id="herbPagination"></div>
+            </div>
+
+            
+            <!-- ========== 药材详情面板 ========== -->
+            <div id="herb-detail-panel" style="display:none;">
+                <div class="herb-detail-header">
+                    <button class="btn-back-list" onclick="window.herbManage &amp;&amp; window.herbManage.backToList()" title="返回列表">
+                        <i class="fas fa-arrow-left"></i> 返回列表
+                    </button>
+                    <h2 id="herbDetailTitle">药材详情</h2>
+                </div>
+                <div class="herb-detail-content" id="herbDetailContent">
+                    <div class="herb-loading"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                </div>
+            </div>
+<!-- ========== 药材表单模态弹窗 ========== -->
+            <div class="herb-modal" id="herbFormModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="herbModalTitle"><i class="fas fa-plus-circle"></i> 新增药材</h3>
+                        <button class="modal-close" id="herbModalClose">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="herb-form" id="herbForm">
+                            <!-- 基本信息 -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>药材名称 *</label>
+                                    <input type="text" id="herbFormName" placeholder="请输入药材名称" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>拼音</label>
+                                    <input type="text" id="herbFormPinyin" placeholder="如：renshen">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>拉丁学名</label>
+                                    <input type="text" id="herbFormLatin" placeholder="拉丁学名">
+                                </div>
+                                <div class="form-group">
+                                    <label>别名</label>
+                                    <input type="text" id="herbFormAlias" placeholder="多个别名用逗号分隔">
+                                </div>
+                            </div>
+
+                            <!-- 分类与产地 -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>药材分类</label>
+                                    <select id="herbFormCategory">
+                                        <option value="">请选择分类</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>产地</label>
+                                    <select id="herbFormRegion">
+                                        <option value="">请选择产地</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- 性味 - 气 -->
+                            <div class="form-row">
+                                <div class="form-group full">
+                                    <label>性味（气）</label>
+                                    <div class="tag-group" id="herbFormQiTags"></div>
+                                </div>
+                            </div>
+
+                            <!-- 性味 - 味 -->
+                            <div class="form-row">
+                                <div class="form-group full">
+                                    <label>性味（味）</label>
+                                    <div class="tag-group" id="herbFormFlavorTags"></div>
+                                </div>
+                            </div>
+
+                            <!-- 归经 -->
+                            <div class="form-row">
+                                <div class="form-group full">
+                                    <label>归经</label>
+                                    <div class="tag-group" id="herbFormMeridianTags"></div>
+                                </div>
+                            </div>
+
+                            <!-- 功效 -->
+                            <div class="form-row">
+                                <div class="form-group full">
+                                    <label>功效</label>
+                                    <div class="efficacy-search-wrapper">
+                                        <input type="text" id="herbFormEfficacySearch" placeholder="搜索功效..." autocomplete="off">
+                                        <div class="efficacy-dropdown" id="herbEfficacyDropdown"></div>
+                                    </div>
+                                    <div class="selected-efficacies" id="herbEfficacySelected"></div>
+                                </div>
+                            </div>
+
+                            <!-- 描述与用法 -->
+                            <div class="form-row">
+                                <div class="form-group full">
+                                    <label>描述</label>
+                                    <textarea id="herbFormDescription" placeholder="药材的功效描述..."></textarea>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>用法用量</label>
+                                    <input type="text" id="herbFormUsage" placeholder="如：3-10g">
+                                </div>
+                                <div class="form-group">
+                                    <label>注意事项</label>
+                                    <input type="text" id="herbFormCaution" placeholder="使用禁忌">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="herbFormIsCommon" style="width:16px;height:16px;">
+                                        标记为常用药材
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- 操作按钮 -->
+                            <div class="form-actions">
+                                <button type="button" class="btn-cancel" id="herbFormCancel">取消</button>
+                                <button type="submit" class="btn-save"><i class="fas fa-save"></i> 保存</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
         <footer>
             <p>&copy; 2025 神机图鉴 - 南京理工大学紫金学院</p>
         </footer>
@@ -609,5 +806,8 @@
     <!-- 新增世界地图可视化脚本 -->
     <script src="scripts/map-api-integration.js"></script>
     <script src="scripts/world-map-visualization.js"></script>
+    <script src="scripts/herb-manage.js"></script>
 </body>
 </html>
+
+

@@ -1,4 +1,4 @@
-// 医药图谱数据可视化分析脚本
+﻿// 医药图谱数据可视化分析脚本
 document.addEventListener('DOMContentLoaded', function() {
     console.log('医药图谱分析脚本开始加载...');
 
@@ -316,6 +316,146 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // 0. 节点类型分布图表（柱状图）
+    function generateNodeTypeChart(analysisData) {
+        const ctx = document.getElementById('nodeTypeDistributionChart');
+        if (!ctx) return;
+
+        const typeData = analysisData.nodeTypeCount;
+        if (Object.keys(typeData).length === 0) {
+            ctx.innerHTML = '<div class="chart-no-data"><i class="fas fa-chart-bar"></i><p>暂无节点类型数据</p></div>';
+            return;
+        }
+
+        // 按数量排序
+        const sorted = Object.entries(typeData).sort((a, b) => b[1] - a[1]);
+        const labelNameMap = {
+            'Herb': '药材', 'Category': '分类', 'Region': '产地',
+            'Property': '性味', 'Meridian': '归经', 'Efficacy': '功效',
+            'Source': '来源', 'Formula': '方剂'
+        };
+
+        charts.nodeType = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sorted.map(([k]) => labelNameMap[k] || k),
+                datasets: [{
+                    label: '节点数量',
+                    data: sorted.map(([, v]) => v),
+                    backgroundColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffbe0b', '#a786df', '#f97316', '#95a5a6', '#e74c3c'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { display: false },
+                    title: { display: true, text: '节点类型分布', color: '#e0e0e0', font: { size: 14, weight: 'bold' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#e0e0e0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    y: { beginAtZero: true, ticks: { color: '#e0e0e0', stepSize: 1, precision: 0 }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                }
+            }
+        });
+        console.log('节点类型图表生成完成');
+    }
+
+    // 3. 性味分布图表（柱状图）
+    function generatePropertyChart(analysisData) {
+        const ctx = document.getElementById('weaponYearChart');
+        if (!ctx) return;
+
+        const propData = analysisData.propertyCount;
+        if (Object.keys(propData).length === 0) {
+            ctx.innerHTML = '<div class="chart-no-data"><i class="fas fa-chart-bar"></i><p>暂无性味数据</p></div>';
+            return;
+        }
+
+        const sorted = Object.entries(propData).sort((a, b) => b[1] - a[1]);
+
+        charts.property = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sorted.map(([k]) => k),
+                datasets: [{
+                    label: '关联药材数',
+                    data: sorted.map(([, v]) => v),
+                    backgroundColor: (context) => {
+                        const { ctx, chartArea } = context.chart;
+                        if (!chartArea) return '#ffbe0b';
+                        const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        g.addColorStop(0, '#ffbe0b');
+                        g.addColorStop(1, '#f39c12');
+                        return g;
+                    },
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { display: false },
+                    title: { display: true, text: '药材性味分布', color: '#e0e0e0', font: { size: 14, weight: 'bold' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#e0e0e0', maxRotation: 45 }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    y: { beginAtZero: true, ticks: { color: '#e0e0e0', stepSize: 1, precision: 0 }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                }
+            }
+        });
+        console.log('性味分布图表生成完成');
+    }
+
+    // 4. 归经分布图表（柱状图）
+    function generateMeridianChart(analysisData) {
+        const ctx = document.getElementById('countryWeaponChart');
+        if (!ctx) return;
+
+        const merData = analysisData.meridianCount;
+        if (Object.keys(merData).length === 0) {
+            ctx.innerHTML = '<div class="chart-no-data"><i class="fas fa-chart-bar"></i><p>暂无归经数据</p></div>';
+            return;
+        }
+
+        const sorted = Object.entries(merData).sort((a, b) => b[1] - a[1]);
+
+        charts.meridian = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sorted.map(([k]) => k),
+                datasets: [{
+                    label: '关联药材数',
+                    data: sorted.map(([, v]) => v),
+                    backgroundColor: (context) => {
+                        const { ctx, chartArea } = context.chart;
+                        if (!chartArea) return '#a786df';
+                        const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        g.addColorStop(0, '#a786df');
+                        g.addColorStop(1, '#8e44ad');
+                        return g;
+                    },
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { display: false },
+                    title: { display: true, text: '药材归经分布', color: '#e0e0e0', font: { size: 14, weight: 'bold' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#e0e0e0', maxRotation: 45 }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    y: { beginAtZero: true, ticks: { color: '#e0e0e0', stepSize: 1, precision: 0 }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                }
+            }
+        });
+        console.log('归经分布图表生成完成');
+    }
+
     // 1. 药材分类分布图表（饼图）
     function generateCategoryChart(analysisData) {
         const ctx = document.getElementById('weaponTypeChart');
@@ -476,3 +616,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('医药图谱分析脚本初始化完成');
 });
+
+
+
+
+
+
+
+

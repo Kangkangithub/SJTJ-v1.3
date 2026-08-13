@@ -268,7 +268,58 @@ router.get('/statistics', async (req, res) => {
     const cached = getCached('statistics');
     if (cached) return res.json({ success: true, data: cached, cached: true });
 
-    const db = databaseManager.getDatabase();
+    
+    // 优先从 Neo4j 获取统计数据
+    try {
+      const neo4jManager = require('../config/neo4j-simple');
+      const session = neo4jManager.getSession();
+      try {
+        // 分类统计
+        const catResult = await session.run(
+          'MATCH (h:Herb)-[:BELONGS_TO_CATEGORY]->(c:Category) RETURN c.name AS name, count(h) AS count ORDER BY count DESC'
+        );
+        const categoryStats = catResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        // 产地统计
+        const regResult = await session.run(
+          'MATCH (h:Herb)-[:FROM_REGION]->(r:Region) RETURN r.name AS name, count(h) AS count ORDER BY count DESC'
+        );
+        const regionStats = regResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        // 药材总数
+        const totalResult = await session.run('MATCH (h:Herb) RETURN count(h) AS count');
+        const totalHerbs = totalResult.records[0].get('count').toNumber();
+
+        // 功效统计（Top 20）
+        const effResult = await session.run(
+          'MATCH (h:Herb)-[:HAS_EFFICACY]->(e:Efficacy) RETURN e.name AS name, count(DISTINCT h) AS count ORDER BY count DESC LIMIT 20'
+        );
+        const efficacyStats = effResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        // 常用药材分类统计
+        const comResult = await session.run(
+          'MATCH (h:Herb {is_common: 1})-[:BELONGS_TO_CATEGORY]->(c:Category) RETURN c.name AS name, count(h) AS count ORDER BY count DESC'
+        );
+        const commonCategoryStats = comResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        const statsData = {
+          total_herbs: totalHerbs,
+          by_category: categoryStats,
+          by_region: regionStats,
+          by_efficacy: efficacyStats,
+          common_by_category: commonCategoryStats
+        };
+        setCached('statistics', statsData);
+        return res.json({ success: true, data: statsData, source: 'neo4j' });
+      } finally {
+        await session.close();
+      }
+    } catch (neoError) {
+      console.warn('[herbs] Neo4j 统计查询失败，回退到 SQLite:', neoError.message);
+    }
+
+    // 回退：SQLite 查询
+const db = databaseManager.getDatabase();
 
     const categoryStats = await new Promise((resolve, reject) => {
       db.all(

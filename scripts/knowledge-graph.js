@@ -1,4 +1,4 @@
-// 知识图谱可视化脚本
+﻿// 知识图谱可视化脚本
 document.addEventListener('DOMContentLoaded', function() {
     // Neo4j连接配置（实际使用时请使用后端API隐藏凭据）
     const NEO4J_URI = "neo4j+s://demo.neo4jlabs.com"; // 请替换为您的Neo4j实例地址
@@ -607,6 +607,7 @@ function clearManufacturerSelection() {
 
             const jsonData = apiResponse.data;
             graphData = jsonData;
+            window.graphData = jsonData;
 
             // 更新过滤器选项
             updateFilterOptions(jsonData);
@@ -2530,3 +2531,4 @@ async function createManufacturer(manufacturerData) {
 }
 
 // === 制造商管理功能模块结束 ===
+

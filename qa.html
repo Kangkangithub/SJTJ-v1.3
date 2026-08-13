@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能问答 - 神机图鉴</title>
+    <title>GraphRAG 智能问答 - 神农AI</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
@@ -13,9 +13,8 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">神机图鉴</div>
+            <div class="logo">神农AI · GraphRAG</div>
             <div class="user-status">
-                <!-- 用户状态将由auth.js动态更新 -->
                 <a href="login.html" class="btn">登录</a>
             </div>
         </header>
@@ -24,7 +23,7 @@
             <ul>
                 <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
                 <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
-                <li><a href="qa.html" class="active"><i class="fas fa-comments"></i> 智能问答</a></li>
+                <li><a href="qa.html" class="active"><i class="fas fa-brain"></i> GraphRAG 问答</a></li>
                 <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
                 <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
                 <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
@@ -33,46 +32,87 @@
         </nav>
 
         <main>
-            <h1>智能问答系统</h1>
-            
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+                <div class="tech-stack-bar">
+  <span class="tech-badge-item" style="background:#27ae60;" data-tooltip="Neo4j AuraDB 是全托管的云图数据库。本项目将所有中医药实体（药材、方剂、性味、归经等）建模为图节点，关系（包含、配伍、归经等）建模为边，实现复杂关联查询的毫秒级响应。">
+    <i class="fas fa-database"></i> Neo4j AuraDB
+    <span class="tech-tooltip"><strong>Neo4j AuraDB</strong><br>全托管云图数据库<br><br>中医药知识以<em>节点+关系</em>存储：<br>药材、方剂、性味、归经、功效均建模为图节点，关联关系（配伍、包含、归经等）建模为边，支持毫秒级复杂图查询。</span>
+  </span>
+  <span class="tech-arrow">→</span>
+  <span class="tech-badge-item" style="background:#2563eb;" data-tooltip="LangChain.js 是 LangChain 的 JavaScript/Node.js 版本。本项目使用它来编排 GraphRAG 管道：连接 Neo4j → 调用 LLM → 处理检索结果，全程在 Node.js 后端完成。">
+    <i class="fas fa-link"></i> LangChain.js
+    <span class="tech-tooltip"><strong>LangChain.js</strong><br>LLM 应用开发框架<br><br>编排整个 GraphRAG 管道：<br>连接 Neo4j 图数据库 → 调用 LLM 生成 Cypher → 执行图查询 → 格式化上下文 → 生成最终答案。全程在 Node.js 后端完成。</span>
+  </span>
+  <span class="tech-arrow">→</span>
+  <span class="tech-badge-item" style="background:#7c3aed;" data-tooltip="GraphCypherQAChain 是 LangChain 社区提供的图问答链。它能将用户的自然语言问题自动翻译为 Cypher 图查询语句，在 Neo4j 中执行后将结果喂给 LLM 生成人类可读的答案。">
+    <i class="fas fa-code"></i> GraphCypherQAChain
+    <span class="tech-tooltip"><strong>GraphCypherQAChain</strong><br>自然语言→Cypher 图查询链<br><br>LangChain 社区图问答组件：<br>用户自然语言问题 → LLM 自动生成 Cypher 查询 → 在 Neo4j 执行图遍历 → 结果喂回 LLM → 生成人类可读的精准答案。</span>
+  </span>
+  <span class="tech-arrow">→</span>
+  <span class="tech-badge-item" style="background:#f59e0b;" data-tooltip="LLM Knowledge Enhancement: DeepSeek enriches herb details beyond Neo4j fields">
+    <i class="fas fa-wand-magic-sparkles"></i> LLM知识增强
+    <span class="tech-tooltip"><strong>LLM知识增强</strong><br>DeepSeek深度补全药材知识<br><br>在Neo4j图谱检索基础上:<br>对每味命中药材调用DeepSeek补全:<br/>📋主治病症 | 💊用法用量<br/>⚠️使用注意 | 🔬现代药理<br/>🏥临床应用要点<br/><br/>AI回答包含深度中医药专业知识</span>
+  </span>
+  <span class="tech-arrow">→</span>
+  <span class="tech-badge-item" style="background:#0891b2;" data-tooltip="DeepSeek-V3 是深度求索公司的大语言模型，通过 OpenAI 兼容接口调用。本项目用它来：①自动生成 Cypher 图查询 ②基于检索到的图谱上下文生成最终答案。">
+    <i class="fas fa-robot"></i> DeepSeek-V3
+    <span class="tech-tooltip"><strong>DeepSeek-V3</strong><br>深度求索大语言模型<br><br>通过 OpenAI 兼容接口调用：<br>① 将自然语言自动转为 Cypher 图查询<br>② 基于 Neo4j 检索到的图谱上下文<br>③ 生成带引用来源的精准中医药答案。</span>
+  </span>
+</div>
+            <h1><i class="fas fa-comments" style="color:var(--secondary-color); margin-right:8px;"></i>智能问答</h1>
+                <a href="knowledge-graph.html" class="btn" style="background:var(--secondary-color); color:#fff; padding:8px 16px; border-radius:4px; text-decoration:none; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-arrow-left"></i> 返回知识图谱
+                </a>
+            </div>
+
             <div class="qa-container">
                 <div class="chat-window">
                     <div class="message ai-message">
-                        您好！我是兵智视界AI智能助手。请问有什么关于武器装备的问题需要解答？
+                        <div class="message-avatar"><i class="fas fa-leaf"></i></div>
+                        <div class="message-body">
+                            <div class="message-content">您好！我是基于 <strong>GraphRAG</strong> 架构的 <strong>神农AI</strong><br><br><div style="background:rgba(39,174,96,0.08);border-left:3px solid #27ae60;padding:10px 14px;margin:10px 0;border-radius:4px;font-size:13px;line-height:1.8;">🔍 <strong>图检索</strong>：在 Neo4j 中搜索药材、方剂、性味归经<br>🔗 <strong>图遍历</strong>：沿关系边扩展，获取配伍、禁忌等关联知识<br>💻 <strong>GraphCypherQAChain</strong>：LLM 自动将自然语言转为 Cypher 图查询<br>🤖 <strong>DeepSeek-V3</strong>：基于检索到的图谱上下文生成精准答案</div>💡 试试问：「人参有什么功效？」或「脾胃虚寒怎么调理？」
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="input-area">
-                    <textarea placeholder="请输入您的问题..."></textarea>
-                    <button>发送</button>
+                    <textarea placeholder="输入中医药问题，GraphRAG 将从 Neo4j 知识图谱中检索答案..." id="qaTextarea"></textarea>
+                    <button id="qaSendBtn" type="button">发送</button>
                 </div>
             </div>
         </main>
-        
+
         <!-- 引入公共底部 -->
         <div id="footer-placeholder"></div>
     </div>
 
+    <!-- ========== 右侧药材详情面板 ========== -->
+    <div id="herbSidePanel" class="herb-side-panel">
+        <div class="herb-side-panel-header">
+            <h3 id="herbSidePanelTitle"><i class="fas fa-leaf"></i> 药材详情</h3>
+            <button class="herb-side-panel-close" onclick="closeHerbPanel()" title="关闭">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="herb-side-panel-body" id="herbSidePanelBody">
+            <div class="herb-loading"><i class="fas fa-spinner fa-spin"></i> 选择药材查看详情...</div>
+        </div>
+    </div>
+    <div id="herbPanelOverlay" class="herb-panel-overlay" onclick="closeHerbPanel()"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/common.js"></script>
-    <script src="scripts/qa.js"></script>
+    <script src="scripts/qa.js?v=20260812clean"></script>
     <script>
-        // 加载公共头部和底部
-        fetch('templates/header.html')
+        fetch("templates/footer.html")
             .then(response => response.text())
             .then(data => {
-                document.getElementById('header-placeholder').innerHTML = data;
-                // 在头部加载后再执行common.js中的导航激活逻辑
-                const event = new Event('DOMContentLoaded');
-                document.dispatchEvent(event);
-            });
-            
-        fetch('templates/footer.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('footer-placeholder').innerHTML = data;
-            });
+                document.getElementById("footer-placeholder").innerHTML = data;
+            })
+            .catch(() => {});
     </script>
 </body>
 </html>

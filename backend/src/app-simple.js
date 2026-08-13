@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -6,8 +6,10 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const config = require('./config');
 const databaseManager = require('./config/database-simple');
+const neo4jManager = require('./config/neo4j-simple');
 const logger = require('./utils/logger');
 
 // 导入简化版服务
@@ -43,6 +45,8 @@ function clearApiCache(pattern) {
 // 导入路由（需要创建简化版）
 const authRoutes = require('./routes/auth-simple');
 const herbRoutes = require('./routes/herbs');
+const herbsManageRoutes = require('./routes/herbs-manage');
+const conversationsRoutes = require('./routes/conversations');
 
 class SimpleApp {
   constructor() {
@@ -172,7 +176,10 @@ class SimpleApp {
     this.app.use('/api/herb-images', require('./routes/herb-images'));
     this.app.use('/api/formulas', require('./routes/formulas'));
     this.app.use('/api/knowledge', require('./routes/knowledge-graph'));
+    this.app.use('/api/herbs-manage', herbsManageRoutes);
+    this.app.use('/api/conversations', conversationsRoutes);
     this.app.use('/api/ai-gateway', require('./routes/ai-gateway'));
+    this.app.use('/api/ai-engine', require('./routes/ai-engine')); // 6合1 AI 引擎
     this.app.use('/api/mock', require('./routes/mock'));
 
     // 手动清缓存（管理员用）
@@ -275,6 +282,7 @@ class SimpleApp {
     try {
       logger.info('正在关闭数据库连接...');
       await databaseManager.close();
+      try { await neo4jManager.close(); } catch (e) { /* ignore */ }
       logger.info('数据库连接已关闭');
       process.exit(0);
     } catch (error) {
@@ -286,17 +294,40 @@ class SimpleApp {
   // 启动服务器
   async start() {
     try {
-      // 初始化数据库连接
-      logger.info('正在初始化SQLite数据库...');
+      // 初始化 SQLite 数据库
+      logger.info('正在初始化 SQLite 数据库...');
       await databaseManager.connect();
 
-      // 启动HTTP服务器
+      // 🆕 初始化 Neo4j AuraDB 连接
+      logger.info('正在初始化 Neo4j AuraDB 连接...');
+      try {
+        await neo4jManager.connect();
+        logger.info('Neo4j AuraDB 连接成功');
+
+        // 🆕 AuraDB 保活：Free 版 3 天无活动会休眠，每 30 分钟 ping 一次
+        const KEEP_ALIVE_INTERVAL = 30 * 60 * 1000;
+        setInterval(async () => {
+          try {
+            const session = neo4jManager.getSession();
+            await session.run('RETURN 1');
+            await session.close();
+            console.log('[KeepAlive] Neo4j AuraDB ping 成功');
+          } catch (e) {
+            console.warn('[KeepAlive] Neo4j AuraDB ping 失败:', e.message);
+          }
+        }, KEEP_ALIVE_INTERVAL);
+        console.log('[KeepAlive] 已注册 Neo4j 保活定时器（间隔 30 分钟）');
+      } catch (neoError) {
+        logger.warn('Neo4j AuraDB 连接失败（知识图谱功能将回退到 SQLite）:', neoError.message);
+      }
+
+      // 启动 HTTP 服务器
       const port = config.server.port;
       this.server = this.app.listen(port, () => {
-        logger.info(`兵智世界后端服务启动成功 (简化版)`);
+        logger.info(`神机图鉴后端服务启动成功 (简化版)`);
         logger.info(`服务器运行在端口: ${port}`);
         logger.info(`环境: ${config.server.env}`);
-        logger.info(`数据库: SQLite`);
+        logger.info(`数据库: SQLite + Neo4j AuraDB`);
         logger.info(`健康检查: http://localhost:${port}/health`);
         logger.info(`API文档: http://localhost:${port}/api`);
       });
@@ -321,3 +352,5 @@ if (require.main === module) {
 }
 
 module.exports = SimpleApp;
+
+
