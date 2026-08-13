@@ -27,25 +27,25 @@ function clearCache() {
 // 图片兜底目录：backend/uploads/herbs
 // =============================================
 const HERB_IMAGE_DIR = path.join(__dirname, '../../uploads', 'herbs');
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
 
 // 当数据库未记录图片时，按「文件名 = 药材名」约定兜底，返回动态图片条目
 // 使图片文件在仓库内即可直接显示，不依赖每台机器的私有数据库
 function resolveHerbImages(herbName, dbImages) {
   if (dbImages && dbImages.length > 0) return dbImages;
-  const filename = `${herbName}.png`;
+  const ext = IMAGE_EXTENSIONS.find((item) => fs.existsSync(path.join(HERB_IMAGE_DIR, `${herbName}${item}`)));
+  if (!ext) return [];
+  const filename = `${herbName}${ext}`;
   const filePath = path.join(HERB_IMAGE_DIR, filename);
-  if (fs.existsSync(filePath)) {
-    return [{
-      id: `fallback_${herbName}`,
-      filename,
-      originalName: filename,
-      path: `/uploads/herbs/${filename}`,
-      size: fs.statSync(filePath).size,
-      description: '',
-      uploadedAt: null
-    }];
-  }
-  return [];
+  return [{
+    id: `fallback_${herbName}`,
+    filename,
+    originalName: filename,
+    path: `/uploads/herbs/${filename}`,
+    size: fs.statSync(filePath).size,
+    description: '',
+    uploadedAt: null
+  }];
 }
 
 // =============================================
@@ -153,7 +153,9 @@ async function getHerbFullInfo(db, herbId) {
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const { category_id, region_id, page = 1, limit = 20 } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
 
     const db = databaseManager.getDatabase();
 
@@ -172,21 +174,31 @@ router.get('/', optionalAuth, async (req, res) => {
 
     const herbs = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT h.id, h.name, h.pinyin, h.alias, hc.name as category_name,
+        `SELECT h.id, h.name, h.pinyin, h.alias, h.images, hc.name as category_name,
                 hr.name as region_name, h.description, h.usage_dosage, h.is_common
          FROM herbs h
          LEFT JOIN herb_categories hc ON h.category_id = hc.id
          LEFT JOIN herb_regions hr ON h.region_id = hr.id
          ${whereClause}
-         ORDER BY h.name ASC
-         LIMIT ? OFFSET ?`,
-        [...params, parseInt(limit), offset],
+         ORDER BY h.name ASC`,
+        params,
         (err, rows) => {
           if (err) reject(err);
           else resolve(rows);
         }
       );
     });
+
+    const enrichedHerbs = herbs.map((herb) => {
+      let dbImages = [];
+      try { dbImages = herb.images ? JSON.parse(herb.images) : []; } catch (error) { dbImages = []; }
+      return { ...herb, images: resolveHerbImages(herb.name, dbImages) };
+    }).sort((a, b) => {
+      const imageDiff = Number(Boolean(b.images?.length)) - Number(Boolean(a.images?.length));
+      return imageDiff || String(a.name).localeCompare(String(b.name), 'zh-Hans');
+    });
+
+    const pagedHerbs = enrichedHerbs.slice(offset, offset + limitNum);
 
     const total = await new Promise((resolve, reject) => {
       db.get(
@@ -202,12 +214,12 @@ router.get('/', optionalAuth, async (req, res) => {
     res.json({
       success: true,
       data: {
-        herbs,
+        herbs: pagedHerbs,
         pagination: {
-          current_page: parseInt(page),
-          total_pages: Math.ceil(total / parseInt(limit)),
+          current_page: pageNum,
+          total_pages: Math.ceil(total / limitNum),
           total_items: total,
-          items_per_page: parseInt(limit)
+          items_per_page: limitNum
         }
       }
     });

@@ -188,6 +188,7 @@
     try {
       const response = await apiGet(`/api/formulas/${encodeURIComponent(formulaId)}`);
       state.detailFormula = normalizeFormula(unwrap(response));
+      await hydrateHerbImages(state.detailFormula.herbItems);
       state.apiOnline = true;
     } catch (error) {
       state.detailFormula = null;
@@ -222,6 +223,7 @@
         herbs: normalizeRecommendedHerbs(data.herbs || []),
         formulas: normalizeRecommendedFormulas(data.formulas || [])
       };
+      await hydrateHerbImages(state.recommendations.herbs);
       state.apiOnline = true;
     } catch (error) {
       state.recommendations = { herbs: [], formulas: [] };
@@ -429,6 +431,7 @@
                 <p>${escapeHtml(herb.description || '暂无描述。')}</p>
               </div>
             </div>
+            ${renderHerbVideo(herb)}
             <div class="grid grid-2" style="margin-top: 16px;">
               ${renderInfoCard('性味', herb.nature || herb.properties.join('、') || '暂无')}
               ${renderInfoCard('用法用量', herb.usage || '暂无')}
@@ -746,7 +749,12 @@
     if (!value) return '';
     const url = String(value);
     if (/^https?:\/\//i.test(url)) return url;
-    return `http://localhost:3001${url.startsWith('/') ? url : `/${url}`}`;
+    const path = url.startsWith('/') ? url : `/${url}`;
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+      const host = window.location.host;
+      if (host === 'localhost:3001' || host === '127.0.0.1:3001') return path;
+    }
+    return `http://localhost:3001${path}`;
   }
 
   function buildApiUrls(path) {
@@ -773,6 +781,7 @@
     const nature = source.nature || properties.join('、') || source.property || '';
     const images = normalizeImages(source.images || source.imageList || []);
     const imageUrl = firstImageUrl(images) || absoluteAssetUrl(source.image || source.image_url || source.imageUrl || source.thumbnail || source.thumbnail_url || '');
+    const videoUrl = normalizeHerbVideo(source.video);
     return {
       id: source.id || source.herb_id || source.name,
       name: source.name || '',
@@ -793,7 +802,9 @@
       formulaIds: normalizeList(source.formulaIds).map(Number).filter(Boolean),
       isCommon: Boolean(source.is_common || source.isCommon),
       images,
-      imageUrl
+      imageUrl,
+      video: source.video || null,
+      videoUrl
     };
   }
 
@@ -817,21 +828,31 @@
     return [];
   }
 
+  function normalizeHerbVideo(video) {
+    if (!video) return '';
+    if (typeof video === 'string') return absoluteAssetUrl(video);
+    if (typeof video === 'object' && video.path) return absoluteAssetUrl(video.path);
+    return '';
+  }
+
   function normalizeFormula(item) {
     const source = item || {};
     const rawHerbs = Array.isArray(source.herbs) ? source.herbs : normalizeList(source.herbs || source.ingredients || source.composition).map((name) => ({ name }));
     const herbItems = rawHerbs.map((herb) => {
       if (herb && typeof herb === 'object') {
+        const images = normalizeImages(herb.images || herb.imageList || []);
         return {
           id: herb.herb_id || herb.herbId || herb.id || '',
           name: herb.name || herb.herbName || '',
           pinyin: herb.pinyin || '',
           dosage: herb.dosage || '',
           role: herb.role || '',
-          note: herb.note || ''
+          note: herb.note || '',
+          images,
+          imageUrl: firstImageUrl(images) || absoluteAssetUrl(herb.image || herb.image_url || herb.imageUrl || herb.thumbnail || herb.thumbnail_url || '')
         };
       }
-      return { id: '', name: String(herb || ''), pinyin: '', dosage: '', role: '', note: '' };
+      return { id: '', name: String(herb || ''), pinyin: '', dosage: '', role: '', note: '', images: [], imageUrl: '' };
     }).filter((herb) => herb.name);
 
     return {
@@ -850,14 +871,19 @@
   }
 
   function normalizeRecommendedHerbs(items) {
-    return (Array.isArray(items) ? items : []).map((item) => ({
-      id: item.id || item.herb_id || item.name,
-      name: item.name || '',
-      category: item.category || item.category_name || '',
-      region: item.region || item.region_name || '',
-      reason: item.reason || '',
-      efficacy: normalizeList(item.efficacy_names || item.efficacies, 'name')
-    })).filter((item) => item.name);
+    return (Array.isArray(items) ? items : []).map((item) => {
+      const images = normalizeImages(item.images || item.imageList || []);
+      return {
+        id: item.id || item.herb_id || item.name,
+        name: item.name || '',
+        category: item.category || item.category_name || '',
+        region: item.region || item.region_name || '',
+        reason: item.reason || '',
+        efficacy: normalizeList(item.efficacy_names || item.efficacies, 'name'),
+        images,
+        imageUrl: firstImageUrl(images) || absoluteAssetUrl(item.image || item.image_url || item.imageUrl || item.thumbnail || item.thumbnail_url || '')
+      };
+    }).filter((item) => item.name);
   }
 
   function normalizeRecommendedFormulas(items) {
@@ -1003,6 +1029,16 @@
     return `<div class="${className} no-image"><span>暂无药材图片</span></div>`;
   }
 
+  function renderHerbVideo(herb) {
+    if (!herb.videoUrl) return '';
+    return `
+      <div class="card pad herb-video-card">
+        <h3>药材视频</h3>
+        <video class="herb-video" controls preload="metadata" src="${escapeAttr(herb.videoUrl)}"></video>
+      </div>
+    `;
+  }
+
   function renderFormulaMeta(formula) {
     const items = [formula.category, formula.source ? `来源：${formula.source}` : ''].filter(Boolean);
     if (!items.length) return '';
@@ -1021,7 +1057,7 @@
   function renderFormulaHerbItem(item) {
     const href = item.id ? `herb-detail.html?id=${encodeURIComponent(item.id)}&herb=${encodeURIComponent(item.name)}` : `herb-detail.html?herb=${encodeURIComponent(item.name)}`;
     const details = [item.dosage, item.role ? `角色：${item.role}` : '', item.note].filter(Boolean).join(' · ');
-    return `<a class="list-item" href="${href}"><span><strong>${escapeHtml(item.name)}</strong>${details ? `<p>${escapeHtml(details)}</p>` : ''}</span><i class="fa-solid fa-arrow-right"></i></a>`;
+    return `<a class="list-item formula-herb-item" href="${href}">${item.id ? renderHerbImage(item, 'formula-herb-thumb') : ''}<span><strong>${escapeHtml(item.name)}</strong>${details ? `<p>${escapeHtml(details)}</p>` : ''}</span><i class="fa-solid fa-arrow-right"></i></a>`;
   }
 
   function renderFormulaFieldCard(title, text) {
@@ -1045,7 +1081,7 @@
   }
 
   function renderRecommendationHerbItem(item) {
-    return `<a class="list-item" href="herb-detail.html?id=${encodeURIComponent(item.id)}&herb=${encodeURIComponent(item.name)}"><span><strong>${escapeHtml(item.name)}</strong><p>${escapeHtml([item.category, item.region, item.reason].filter(Boolean).join(' · '))}</p></span><i class="fa-solid fa-arrow-right"></i></a>`;
+    return `<a class="list-item recommendation-herb-item" href="herb-detail.html?id=${encodeURIComponent(item.id)}&herb=${encodeURIComponent(item.name)}">${renderHerbImage(item, 'recommendation-thumb')}<span><strong>${escapeHtml(item.name)}</strong><p>${escapeHtml([item.category, item.region, item.reason].filter(Boolean).join(' · '))}</p></span><i class="fa-solid fa-arrow-right"></i></a>`;
   }
 
   function renderRecommendationFormulaItem(item) {

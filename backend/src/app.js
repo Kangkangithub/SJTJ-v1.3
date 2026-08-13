@@ -46,7 +46,8 @@ class App {
           ],
           scriptSrcAttr: ["'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
-          imgSrc: ["'self'", "data:", "blob:"],
+          imgSrc: ["'self'", "data:", "blob:", "http://localhost:3001", "http://127.0.0.1:3001"],
+          mediaSrc: ["'self'", "http://localhost:3001", "http://127.0.0.1:3001"],
           connectSrc: ["'self'", "http://localhost:3001", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
           fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "data:"]
         }

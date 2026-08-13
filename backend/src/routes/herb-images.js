@@ -8,12 +8,14 @@ const databaseManager = require('../config/database-simple');
 const logger = require('../utils/logger');
 
 const HERB_IMAGE_DIR = path.join(__dirname, '../../uploads/herbs');
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
 
 function resolveHerbImages(herbName, dbImages) {
   if (dbImages && dbImages.length > 0) return dbImages;
-  const filename = `${herbName}.png`;
+  const ext = IMAGE_EXTENSIONS.find((item) => fs.existsSync(path.join(HERB_IMAGE_DIR, `${herbName}${item}`)));
+  if (!ext) return [];
+  const filename = `${herbName}${ext}`;
   const filePath = path.join(HERB_IMAGE_DIR, filename);
-  if (!fs.existsSync(filePath)) return [];
   return [{
     id: `fallback_${herbName}`,
     filename,

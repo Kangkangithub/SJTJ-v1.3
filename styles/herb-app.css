@@ -512,15 +512,51 @@ img {
   text-align: center;
 }
 
+.recommendation-thumb {
+  flex: 0 0 56px;
+  width: 56px;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-soft);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.formula-herb-thumb {
+  flex: 0 0 48px;
+  width: 48px;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-soft);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .herb-thumb img,
-.detail-thumb img {
+.detail-thumb img,
+.recommendation-thumb img,
+.formula-herb-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 .herb-thumb.no-image span,
-.detail-thumb.no-image span {
+.detail-thumb.no-image span,
+.recommendation-thumb.no-image span,
+.formula-herb-thumb.no-image span {
   padding: 8px;
   line-height: 1.35;
 }
@@ -617,6 +653,24 @@ img {
   text-align: center;
 }
 
+.herb-video-card {
+  margin-top: 16px;
+}
+
+.herb-video-card h3 {
+  margin-top: 0;
+}
+
+.herb-video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  max-height: 420px;
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
 .fact-list {
   display: grid;
   gap: 10px;
@@ -655,6 +709,20 @@ img {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
+}
+
+.recommendation-herb-item {
+  justify-content: flex-start;
+}
+
+.formula-herb-item {
+  justify-content: flex-start;
+}
+
+.recommendation-herb-item > span,
+.formula-herb-item > span {
+  min-width: 0;
+  flex: 1;
 }
 
 .list-item p {

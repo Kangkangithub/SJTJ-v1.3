@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const herbPropertyValue = document.getElementById('herbPropertyValue');
   const herbMeridianValue = document.getElementById('herbMeridianValue');
   const herbDescriptionValue = document.getElementById('herbDescriptionValue');
+  const herbResultImage = document.getElementById('herbResultImage');
   const confidenceFill = document.getElementById('confidenceFill');
   const relatedList = document.getElementById('relatedList');
 
@@ -141,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
     herbMeridianValue.textContent = (herb.meridians || []).join('、') || '暂无归经';
     herbDescriptionValue.textContent = herb.description || herb.efficacies?.join('、') || '暂无详情';
     confidenceFill.style.width = Number.isFinite(Number(confidence)) ? `${Math.min(100, Math.max(0, Number(confidence)))}%` : '100%';
+    renderResultHerbImage(herb);
 
     displayRelatedHerbs(herb.related || []);
     noResult.style.display = 'none';
@@ -166,6 +168,31 @@ document.addEventListener('DOMContentLoaded', function() {
       relatedList.appendChild(relatedItem);
       hydrateRelatedHerbImage(relatedItem, item);
     });
+  }
+
+  function renderResultHerbImage(herb) {
+    if (!herbResultImage) return;
+    const imageUrl = getImageUrlFromHerb(herb);
+    herbResultImage.className = imageUrl ? 'result-herb-image has-image' : 'result-herb-image no-image';
+    herbResultImage.innerHTML = imageUrl
+      ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(herb.name)}药材图片" loading="lazy">`
+      : '<span>暂无药材图片</span>'; 
+    hydrateResultHerbImage(herb);
+  }
+
+  async function hydrateResultHerbImage(herb) {
+    if (!herbResultImage || !herb?.id || getImageUrlFromHerb(herb)) return;
+    try {
+      const response = await fetch(`${API_BASE}/herb-images/${encodeURIComponent(herb.id)}`);
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || json.success === false) return;
+      const imageUrl = firstImageUrl(json.data?.images || json.images || []);
+      if (!imageUrl) return;
+      herbResultImage.className = 'result-herb-image has-image';
+      herbResultImage.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(herb.name)}药材图片" loading="lazy">`; 
+    } catch (error) {
+      // Keep the explicit no-image state when the backend has no image or the request fails.
+    }
   }
 
   function renderRelatedHerbImage(item) {
@@ -208,7 +235,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!value) return '';
     const url = String(value);
     if (/^https?:\/\//i.test(url)) return url;
-    return url.startsWith('/') ? `http://localhost:3001${url}` : `http://localhost:3001/${url}`;
+    const path = url.startsWith('/') ? url : `/${url}`;
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+      const host = window.location.host;
+      if (host === 'localhost:3001' || host === '127.0.0.1:3001') return path;
+    }
+    return `http://localhost:3001${path}`;
   }
 
   function hideResults() {
