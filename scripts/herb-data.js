@@ -1,13 +1,12 @@
 window.HerbData = {
-  siteName: '本草知识图谱',
-  siteTagline: '药材查询、方剂检索、知识图谱与 AI 问答一体化前端',
+  siteName: '神农AI',
+  siteTagline: '中药药材知识图谱系统',
   nav: [
     { id: 'home', label: '首页', href: 'index.html', icon: 'fa-house' },
     { id: 'search', label: '药材查询', href: 'herb-search.html', icon: 'fa-magnifying-glass' },
     { id: 'graph', label: '知识图谱', href: 'knowledge-graph.html', icon: 'fa-diagram-project' },
     { id: 'qa', label: 'AI 问答', href: 'qa.html', icon: 'fa-comments' },
     { id: 'formula', label: '方剂库', href: 'formula-library.html', icon: 'fa-book-medical' },
-    { id: 'design', label: '设计系统', href: 'design-system.html', icon: 'fa-palette' }
   ],
   filters: {
     categories: ['补气药', '补血药', '解表药', '活血药', '安神药', '清热药'],
@@ -30,7 +29,6 @@ window.HerbData = {
       caution: '实热、湿热内盛或正气不虚者慎用。',
       description: '人参为补气要药，适用于气虚欲脱、脾肺气虚、津伤口渴和心神不宁等证候。',
       composition: ['人参皂苷', '多糖', '挥发油'],
-      imageTone: '#2f7651',
       formulaIds: [1, 5, 6]
     },
     {
@@ -48,7 +46,6 @@ window.HerbData = {
       caution: '表实邪盛、气滞湿阻、阴虚阳亢者慎用。',
       description: '黄芪长于补气升提与固表，常用于气虚自汗、久泻脱肛和表虚易感。',
       composition: ['黄芪甲苷', '黄酮', '多糖'],
-      imageTone: '#c67517',
       formulaIds: [1, 6]
     },
     {
@@ -66,7 +63,6 @@ window.HerbData = {
       caution: '湿热泄泻及出血偏多者慎用。',
       description: '当归既能补血，又善活血，是血虚、血瘀和经行不调场景的常用药材。',
       composition: ['挥发油', '阿魏酸', '多糖'],
-      imageTone: '#a83d30',
       formulaIds: [2, 4, 5, 6]
     },
     {
@@ -84,7 +80,6 @@ window.HerbData = {
       caution: '不宜长期大量服用；湿盛胀满、水肿者慎用。',
       description: '甘草兼具补益、解毒与调和配伍作用，在方剂中常承担协调药性的角色。',
       composition: ['甘草酸', '甘草黄酮'],
-      imageTone: '#14766f',
       formulaIds: [1, 2, 3]
     },
     {
@@ -102,7 +97,6 @@ window.HerbData = {
       caution: '表虚自汗、阴虚盗汗、肺肾虚喘者慎用。',
       description: '麻黄偏于宣散，适合风寒束表、肺气不宣的外感与喘咳场景。',
       composition: ['麻黄碱', '伪麻黄碱'],
-      imageTone: '#3c7d8c',
       formulaIds: [3]
     },
     {
@@ -120,7 +114,6 @@ window.HerbData = {
       caution: '孕妇慎用，不宜与藜芦同用。',
       description: '丹参善入血分，常用于血瘀疼痛、心烦不眠及疮痈肿痛。',
       composition: ['丹参酮', '丹酚酸'],
-      imageTone: '#7f3d3d',
       formulaIds: [4]
     },
     {
@@ -138,7 +131,6 @@ window.HerbData = {
       caution: '虚寒精滑者慎用。',
       description: '茯苓药性平和，兼顾水湿代谢、脾胃运化和心神安定。',
       composition: ['茯苓多糖', '三萜类'],
-      imageTone: '#8c7b59',
       formulaIds: [1, 2]
     },
     {
@@ -156,7 +148,6 @@ window.HerbData = {
       caution: '脾胃虚寒及气虚疮疡脓清者慎用。',
       description: '金银花清热解毒力强，也能疏散风热，常用于温病、咽痛和疮痈。',
       composition: ['绿原酸', '木犀草苷'],
-      imageTone: '#d4a64f',
       formulaIds: [5]
     }
   ],

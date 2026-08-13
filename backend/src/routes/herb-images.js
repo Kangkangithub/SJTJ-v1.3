@@ -7,6 +7,24 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const databaseManager = require('../config/database-simple');
 const logger = require('../utils/logger');
 
+const HERB_IMAGE_DIR = path.join(__dirname, '../../uploads/herbs');
+
+function resolveHerbImages(herbName, dbImages) {
+  if (dbImages && dbImages.length > 0) return dbImages;
+  const filename = `${herbName}.png`;
+  const filePath = path.join(HERB_IMAGE_DIR, filename);
+  if (!fs.existsSync(filePath)) return [];
+  return [{
+    id: `fallback_${herbName}`,
+    filename,
+    originalName: filename,
+    path: `/uploads/herbs/${filename}`,
+    size: fs.statSync(filePath).size,
+    description: '',
+    uploadedAt: null
+  }];
+}
+
 // 配置 multer 文件上传
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -54,6 +72,7 @@ router.get('/:herbId', async (req, res) => {
 
     let images = [];
     try { images = herb.images ? JSON.parse(herb.images) : []; } catch (e) { images = []; }
+    images = resolveHerbImages(herb.name, images);
 
     res.json({ success: true, data: { herbId, herbName: herb.name, images } });
   } catch (error) {

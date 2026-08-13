@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中药测验 - 本草纲目</title>
+    <title>中药测验 - 神农AI</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/herb-app.css">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/quiz.css">
 </head>
 <body>
+    <a class="skip-link" href="#mainContent">跳到主内容</a>
     <div class="container">
         <header>
-            <div class="logo">本草纲目</div>
+            <div class="logo">神农AI</div>
             <div class="user-status">
                 <a href="login.html" class="btn">登录</a>
             </div>
@@ -28,7 +30,7 @@
                 <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
             </ul>
         </nav>
-        <div class="content">
+        <main id="mainContent" class="content">
             <div class="test-header">
                 <h1>中医药知识测验</h1>
                 <p>挑战您的中医药知识，传承千年智慧！</p>
@@ -46,13 +48,13 @@
                             <div class="category-icon"><i class="fas fa-book"></i></div>
                             <div class="category-title">方剂学</div>
                         </div>
-                        <div class="category-item" data-category="theory">
+                        <div class="category-item" data-category="properties">
                             <div class="category-icon"><i class="fas fa-brain"></i></div>
-                            <div class="category-title">中医理论</div>
+                            <div class="category-title">性味归经</div>
                         </div>
-                        <div class="category-item" data-category="classics">
+                        <div class="category-item" data-category="regions">
                             <div class="category-icon"><i class="fas fa-scroll"></i></div>
-                            <div class="category-title">经典典籍</div>
+                            <div class="category-title">道地产区</div>
                         </div>
                     </div>
                 </div>
@@ -77,7 +79,7 @@
                         <div class="difficulty-option" data-difficulty="hard">
                             <div class="difficulty-icon"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
                             <div class="difficulty-info">
-                                <div class="difficulty-title">大师</div>
+                                <div class="difficulty-title">专业</div>
                                 <div class="difficulty-desc">高难度，考验专业中医药知识</div>
                             </div>
                         </div>
@@ -195,14 +197,14 @@
                             <option value="all">所有类别</option>
                             <option value="herbs">中药材</option>
                             <option value="formulas">方剂学</option>
-                            <option value="theory">中医理论</option>
-                            <option value="classics">经典典籍</option>
+                            <option value="properties">性味归经</option>
+                            <option value="regions">道地产区</option>
                         </select>
                         <select id="difficultyFilter">
                             <option value="all">所有难度</option>
                             <option value="easy">入门</option>
                             <option value="medium">进阶</option>
-                            <option value="hard">大师</option>
+                            <option value="hard">专业</option>
                         </select>
                     </div>
                     <div class="leaderboard-table-container">
@@ -219,7 +221,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
     <script src="scripts/auth.js"></script>

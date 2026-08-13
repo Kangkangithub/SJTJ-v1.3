@@ -1,715 +1,274 @@
-/* 军事测验页面样式 */
-:root {
-    --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --accent-color: #1abc9c;
-    --dark-bg: #0a0e17;
-    --card-bg: #131a27;
-    --text-color: #e0e0e0;
-    --correct-color: #2ecc71;
-    --wrong-color: #e74c3c;
-    --neutral-color: #7f8c8d;
-}
-
+/* 中药知识测评页面样式 */
 .content {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+  max-width: var(--container);
 }
 
-/* 页面标题 */
 .test-header {
-    text-align: center;
-    margin-bottom: 2rem;
+  margin-bottom: 22px;
+  padding: 22px;
+  background: linear-gradient(120deg, #f8fbf5 0%, #eef5eb 64%, #f4efe5 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
 .test-header h1 {
-    color: var(--secondary-color);
-    font-size: 2.2rem;
-    margin-bottom: 0.5rem;
+  margin-bottom: 8px;
+  font-size: 30px;
 }
 
-.test-header p {
-    color: var(--text-color);
-    font-size: 1.1rem;
-    opacity: 0.8;
+.section-container,
+.quiz-container {
+  width: min(100%, 920px);
+  margin: 0 auto;
 }
 
-/* 通用卡片容器 */
-.section-container {
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
+.selection-card,
+.results-card,
+.leaderboard-card,
+.quiz-container {
+  padding: 20px;
+  margin-bottom: 16px;
 }
 
-.selection-card, .results-card, .leaderboard-card {
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.section-header {
-    margin-bottom: 1.5rem;
-}
-
-.section-header h2 {
-    color: var(--secondary-color);
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.section-header h3 {
-    color: var(--secondary-color);
-    font-size: 1.3rem;
-    margin-bottom: 0.5rem;
-}
-
-/* 类别选择 */
 .category-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.category-item,
+.difficulty-option,
+.quiz-option,
+.review-item,
+.info-pill {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
 }
 
 .category-item {
-    background-color: rgba(52, 152, 219, 0.1);
-    border: 2px solid transparent;
-    border-radius: 8px;
-    padding: 1.5rem 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 120px;
+  padding: 18px 12px;
+  color: var(--text);
+  cursor: pointer;
 }
 
-.category-item:hover {
-    background-color: rgba(52, 152, 219, 0.2);
-    transform: translateY(-3px);
+.category-item:hover,
+.category-item.selected,
+.difficulty-option:hover,
+.difficulty-option.selected,
+.quiz-option:hover,
+.quiz-option.selected {
+  border-color: rgba(47, 118, 81, 0.35);
+  background: var(--primary-soft);
 }
 
-.category-item.selected {
-    border-color: var(--secondary-color);
-    background-color: rgba(52, 152, 219, 0.3);
+.category-icon,
+.difficulty-icon {
+  color: var(--primary);
+  font-size: 24px;
 }
 
-.category-icon {
-    font-size: 2rem;
-    color: var(--secondary-color);
-    margin-bottom: 1rem;
+.category-title,
+.difficulty-title {
+  font-weight: 800;
 }
 
-.category-title {
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-/* 难度选择 */
 .difficulty-selector {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: grid;
+  gap: 12px;
 }
 
 .difficulty-option {
-    display: flex;
-    align-items: center;
-    background-color: rgba(52, 152, 219, 0.1);
-    border: 2px solid transparent;
-    border-radius: 8px;
-    padding: 1rem;
-    cursor: pointer;
-    transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  cursor: pointer;
 }
 
-.difficulty-option:hover {
-    background-color: rgba(52, 152, 219, 0.2);
+.difficulty-desc,
+.info-item,
+.progress-text,
+.score-text span,
+.review-answer {
+  color: var(--muted);
 }
 
-.difficulty-option.selected {
-    border-color: var(--secondary-color);
-    background-color: rgba(52, 152, 219, 0.3);
+.start-section,
+.results-header {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  margin-top: 20px;
 }
 
-.difficulty-icon {
-    display: flex;
-    align-items: center;
-    margin-right: 1rem;
-    color: var(--secondary-color);
-}
-
-.difficulty-icon i {
-    margin-right: 0.2rem;
-}
-
-.difficulty-info {
-    flex: 1;
-}
-
-.difficulty-title {
-    font-weight: 500;
-    color: var(--text-color);
-    margin-bottom: 0.3rem;
-}
-
-.difficulty-desc {
-    font-size: 0.9rem;
-    color: var(--text-color);
-    opacity: 0.7;
-}
-
-/* 开始按钮区域 */
-.start-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 2rem;
-}
-
-.start-button {
-    background: linear-gradient(to right, var(--secondary-color), var(--accent-color));
-    color: white;
-    border: none;
-    border-radius: 30px;
-    padding: 1rem 3rem;
-    font-size: 1.2rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.start-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.5);
-}
-
-.start-button:disabled {
-    background: linear-gradient(to right, #95a5a6, #7f8c8d);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.quiz-info {
-    display: flex;
-    gap: 2rem;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    color: var(--text-color);
-    opacity: 0.8;
-}
-
-.info-item i {
-    margin-right: 0.5rem;
-    color: var(--secondary-color);
-}
-
-/* 测验容器 */
-.quiz-container {
-    width: 100%;
-    max-width: 800px;
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    margin: 0 auto;
-}
-
-.quiz-top-section {
-    margin-bottom: 1.5rem;
-}
-
-/* 测验信息栏 */
-.quiz-info-bar {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
+.quiz-info,
+.quiz-info-bar,
+.results-actions,
+.leaderboard-actions,
+.leaderboard-tabs,
+.leaderboard-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .info-pill {
-    background-color: rgba(52, 152, 219, 0.2);
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
-    display: flex;
-    align-items: center;
-    font-size: 0.9rem;
+  min-height: 36px;
+  padding: 7px 12px;
+  color: var(--primary-dark);
 }
 
-.info-pill i {
-    margin-right: 0.5rem;
-}
-
-.category-pill {
-    color: var(--secondary-color);
-}
-
-.difficulty-pill {
-    color: var(--accent-color);
-}
-
-.timer-pill {
-    color: var(--text-color);
-}
-
-/* 进度统计 */
 .progress-stats {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 20px;
 }
 
-.progress-text {
-    font-size: 1rem;
-    color: var(--text-color);
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background-color: rgba(52, 152, 219, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
+.progress-bar,
+.confidence-bar {
+  height: 8px;
+  overflow: hidden;
+  background: var(--surface-muted);
+  border-radius: 999px;
 }
 
 .progress {
-    height: 100%;
-    background: linear-gradient(to right, var(--secondary-color), var(--accent-color));
-    width: 0%;
-    transition: width 0.3s;
-}
-
-/* 问题样式 */
-.quiz-question {
-    margin-bottom: 1.5rem;
+  height: 100%;
+  width: 0;
+  background: var(--primary);
 }
 
 .quiz-question h3 {
-    color: var(--text-color);
-    font-size: 1.3rem;
-    margin-bottom: 1.5rem;
-    line-height: 1.4;
+  font-size: 22px;
+  line-height: 1.35;
 }
 
-.question-image-container {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    border-radius: 8px;
-    overflow: hidden;
-    max-height: 300px;
-}
-
-.question-image-container img {
-    max-width: 100%;
-    max-height: 300px;
-    object-fit: contain;
-}
-
-/* 选项样式 */
 .quiz-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
+  display: grid;
+  gap: 10px;
 }
 
 .quiz-option {
-    background-color: rgba(52, 152, 219, 0.1);
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: 2px solid transparent;
+  justify-content: flex-start;
+  width: 100%;
+  color: var(--text);
+  background: var(--surface-soft);
+  text-align: left;
 }
 
-.quiz-option:hover {
-    background-color: rgba(52, 152, 219, 0.2);
+.quiz-option.correct,
+.review-answer.correct {
+  color: #17633a;
+  border-color: rgba(23, 99, 58, 0.35);
+  background: rgba(47, 118, 81, 0.12);
 }
 
-.quiz-option.selected {
-    border-color: var(--secondary-color);
-    background-color: rgba(52, 152, 219, 0.3);
+.quiz-option.wrong,
+.review-answer.wrong {
+  color: #8f2d24;
+  border-color: rgba(168, 61, 48, 0.35);
+  background: rgba(168, 61, 48, 0.1);
 }
 
-.quiz-option.correct {
-    border-color: var(--correct-color);
-    background-color: rgba(46, 204, 113, 0.2);
-}
-
-.quiz-option.wrong {
-    border-color: var(--wrong-color);
-    background-color: rgba(231, 76, 60, 0.2);
-}
-
-/* 按钮样式 */
-.action-button {
-    background-color: var(--secondary-color);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    padding: 0.8rem 2rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.action-button:hover {
-    background-color: var(--accent-color);
-    transform: translateY(-2px);
-}
-
-.action-button-secondary {
-    background-color: rgba(52, 152, 219, 0.2);
-    color: var(--secondary-color);
-}
-
-.action-button-secondary:hover {
-    background-color: rgba(52, 152, 219, 0.4);
-}
-
-/* 提示部分 */
+.quiz-actions,
 .hint-section {
-    margin-top: 1.5rem;
-    text-align: center;
-}
-
-.hint-button {
-    background-color: rgba(241, 196, 15, 0.2);
-    color: #f1c40f;
-    border: none;
-    border-radius: 30px;
-    padding: 0.6rem 1.5rem;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.hint-button:hover {
-    background-color: rgba(241, 196, 15, 0.3);
-}
-
-.hint-count {
-    background-color: #f1c40f;
-    color: #2c3e50;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: bold;
+  margin-top: 16px;
 }
 
 .hint-content {
-    margin-top: 1rem;
-    background-color: rgba(241, 196, 15, 0.1);
-    border-left: 3px solid #f1c40f;
-    padding: 1rem;
-    border-radius: 4px;
-    color: #e0e0e0;
-    text-align: left;
-}
-
-/* 结果页面样式 */
-.results-header {
-    text-align: center;
-    margin-bottom: 2rem;
+  margin-top: 10px;
+  padding: 12px;
+  color: #71450b;
+  background: rgba(198, 117, 23, 0.12);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius);
 }
 
 .score-display {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2rem;
-    margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .score-circle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: conic-gradient(var(--secondary-color) 0%, var(--accent-color) 85%, transparent 85%, transparent 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+  width: 118px;
+  height: 118px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border: 1px solid rgba(47, 118, 81, 0.22);
+  font-size: 28px;
+  font-weight: 850;
 }
 
-.score-circle::before {
-    content: '';
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background-color: var(--card-bg);
-    border-radius: 50%;
-}
-
-.score-circle span {
-    position: relative;
-    z-index: 1;
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.score-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.score-text span {
-    font-size: 1.1rem;
-    color: var(--text-color);
-}
-
-/* 勋章部分 */
-.badge-section {
-    margin-bottom: 2rem;
-}
-
-.badges-container {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+.badges-container,
+.review-list {
+  display: grid;
+  gap: 10px;
 }
 
 .badge-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+  display: inline-grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 6px;
 }
 
 .badge-icon {
-    width: 80px;
-    height: 80px;
-    background-color: rgba(52, 152, 219, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    color: var(--secondary-color);
-}
-
-.badge-name {
-    font-size: 0.9rem;
-    color: var(--text-color);
-    text-align: center;
-}
-
-/* 答题回顾 */
-.review-section {
-    margin-bottom: 2rem;
-}
-
-.review-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 50%;
 }
 
 .review-item {
-    background-color: rgba(52, 152, 219, 0.1);
-    border-radius: 8px;
-    padding: 1rem;
+  padding: 14px;
 }
 
 .review-question {
-    font-weight: 500;
-    color: var(--text-color);
-    margin-bottom: 0.8rem;
-}
-
-.review-answer {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--text-color);
-    font-size: 0.9rem;
-}
-
-.review-answer.correct {
-    color: var(--correct-color);
-}
-
-.review-answer.wrong {
-    color: var(--wrong-color);
-}
-
-.review-answer i {
-    font-size: 1rem;
-}
-
-/* 结果操作按钮 */
-.results-actions {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-/* 排行榜样式 */
-.leaderboard-tabs {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.tab-button {
-    background-color: transparent;
-    border: none;
-    color: var(--text-color);
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: all 0.3s;
-}
-
-.tab-button:hover {
-    opacity: 0.8;
-    background-color: rgba(52, 152, 219, 0.1);
-}
-
-.tab-button.active {
-    background-color: rgba(52, 152, 219, 0.2);
-    color: var(--secondary-color);
-    opacity: 1;
-}
-
-.leaderboard-filters {
-    display: flex;
-    gap: 1rem;
-    margin: 1.5rem 0;
-}
-
-.leaderboard-filters select {
-    background-color: rgba(52, 152, 219, 0.1);
-    border: 1px solid rgba(52, 152, 219, 0.3);
-    color: var(--text-color);
-    padding: 0.6rem 1rem;
-    border-radius: 4px;
-    flex: 1;
-    outline: none;
-}
-
-.leaderboard-filters select option {
-    background-color: var(--dark-bg);
-    color: var(--text-color);
+  margin-bottom: 8px;
+  font-weight: 800;
 }
 
 .leaderboard-table-container {
-    overflow-x: auto;
-    margin-bottom: 1.5rem;
+  overflow-x: auto;
 }
 
-.leaderboard-table {
+.leaderboard-filters select {
+  flex: 1 1 180px;
+}
+
+@media (max-width: 980px) {
+  .category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .category-grid,
+  .leaderboard-actions,
+  .results-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .category-grid {
+    display: grid;
+  }
+
+  .action-button,
+  .start-button {
     width: 100%;
-    border-collapse: collapse;
-    color: var(--text-color);
+  }
 }
-
-.leaderboard-table th, .leaderboard-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.leaderboard-table th {
-    color: var(--secondary-color);
-    font-weight: 500;
-    background-color: rgba(52, 152, 219, 0.1);
-}
-
-.leaderboard-table tr:hover td {
-    background-color: rgba(52, 152, 219, 0.05);
-}
-
-.leaderboard-table .rank {
-    font-weight: bold;
-    color: var(--secondary-color);
-}
-
-.leaderboard-table .top-1 {
-    color: gold;
-}
-
-.leaderboard-table .top-2 {
-    color: silver;
-}
-
-.leaderboard-table .top-3 {
-    color: #cd7f32; /* Bronze */
-}
-
-.leaderboard-actions {
-    display: flex;
-    justify-content: space-between;
-}
-
-/* 响应式布局 */
-@media (max-width: 768px) {
-    .quiz-container, .selection-card, .results-card, .leaderboard-card {
-        padding: 1.5rem;
-        border-radius: 8px;
-    }
-    
-    .category-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .score-display {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .results-actions, .leaderboard-actions {
-        flex-direction: column;
-        gap: 0.8rem;
-    }
-    
-    .action-button {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .leaderboard-filters {
-        flex-direction: column;
-    }
-}
-
-@media (max-width: 480px) {
-    .quiz-info-bar {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .info-pill {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .category-grid {
-        grid-template-columns: 1fr;
-    }
-} 

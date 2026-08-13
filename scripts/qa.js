@@ -286,7 +286,7 @@ async function streamChatCompletion(prompt, outputElement, onContentUpdate) {
         messages: [
             {
                 role: 'system',
-                content: '你是本草纲目AI智能助手，专门解答关于中医药药材、方剂和理论知识的问题。请提供准确、专业的回答。请使用Markdown格式输出以增强可读性，包括标题、列表、表格和代码块等。对于代码，请指定语言以便正确高亮显示。'
+                content: '你是神农AI智能助手，专门解答关于中医药药材、方剂和理论知识的问题。请提供准确、专业的回答。请使用Markdown格式输出以增强可读性，包括标题、列表、表格和代码块等。对于代码，请指定语言以便正确高亮显示。'
             },
             {
                 role: 'user',
