@@ -49,6 +49,26 @@ function resolveHerbImages(herbName, dbImages) {
 }
 
 // =============================================
+// 视频兜底目录：backend/uploads/videos
+// =============================================
+const HERB_VIDEO_DIR = path.join(__dirname, '../../uploads', 'videos');
+
+// 当数据库未记录视频时，按「文件名 = 药材名」约定兜底，返回动态视频对象
+function resolveHerbVideo(herbName, dbVideo) {
+  if (dbVideo) return dbVideo;
+  const ext = ['.mp4', '.webm'].find(e => fs.existsSync(path.join(HERB_VIDEO_DIR, herbName + e)));
+  if (!ext) return null;
+  const filename = herbName + ext;
+  const filePath = path.join(HERB_VIDEO_DIR, filename);
+  return {
+    filename,
+    path: `/uploads/videos/${filename}`,
+    size: fs.statSync(filePath).size,
+    mimeType: ext === '.mp4' ? 'video/mp4' : 'video/webm'
+  };
+}
+
+// =============================================
 // 辅助函数：获取药材完整信息（含性味归经功效）
 // =============================================
 async function getHerbFullInfo(db, herbId) {
@@ -122,6 +142,7 @@ async function getHerbFullInfo(db, herbId) {
     meridians,
     efficacies,
     images: resolveHerbImages(herb.name, JSON.parse(herb.images || '[]')),
+    video: resolveHerbVideo(herb.name, null),
     quality: JSON.parse(herb.quality || '{}')
   };
 }
