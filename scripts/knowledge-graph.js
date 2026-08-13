@@ -410,6 +410,98 @@ function clearManufacturerSelection() {
     }
     
     // 显示节点详情
+    // 加载药材图片和视频（点击药材节点时显示）
+    async function loadHerbMedia(node, container) {
+        // 从节点ID提取药材ID
+        let herbId = node.id;
+        if (typeof herbId === 'string' && herbId.startsWith('herb_')) {
+            herbId = herbId.replace('herb_', '');
+        }
+        herbId = parseInt(herbId);
+        if (isNaN(herbId)) return;
+
+        // 创建媒体容器
+        const mediaContainer = document.createElement('div');
+        mediaContainer.style.cssText = 'margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;';
+
+        // 标题
+        const title = document.createElement('h4');
+        title.textContent = '药材图片';
+        title.style.cssText = 'margin: 0 0 10px 0; color: #fff; font-size: 14px;';
+        mediaContainer.appendChild(title);
+
+        // 图片展示区
+        const imgArea = document.createElement('div');
+        imgArea.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+        imgArea.innerHTML = '<span style="color:#999;font-size:12px">加载中...</span>';
+        mediaContainer.appendChild(imgArea);
+
+        // 视频展示区
+        const videoTitle = document.createElement('h4');
+        videoTitle.textContent = '药材视频';
+        videoTitle.style.cssText = 'margin: 15px 0 10px 0; color: #fff; font-size: 14px;';
+        mediaContainer.appendChild(videoTitle);
+
+        const videoArea = document.createElement('div');
+        videoArea.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+        videoArea.innerHTML = '<span style="color:#999;font-size:12px">暂无视频</span>';
+        mediaContainer.appendChild(videoArea);
+
+        container.appendChild(mediaContainer);
+
+        try {
+            // 从API获取药材详情（含图片）
+            const response = await fetch('http://localhost:3001/api/herbs/' + herbId);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const herb = result.data;
+
+                // 显示图片
+                if (herb.images && herb.images.length > 0) {
+                    imgArea.innerHTML = '';
+                    herb.images.forEach(img => {
+                        const imgEl = document.createElement('img');
+                        imgEl.src = 'http://localhost:3001' + img.path;
+                        imgEl.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255,255,255,0.15);';
+                        imgEl.title = herb.name;
+                        // 点击查看大图
+                        imgEl.onclick = () => window.open('http://localhost:3001' + img.path, '_blank');
+                        imgArea.appendChild(imgEl);
+                    });
+                } else {
+                    imgArea.innerHTML = '<span style="color:#999;font-size:12px">暂无图片</span>';
+                }
+
+                // 显示视频（后端按「文件名=药材名」兜底返回，未找到时为 null）
+                if (herb.video) {
+                    videoArea.innerHTML = '';
+                    const videoEl = document.createElement('video');
+                    videoEl.src = 'http://localhost:3001' + herb.video.path;
+                    videoEl.controls = true;
+                    videoEl.preload = 'metadata';
+                    videoEl.style.cssText = 'width: 100%; max-width: 320px; border-radius: 6px; background: #000;';
+                    videoEl.title = herb.name;
+                    videoArea.appendChild(videoEl);
+                }
+            }
+        } catch (error) {
+            console.error('加载药材媒体失败:', error);
+            imgArea.innerHTML = '<span style="color:#e74c3c;font-size:12px">加载失败</span>';
+        }
+    }
+
+    // 节点类型英文 → 中文映射
+    const nodeTypeNames = {
+        'Herb': '药材',
+        'Category': '分类',
+        'Property': '性味',
+        'Meridian': '归经',
+        'Efficacy': '功效',
+        'Region': '产地',
+        'Source': '来源'
+    };
+
     function displayNodeDetails(node) {
         const detailsContainer = document.getElementById('nodeDetails');
         
