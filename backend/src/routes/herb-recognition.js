@@ -4,14 +4,27 @@ const router = express.Router();
 const databaseManager = require('../config/database-simple');
 const logger = require('../utils/logger');
 
+const MAX_RECOGNITION_FILE_SIZE = Number(process.env.HERB_RECOGNITION_MAX_FILE_SIZE || 100 * 1024 * 1024);
+
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: MAX_RECOGNITION_FILE_SIZE },
   fileFilter(req, file, cb) {
     if (/^(image|video)\//.test(file.mimetype)) cb(null, true);
     else cb(new Error('仅支持图片或视频文件'));
   }
 });
+
+function uploadRecognitionFile(req, res, next) {
+  upload.single('file')(req, res, (error) => {
+    if (!error) return next();
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      const maxMb = Math.round(MAX_RECOGNITION_FILE_SIZE / 1024 / 1024);
+      return res.status(413).json({ success: false, message: `上传文件过大，请上传 ${maxMb}MB 以内的视频或图片。` });
+    }
+    return res.status(400).json({ success: false, message: error.message || '上传文件无效' });
+  });
+}
 
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => {
@@ -88,7 +101,7 @@ router.get('/health', (req, res) => {
   });
 });
 
-router.post('/', upload.single('file'), async (req, res) => {
+router.post('/', uploadRecognitionFile, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: '请上传需要识别的药材图片或视频' });

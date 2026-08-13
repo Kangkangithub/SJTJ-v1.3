@@ -42,8 +42,18 @@ document.addEventListener('DOMContentLoaded', function() {
   let selectedFile = null;
   let mediaStream = null;
   let recognizedHerb = null;
+  let previewObjectUrl = '';
 
-  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('click', function(event) {
+    if (event.target.closest('img, video, button, input')) return;
+    fileInput.click();
+  });
+  imagePreview.addEventListener('click', event => event.stopPropagation());
+  videoPreview.addEventListener('click', event => event.stopPropagation());
+  videoPreview.addEventListener('error', function() {
+    if (!selectedFile || !selectedFile.type.startsWith('video/')) return;
+    showStatus('视频无法预览，请确认文件为浏览器支持的 MP4、WebM 或 OGG 格式。');
+  });
   uploadArea.addEventListener('dragover', function(event) {
     event.preventDefault();
     this.classList.add('upload-area-active');
@@ -89,15 +99,21 @@ document.addEventListener('DOMContentLoaded', function() {
     selectedFile = file;
     recognizeButton.disabled = false;
     hideResults();
+    resetPreviewObjectUrl();
 
     if (file.type.startsWith('image/')) {
       videoPreview.hidden = true;
       videoPreview.pause();
-      imagePreview.src = URL.createObjectURL(file);
+      videoPreview.removeAttribute('src');
+      previewObjectUrl = URL.createObjectURL(file);
+      imagePreview.src = previewObjectUrl;
       imagePreview.hidden = false;
     } else if (file.type.startsWith('video/')) {
       imagePreview.hidden = true;
-      videoPreview.src = URL.createObjectURL(file);
+      imagePreview.removeAttribute('src');
+      previewObjectUrl = URL.createObjectURL(file);
+      videoPreview.src = previewObjectUrl;
+      videoPreview.load();
       videoPreview.hidden = false;
     } else {
       selectedFile = null;
@@ -105,6 +121,12 @@ document.addEventListener('DOMContentLoaded', function() {
       showStatus('仅支持图片或视频文件。');
     }
     fileInput.accept = 'image/*,video/*';
+  }
+
+  function resetPreviewObjectUrl() {
+    if (!previewObjectUrl) return;
+    URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = '';
   }
 
   async function startRecognition() {

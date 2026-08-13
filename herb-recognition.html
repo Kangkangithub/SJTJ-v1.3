@@ -54,7 +54,7 @@
             <p>支持 JPG、PNG、MP4 等常见格式</p>
             <input type="file" id="fileInput" accept="image/*,video/*" hidden>
             <img id="imagePreview" alt="上传图片预览" hidden>
-            <video id="videoPreview" controls hidden></video>
+            <video id="videoPreview" controls preload="metadata" playsinline hidden></video>
           </div>
           <div class="upload-options">
             <button id="uploadButton" class="action-button" type="button"><i class="fas fa-upload"></i> 上传图片</button>
