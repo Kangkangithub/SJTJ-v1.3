@@ -266,7 +266,7 @@
     app.innerHTML = `
       <div class="page-shell">
         ${renderTopbar()}
-        <main>
+        <main class="${state.page === 'home' ? 'main-home' : 'main-compact'}">
           ${renderHero(hero)}
           ${renderPage()}
         </main>
@@ -308,6 +308,7 @@
   }
 
   function renderHero(hero) {
+    if (state.page !== 'home') return '';
     return `
       <section class="hero-wrap">
         <div class="hero">
@@ -611,7 +612,7 @@
             ${hasGraph ? `<div class="graph-legend">${graphView.legend.map((item) => `<span class="legend-item"><span class="legend-dot" style="--color:${item.color}"></span>${escapeHtml(item.label)}</span>`).join('')}</div>` : ''}
           </div>
           <aside>
-            <div class="card pad"><h3>图谱规模</h3><p>节点 ${graphView.totalNodes} 个，关系 ${graphView.totalLinks} 条。</p><div class="chip-row"><span class="chip">常用药视图</span></div></div>
+            <div class="card pad"><h3>图谱规模</h3><p>节点 ${graphView.totalNodes} 个，关系 ${graphView.totalLinks} 条。</p></div>
             ${renderRegionDistribution()}
           </aside>
         </div>
@@ -1373,13 +1374,20 @@
 
   function renderCompatibilityResult(data) {
     const conflicts = Array.isArray(data?.conflicts) ? data.conflicts : [];
-    const summary = data?.summary || (conflicts.length ? '检测到配伍冲突，请谨慎使用' : '未检测到明确配伍冲突');
-    let html = `<div class="tool-message ${conflicts.length ? 'warning' : 'success'}">${escapeHtml(summary)}</div>`;
+    const unknownHerbs = Array.isArray(data?.unknownHerbs) ? data.unknownHerbs : [];
+    const hasWarning = conflicts.length > 0 || unknownHerbs.length > 0 || data?.safe === false;
+    const summary = data?.summary || (hasWarning ? '检测结果存在不确定性，请谨慎使用' : '未检测到明确配伍冲突');
+    let html = `<div class="tool-message ${hasWarning ? 'warning' : 'success'}">${escapeHtml(summary)}</div>`;
+    if (unknownHerbs.length) {
+      html += `<ul class="tool-result-list"><li><strong>未收录药材</strong><p>${escapeHtml(unknownHerbs.join('、'))}</p><p class="tool-muted">这些名称未在药材库或配伍规则中匹配到，不能据此判断可以配合使用。</p></li></ul>`;
+    }
     if (conflicts.length) {
       html += `<ul class="tool-result-list">${conflicts.map((item) => {
         const names = [item.herb_a, item.herb_b].filter(Boolean).join(' / ');
-        const desc = [item.relation, item.description].filter(Boolean).join('：');
-        return `<li><strong>${escapeHtml(names)}</strong>${desc ? `<p>${escapeHtml(desc)}</p>` : ''}${item.source ? `<p class="tool-muted">${escapeHtml(item.source)}</p>` : ''}</li>`;
+        const relation = item.relation || '配伍冲突';
+        const category = item.category || '明确配伍规则';
+        const evidence = item.description || item.source || '命中项目内置配伍禁忌规则库。';
+        return `<li><strong>${escapeHtml(names)}</strong><p>冲突类型：${escapeHtml(relation)}</p><p>规则类别：${escapeHtml(category)}</p><p class="tool-muted">依据：${escapeHtml(evidence)}</p></li>`;
       }).join('')}</ul>`;
     }
     return html;

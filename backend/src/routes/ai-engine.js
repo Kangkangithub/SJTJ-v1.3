@@ -26,10 +26,13 @@ const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 // 加载配伍规则
 // =============================================
 let compatibilityRules = [];
+let compatibilityAliases = {};
 try {
   const rulesPath = path.join(__dirname, "../../data/compatibility_rules.json");
   const raw = fs.readFileSync(rulesPath, "utf-8");
-  compatibilityRules = JSON.parse(raw).rules || [];
+  const parsedRules = JSON.parse(raw);
+  compatibilityRules = parsedRules.rules || [];
+  compatibilityAliases = parsedRules.aliases || {};
   console.log("[AI-Engine] 加载配伍规则:", compatibilityRules.length, "条");
 } catch (e) {
   console.warn("[AI-Engine] 配伍规则加载失败:", e.message);
@@ -38,6 +41,55 @@ try {
 // =============================================
 // 辅助：调用 DeepSeek API（非流式）
 // =============================================
+function normalizeInputHerbs(herbs) {
+  return [...new Set((Array.isArray(herbs) ? herbs : [])
+    .map(h => String(h || "").trim())
+    .filter(Boolean))];
+}
+
+function splitAliasValue(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(v => String(v || "").trim()).filter(Boolean);
+  return String(value).split(/[、,，;；\s]+/).map(v => v.trim()).filter(Boolean);
+}
+
+function collectRuleKnownHerbs() {
+  const known = new Set();
+  for (const rule of compatibilityRules) {
+    if (rule.herb_a) known.add(rule.herb_a);
+    if (rule.herb_b) known.add(rule.herb_b);
+  }
+  Object.entries(compatibilityAliases || {}).forEach(([name, aliases]) => {
+    known.add(name);
+    splitAliasValue(aliases).forEach(alias => known.add(alias));
+  });
+  return known;
+}
+
+async function findKnownHerbInputs(inputHerbs) {
+  const known = collectRuleKnownHerbs();
+  let session;
+  try {
+    session = neo4jManager.getSession();
+    const result = await session.run(
+      "MATCH (h:Herb) " +
+      "WHERE h.name IN $herbs OR h.pinyin IN $herbs OR h.alias IN $herbs " +
+      "RETURN h.name AS name, h.pinyin AS pinyin, h.alias AS alias, h.aliases AS aliases",
+      { herbs: inputHerbs }
+    );
+    for (const record of result.records) {
+      [record.get("name"), record.get("pinyin"), ...splitAliasValue(record.get("alias")), ...splitAliasValue(record.get("aliases"))]
+        .filter(Boolean)
+        .forEach(value => known.add(String(value).trim()));
+    }
+  } catch (error) {
+    console.warn("[AI-Engine] 药材存在性检测失败:", error.message);
+  } finally {
+    if (session) await session.close();
+  }
+  return inputHerbs.filter(name => known.has(name));
+}
+
 async function callDeepSeek(messages, temperature = 0.3, maxTokens = 2000) {
   if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY === "YOUR_DEEPSEEK_API_KEY_HERE") {
     return null;
@@ -108,6 +160,10 @@ router.post("/rag", async (req, res) => {
         sources: result.sources || [],
         formulas: result.formulas || [],
         cypher: result.cypher || null,
+        executedCyphers: result.executedCyphers || [],
+        pipelineSteps: result.pipelineSteps || [],
+        keywords: result.keywords || [],
+        searchStats: result.searchStats || null,
         fromCache: result.fromCache || false
       }
     });
@@ -265,17 +321,22 @@ router.post("/compatibility", async (req, res) => {
   try {
     const { herbs } = req.body;
 
-    if (!herbs || !Array.isArray(herbs) || herbs.length < 2) {
+    const inputHerbs = normalizeInputHerbs(herbs);
+
+    if (inputHerbs.length < 2) {
       return res.status(400).json({ success: false, message: "请提供至少2味药材名称" });
     }
 
     const conflicts = [];
+    const knownHerbs = await findKnownHerbInputs(inputHerbs);
+    const knownSet = new Set(knownHerbs);
+    const unknownHerbs = inputHerbs.filter(name => !knownSet.has(name));
 
     // 步骤1：硬编码规则匹配（十八反十九畏）
-    for (let i = 0; i < herbs.length; i++) {
-      for (let j = i + 1; j < herbs.length; j++) {
-        const a = herbs[i].trim();
-        const b = herbs[j].trim();
+    for (let i = 0; i < inputHerbs.length; i++) {
+      for (let j = i + 1; j < inputHerbs.length; j++) {
+        const a = inputHerbs[i];
+        const b = inputHerbs[j];
 
         // 精确匹配
         const directMatch = compatibilityRules.find(r =>
@@ -295,14 +356,9 @@ router.post("/compatibility", async (req, res) => {
         }
 
         // 别名匹配（如 "乌头" 也匹配 "川乌"、"草乌"）
-        const rulesData = JSON.parse(fs.readFileSync(
-          path.join(__dirname, "../../data/compatibility_rules.json"), "utf-8"
-        ));
-        const aliases = rulesData.aliases || {};
-
         for (const rule of compatibilityRules) {
-          const herbAAliases = aliases[rule.herb_a] || [rule.herb_a];
-          const herbBAliases = aliases[rule.herb_b] || [rule.herb_b];
+          const herbAAliases = splitAliasValue(compatibilityAliases[rule.herb_a] || [rule.herb_a]);
+          const herbBAliases = splitAliasValue(compatibilityAliases[rule.herb_b] || [rule.herb_b]);
 
           const aMatchesHerbA = [rule.herb_a, ...herbAAliases].includes(a);
           const bMatchesHerbB = [rule.herb_b, ...herbBAliases].includes(b);
@@ -333,7 +389,7 @@ router.post("/compatibility", async (req, res) => {
           "WHERE h1.name IN $herbs AND h2.name IN $herbs " +
           "RETURN h1.name AS herbA, h2.name AS herbB, r.type AS conflictType, " +
           "r.description AS conflictDesc",
-          { herbs: herbs.map(h => h.trim()) }
+          { herbs: inputHerbs }
         );
 
         for (const record of cypherResult.records) {
@@ -358,50 +414,27 @@ router.post("/compatibility", async (req, res) => {
       console.warn("[AI-Engine] Cypher 配伍检测失败:", cypherError.message);
     }
 
-    // 步骤3：2跳间接冲突检测
-    try {
-      const session = neo4jManager.getSession();
-      try {
-        const indirectResult = await session.run(
-          "MATCH (h1:Herb)-[:COMPATIBILITY]->(h2:Herb)-[:CONTAINS_HERB]-(f:Formula)-[:CONTAINS_HERB]->(h3:Herb) " +
-          "WHERE h1.name IN $herbs AND h3.name IN $herbs AND h1.name <> h3.name " +
-          "AND NOT (h1)-[:COMPATIBILITY]->(h3) " +
-          "RETURN DISTINCT h1.name AS herbA, h2.name AS middleHerb, h3.name AS herbB, f.name AS formula " +
-          "LIMIT 10",
-          { herbs: herbs.map(h => h.trim()) }
-        );
-
-        for (const record of indirectResult.records) {
-          const herbA = record.get("herbA");
-          const middleHerb = record.get("middleHerb");
-          const herbB = record.get("herbB");
-          const formula = record.get("formula");
-          conflicts.push({
-            herb_a: herbA,
-            herb_b: herbB,
-            relation: "间接冲突",
-            category: "图推理",
-            description: `${herbA} 与 ${middleHerb} 存在配伍禁忌，而两者共同出现在方剂“${formula}”中`,
-            detection: "2-hop-graph-reasoning"
-          });
-        }
-      } finally {
-        await session.close();
-      }
-    } catch (e) {
-      console.warn("[AI-Engine] 间接冲突检测失败:", e.message);
-    }
+    const hasUnknownHerbs = unknownHerbs.length > 0;
+    const hasConflicts = conflicts.length > 0;
+    const summary = hasUnknownHerbs && hasConflicts
+      ? "检测到 " + conflicts.length + " 处配伍冲突，且有 " + unknownHerbs.length + " 味药材未收录，请谨慎使用"
+      : (hasUnknownHerbs
+        ? "有 " + unknownHerbs.length + " 味药材未收录，无法判断完整配伍安全性"
+        : (hasConflicts
+          ? "检测到 " + conflicts.length + " 处配伍冲突，请谨慎使用"
+          : "未检测到配伍禁忌，可以配合使用"));
 
     res.json({
       success: true,
       data: {
-        herbs,
+        herbs: inputHerbs,
+        knownHerbs,
+        unknownHerbs,
         conflicts,
-        safe: conflicts.length === 0,
+        unknownCount: unknownHerbs.length,
+        safe: !hasConflicts && !hasUnknownHerbs,
         conflictCount: conflicts.length,
-        summary: conflicts.length === 0
-          ? "未检测到配伍禁忌，可以配合使用"
-          : "检测到 " + conflicts.length + " 处配伍冲突，请谨慎使用"
+        summary
       }
     });
   } catch (error) {

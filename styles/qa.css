@@ -352,18 +352,18 @@
    RAG Cypher 查询展示块
    ============================================= */
 .rag-cypher-block {
-  background: rgba(0,0,0,0.35);
-  border: 1px solid rgba(124,58,237,0.5);
+  background: #fbfcf9;
+  border: 1px solid rgba(47,118,81,0.22);
   border-radius: 8px;
   margin: 10px 0;
   overflow: hidden;
 }
 .rag-cypher-header {
-  background: rgba(124,58,237,0.25);
+  background: rgba(47,118,81,0.12);
   padding: 6px 14px;
   font-size: 12px;
   font-weight: 600;
-  color: #a78bfa;
+  color: #20563b;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -374,11 +374,27 @@
   font-size: 13px;
   line-height: 1.6;
   overflow-x: auto;
+  background: #ffffff;
 }
 .rag-cypher-block pre code {
   background: transparent !important;
   padding: 0 !important;
-  color: #c4b5fd !important;
+  color: #16241d !important;
+  text-shadow: none !important;
+}
+.rag-cypher-empty {
+  margin: 10px 12px 12px;
+  padding: 10px 12px;
+  color: #20563b;
+  background: rgba(47,118,81,0.08);
+  border: 1px solid rgba(47,118,81,0.2);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.rag-cypher-empty i {
+  margin-right: 6px;
+  color: #2f7651;
 }
 
 /* =============================================
@@ -526,21 +542,30 @@
 .rag-pipeline-toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(39,174,96,0.06);
-  border: 1px solid rgba(39,174,96,0.2);
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(47,118,81,0.12);
+  border: 1px solid rgba(47,118,81,0.28);
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
-  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  color: #20563b;
   margin-bottom: 6px;
   transition: background 0.2s;
   user-select: none;
 }
-.rag-pipeline-toggle:hover { background: rgba(39,174,96,0.12); }
+.rag-pipeline-toggle:hover { background: rgba(47,118,81,0.18); }
 .rag-pipeline-toggle i { transition: transform 0.3s; }
 .rag-pipeline-toggle.open i { transform: rotate(90deg); }
+.rag-toggle-title {
+  font-weight: 800;
+}
+.rag-toggle-subtitle {
+  margin-left: auto;
+  color: #627069;
+  font-size: 12px;
+  font-weight: 500;
+}
 .rag-pipeline-detail {
   display: none;
   padding: 8px 0;
@@ -827,10 +852,20 @@
 .rag-pipeline-step.done .step-check {
   color: #27ae60;
 }
+.rag-pipeline-step.rag-step-fallback .step-check {
+  color: #c67517;
+}
+.rag-pipeline-step.rag-step-error .step-check {
+  color: #a83d30;
+}
+.rag-pipeline-step .step-text strong {
+  color: #20563b;
+}
 /* =============================================
    技术栈徽章 + 悬浮提示框
    ============================================= */
 .tech-stack-bar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -841,6 +876,8 @@
   border-radius: 8px;
   border: 1px solid rgba(39,174,96,0.2);
   font-size: 13px;
+  overflow: visible;
+  z-index: 10;
 }
 .tech-badge-item {
   position: relative;
@@ -855,10 +892,12 @@
   cursor: help;
   transition: transform 0.2s, box-shadow 0.2s;
   white-space: nowrap;
+  z-index: 11;
 }
 .tech-badge-item:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  z-index: 30;
 }
 .tech-arrow {
   color: rgba(255,255,255,0.35);
@@ -871,24 +910,24 @@
 /* 悬浮提示框 */
 .tech-tooltip {
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
-  width: 300px;
+  width: 260px;
   max-width: 90vw;
-  padding: 14px 16px;
+  padding: 10px 12px;
   background: #1e2230;
   border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 10px;
+  border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   font-size: 12px;
   font-weight: 400;
-  line-height: 1.8;
+  line-height: 1.55;
   color: rgba(255,255,255,0.85);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s, transform 0.25s;
-  z-index: 9999;
+  z-index: 31;
   word-wrap: break-word;
   white-space: normal;
 }
@@ -1290,6 +1329,8 @@
     background: rgba(47, 118, 81, 0.08);
     border: 1px solid rgba(47, 118, 81, 0.18);
     border-radius: var(--radius);
+    overflow: visible;
+    z-index: 10;
 }
 
 .tech-badge-item {
@@ -1355,12 +1396,27 @@
     color: var(--muted);
 }
 
-.rag-cypher-block,
 .rag-pipeline-toggle,
 .rag-pipeline-intro,
 .rag-pipeline-summary {
     background: rgba(47, 118, 81, 0.06);
     border-color: rgba(47, 118, 81, 0.18);
+}
+
+.rag-cypher-block {
+    background: #fbfcf9;
+    border-color: rgba(47, 118, 81, 0.28);
+}
+
+.rag-cypher-block pre {
+    background: #ffffff;
+    color: #16241d;
+}
+
+.rag-cypher-block pre code {
+    color: #16241d !important;
+    background: transparent !important;
+    text-shadow: none !important;
 }
 
 .rag-cypher-header,
@@ -1774,6 +1830,28 @@ button.rag-source-tag {
     .qa-page .user-message {
         width: 100%;
     }
+}
+
+/* 功能页首屏压缩：保留工具内容优先级 */
+.qa-page main {
+    padding-top: 0;
+}
+
+.qa-page-header {
+    margin-top: 14px;
+    margin-bottom: 12px;
+}
+
+.qa-title-row h1 {
+    font-size: 26px;
+}
+
+.qa-page .tech-stack-bar {
+    margin-bottom: 10px;
+}
+
+.qa-page .qa-container {
+    margin-top: 0;
 }
 
 

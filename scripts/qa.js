@@ -124,14 +124,54 @@ function formatFormulas(formulas) {
   return html;
 }
 
+function buildRagModeBadge(mode) {
+  if (mode === "cypher-chain") {
+    return '<span class="rag-badge rag-badge-chain"><i class="fas fa-magic"></i> GraphCypherQAChain</span>'; 
+  }
+  if (mode === "manual-enhanced") {
+    return '<span class="rag-badge rag-badge-manual"><i class="fas fa-search-plus"></i> 增强图检索 + LLM知识增强</span>'; 
+  }
+  return '<span class="rag-badge rag-badge-fallback"><i class="fas fa-brain"></i> GraphRAG/LLM 回答</span>'; 
+}
+
+function buildGraphRagPipelineHtml(r) {
+  var steps = Array.isArray(r.pipelineSteps) ? r.pipelineSteps : [];
+  var html = '<div class="rag-pipeline-toggle" onclick="togglePL(this)">';
+  html += '<i class="fas fa-chevron-right"></i><span class="rag-toggle-title">点击展开：后端真实检索过程</span><span class="rag-toggle-subtitle">来自 /api/ai-engine/rag 的 pipelineSteps、Cypher 与 mode</span></div>'; 
+  html += '<div class="rag-pipeline-detail" style="display:none;">';
+  html += '<div class="rag-pipeline-intro"><i class="fas fa-info-circle"></i> 以下内容由后端返回，反映本次请求实际执行或回退的检索步骤。</div>'; 
+  html += '<div class="rag-pipeline-log">';
+  if (steps.length) {
+    steps.forEach(function(step, index) {
+      var status = step && step.status ? String(step.status) : "done";
+      var check = status === "error" ? "!" : (status === "fallback" ? "↪" : "✓");
+      var name = step && step.name ? String(step.name) : "后端步骤";
+      var detail = step && step.detail ? String(step.detail) : "后端未返回详细说明";
+      html += '<div class="rag-pipeline-step done rag-step-' + escA(status) + '"><span class="step-num">' + (index + 1) + '</span><span class="step-text"><strong>' + esc(name) + '：</strong>' + esc(detail) + '</span><span class="step-check">' + esc(check) + '</span></div>'; 
+    });
+  } else {
+    html += '<div class="rag-pipeline-step done rag-step-fallback"><span class="step-num">1</span><span class="step-text"><strong>后端步骤：</strong>本次响应未返回 pipelineSteps，无法展示真实检索过程。</span><span class="step-check">↪</span></div>'; 
+  }
+  html += '</div>'; 
+  html += '<div class="rag-cypher-block"><div class="rag-cypher-header"><i class="fas fa-code"></i> 实际执行的 Cypher 图查询语句</div>'; 
+  if (r.cypher) {
+    html += '<pre><code>' + esc(r.cypher) + '</code></pre>'; 
+  } else {
+    html += '<div class="rag-cypher-empty"><i class="fas fa-circle-info"></i> 本次未返回 Cypher，可能使用了直接回答或后端回退模式。</div>'; 
+  }
+  html += '</div>'; 
+  html += '<div class="rag-meta-bar">' + buildRagModeBadge(r.mode) + '</div>'; 
+  html += '<div class="rag-pipeline-summary"><i class="fas fa-check-circle"></i> GraphRAG 管线执行完成：图谱检索、上下文增强与模型生成已完成。</div>'; 
+  html += '</div>'; 
+  return html;
+}
+
 function buildAnswerHtml(result) {
   var r = result || {};
   var html = '<div class="rag-answer-body">' + renderMarkdown(r.answer || "") + '</div>';
   html += formatSources(r.sources || []);
   html += formatFormulas(r.formulas || []);
-  if (r.cypher) {
-    html += '<details class="rag-technical-detail"><summary>查看图谱检索语句</summary><pre><code>' + esc(r.cypher) + '</code></pre></details>';
-  }
+  html += buildGraphRagPipelineHtml(r);
   return html;
 }
 
@@ -461,7 +501,7 @@ async function askRagStream(question, aiDiv) {
   var resp = await fetch(API_BASE + "/api/ai-engine/rag-stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: question }),
+    body: JSON.stringify({ question: question, useChain: true }),
     signal: _abort.signal
   });
   if (!resp.ok || !resp.body) throw new Error("STREAM_FAILED");
@@ -528,6 +568,24 @@ async function doSend() {
   var aiDiv = appendMsg("ai", '<div class="rag-loading"><div class="rag-pipeline-anim"><span class="rag-dot"></span><span class="rag-dot"></span><span class="rag-dot"></span></div><div class="rag-status-text">正在生成回答...</div></div>');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 生成中...';
+  var loadingSteps = [
+    "关键词提取：分析用户问题...",
+    "Neo4j 图检索：查询图谱相关节点...",
+    "关联知识扩展：补充性味、归经、功效、配伍...",
+    "LLM 知识增强：融合图谱上下文...",
+    "上下文构建：整理证据与候选知识...",
+    "DeepSeek-V3 生成：输出最终答案..."
+  ];
+  var loadingIndex = 0;
+  var loadingTimer = null;
+  var loadingText = aiDiv ? aiDiv.querySelector(".rag-status-text") : null;
+  if (loadingText) {
+    loadingText.textContent = loadingSteps[0];
+    loadingTimer = setInterval(function() {
+      loadingIndex = (loadingIndex + 1) % loadingSteps.length;
+      loadingText.textContent = loadingSteps[loadingIndex];
+    }, 1200);
+  }
 
   try {
     _abort = new AbortController();
@@ -574,6 +632,7 @@ async function doSend() {
       toast(streamToggle && streamToggle.checked ? "流式回答失败，请稍后重试" : "回答生成失败，请稍后重试", "error");
     }
   } finally {
+    if (loadingTimer) clearInterval(loadingTimer);
     _busy = false;
     _allowPendingNavigation = false;
     btn.disabled = false;
@@ -617,15 +676,20 @@ async function handleCompatibility(e) {
       body: JSON.stringify({ herbs: herbs })
     });
     var r = data.data || {};
-    var html = '<div class="qa-tool-message ' + (r.safe ? 'success' : 'warning') + '">' + esc(r.summary || (r.safe ? "未检测到明确配伍冲突" : "检测到配伍冲突")) + '</div>';
+    var unknownHerbs = Array.isArray(r.unknownHerbs) ? r.unknownHerbs : [];
+    var hasWarning = !r.safe || unknownHerbs.length > 0 || (r.conflicts && r.conflicts.length);
+    var html = '<div class="qa-tool-message ' + (hasWarning ? 'warning' : 'success') + '">' + esc(r.summary || (hasWarning ? "检测结果存在不确定性，请谨慎使用" : "未检测到明确配伍冲突")) + '</div>';
+    if (unknownHerbs.length) {
+      html += '<ul class="qa-tool-list"><li><strong>未收录药材</strong><div>' + esc(unknownHerbs.join('、')) + '</div><div class="qa-tool-muted">这些名称未在药材库或配伍规则中匹配到，不能据此判断可以配合使用。</div></li></ul>';
+    }
     if (r.conflicts && r.conflicts.length) {
       html += '<ul class="qa-tool-list">';
       r.conflicts.forEach(function(c){
-        html += '<li><strong>' + esc(c.herb_a || "") + ' / ' + esc(c.herb_b || "") + '</strong>';
-        if (c.relation) html += '：' + esc(c.relation);
-        if (c.description) html += '<div>' + esc(c.description) + '</div>';
-        if (c.source) html += '<div class="qa-tool-muted">' + esc(c.source) + '</div>';
-        html += '</li>';
+        html += '<li><strong>' + esc(c.herb_a || "") + ' / ' + esc(c.herb_b || "") + '</strong>'; 
+        html += '<div>冲突类型：' + esc(c.relation || "配伍冲突") + '</div>'; 
+        html += '<div>规则类别：' + esc(c.category || "明确配伍规则") + '</div>'; 
+        html += '<div class="qa-tool-muted">依据：' + esc(c.description || c.source || "命中项目内置配伍禁忌规则库。") + '</div>'; 
+        html += '</li>'; 
       });
       html += '</ul>';
     }
@@ -678,10 +742,18 @@ function togglePL(el) {
   var ic = el.querySelector("i");
   if (d.style.display === "block") {
     d.style.display = "none";
+    d.classList.remove("open");
+    el.classList.remove("open");
+    var titleClosed = el.querySelector(".rag-toggle-title");
+    if (titleClosed) titleClosed.textContent = "点击展开：后端真实检索过程";
     if (ic) ic.className = "fas fa-chevron-right";
   } else {
     d.style.display = "block";
-    if (ic) ic.className = "fas fa-chevron-down";
+    d.classList.add("open");
+    el.classList.add("open");
+    var titleOpen = el.querySelector(".rag-toggle-title");
+    if (titleOpen) titleOpen.textContent = "点击收起：后端真实检索过程";
+    if (ic) ic.className = "fas fa-chevron-right";
   }
 }
 

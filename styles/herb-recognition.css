@@ -3,6 +3,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
+  align-items: stretch;
 }
 
 .upload-section,
@@ -10,15 +11,19 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+  max-width: 100%;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .upload-area {
   position: relative;
+  flex: 1 1 auto;
   display: grid;
   place-items: center;
   gap: 10px;
-  min-height: 300px;
+  min-height: 260px;
   padding: 24px;
   text-align: center;
   cursor: pointer;
@@ -61,6 +66,7 @@
 .result-section {
   position: relative;
   min-height: 420px;
+  overflow: hidden;
 }
 
 .loading-indicator {
@@ -96,24 +102,35 @@
 .result-content {
   display: grid;
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .herb-info {
   display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
   background: var(--surface-soft);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--primary);
   border-radius: var(--radius);
 }
 
 .result-herb-image {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  max-width: 100%;
+  height: clamp(180px, 32vw, 360px);
   display: grid;
   place-items: center;
   margin-bottom: 14px;
   overflow: hidden;
+  box-sizing: border-box;
   color: var(--muted);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -125,7 +142,7 @@
 .result-herb-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .result-herb-image.no-image span {
@@ -141,6 +158,7 @@
   color: var(--primary-dark);
   font-size: 25px;
   font-weight: 850;
+  overflow-wrap: anywhere;
 }
 
 .similarity-badge {
@@ -161,6 +179,7 @@
 }
 
 .detail-group {
+  min-width: 0;
   padding: 12px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -177,11 +196,13 @@
 .detail-value {
   color: var(--text);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .herb-result-description {
   margin-top: 14px;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .confidence-section {
@@ -203,18 +224,45 @@
 
 .related-herbs {
   display: block;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.related-herbs h3 {
+  margin: 0 0 6px;
+}
+
+.related-note {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .related-list {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
   gap: 12px;
-  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
   padding-bottom: 8px;
 }
 
 .related-item {
-  min-width: 150px;
+  min-width: 0;
   padding: 12px;
+  overflow: hidden;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -249,11 +297,13 @@
 .related-item-name {
   margin-top: 8px;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .related-item-meta {
   color: var(--muted);
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .video-results {
@@ -303,10 +353,15 @@
 @media (max-width: 980px) {
   .herb-recognition-container {
     grid-template-columns: 1fr;
+    align-items: start;
   }
 }
 
 @media (max-width: 640px) {
+  .upload-area {
+    min-height: 220px;
+  }
+
   .upload-options,
   .herb-result-details {
     grid-template-columns: 1fr;
@@ -319,4 +374,24 @@
   .action-button {
     width: 100%;
   }
+}
+
+/* 功能页首屏压缩：上传和识别区优先展示 */
+#mainContent {
+  padding-top: 0;
+}
+
+#mainContent .intro {
+  margin: 14px 0 14px;
+  padding: 18px 20px;
+}
+
+#mainContent .intro h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+#mainContent .intro p {
+  margin: 6px 0 0;
 }

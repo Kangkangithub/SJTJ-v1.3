@@ -51,6 +51,49 @@
             </div>
             </section>
 
+            <div class="tech-stack-bar" aria-label="GraphRAG 技术栈">
+                <span class="tech-badge-item" style="background:#27ae60;">
+                    <i class="fas fa-database"></i> Neo4j AuraDB
+                    <span class="tech-tooltip">
+                        <strong>Neo4j AuraDB</strong><br>
+                        全托管云图数据库<br><br>
+                        中医药知识以节点+关系存储，支持复杂图查询。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#2563eb;">
+                    <i class="fas fa-link"></i> LangChain.js
+                    <span class="tech-tooltip">
+                        <strong>LangChain.js</strong><br>
+                        Node.js 端 GraphRAG 编排框架。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#7c3aed;">
+                    <i class="fas fa-code"></i> GraphCypherQAChain
+                    <span class="tech-tooltip">
+                        <strong>GraphCypherQAChain</strong><br>
+                        自然语言 → Cypher 图查询。当前接口会优先使用可用图检索能力，并在不可用时回退增强检索。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#f59e0b;">
+                    <i class="fas fa-wand-magic-sparkles"></i> LLM知识增强
+                    <span class="tech-tooltip">
+                        <strong>LLM知识增强</strong><br>
+                        基于图谱上下文补全药材功效、配伍、归经等知识。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#0891b2;">
+                    <i class="fas fa-robot"></i> DeepSeek-V3
+                    <span class="tech-tooltip">
+                        <strong>DeepSeek-V3</strong><br>
+                        基于图谱上下文生成最终回答。
+                    </span>
+                </span>
+            </div>
+
             <div class="qa-container">
                 <div class="qa-controls" aria-label="AI 问答工具栏">
                     <div class="qa-history-control">

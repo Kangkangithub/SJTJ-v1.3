@@ -387,6 +387,23 @@ img {
   padding-bottom: 34px;
 }
 
+.main-compact .section {
+  padding-top: 22px;
+}
+
+.main-compact .section-header {
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.main-compact .section-title {
+  font-size: 24px;
+}
+
+.main-compact .section-note {
+  max-width: 760px;
+}
+
 .section-header {
   display: flex;
   align-items: end;

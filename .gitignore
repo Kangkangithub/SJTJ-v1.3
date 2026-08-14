@@ -5,6 +5,7 @@ yarn-error.log*
 
 # === 环境变量（含 API 密钥） ===
 .env
+backend/.env
 .env.local
 .env.*.local
 

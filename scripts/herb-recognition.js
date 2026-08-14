@@ -44,83 +44,92 @@ document.addEventListener('DOMContentLoaded', function() {
   let recognizedHerb = null;
   let previewObjectUrl = '';
 
-  uploadArea.addEventListener('click', function(event) {
+  if (fileInput) fileInput.accept = 'image/*';
+
+  uploadArea?.addEventListener('click', function(event) {
     if (event.target.closest('img, video, button, input')) return;
-    fileInput.click();
+    fileInput?.click();
   });
-  imagePreview.addEventListener('click', event => event.stopPropagation());
-  videoPreview.addEventListener('click', event => event.stopPropagation());
-  videoPreview.addEventListener('error', function() {
-    if (!selectedFile || !selectedFile.type.startsWith('video/')) return;
-    showStatus('视频无法预览，请确认文件为浏览器支持的 MP4、WebM 或 OGG 格式。');
-  });
-  uploadArea.addEventListener('dragover', function(event) {
+  imagePreview?.addEventListener('click', event => event.stopPropagation());
+  videoPreview?.addEventListener('click', event => event.stopPropagation());
+  uploadArea?.addEventListener('dragover', function(event) {
     event.preventDefault();
     this.classList.add('upload-area-active');
   });
-  uploadArea.addEventListener('dragleave', function() {
+  uploadArea?.addEventListener('dragleave', function() {
     this.classList.remove('upload-area-active');
   });
-  uploadArea.addEventListener('drop', function(event) {
+  uploadArea?.addEventListener('drop', function(event) {
     event.preventDefault();
     this.classList.remove('upload-area-active');
     const file = event.dataTransfer.files[0];
     if (file) handleFile(file);
   });
-  fileInput.addEventListener('change', function() {
+  fileInput?.addEventListener('change', function() {
     if (this.files && this.files[0]) handleFile(this.files[0]);
   });
-  uploadButton.addEventListener('click', function() {
-    fileInput.accept = 'image/*,video/*';
-    fileInput.click();
+  uploadButton?.addEventListener('click', function() {
+    if (fileInput) fileInput.accept = 'image/*';
+    fileInput?.click();
   });
-  videoButton.addEventListener('click', function() {
-    fileInput.accept = 'video/*';
-    fileInput.click();
+  videoButton?.addEventListener('click', function() {
+    showStatus('基础版仅支持图片识别，视频识别暂未开放。');
   });
-  cameraButton.addEventListener('click', openCameraModal);
-  recognizeButton.addEventListener('click', startRecognition);
-  closeCameraModal.addEventListener('click', closeCameraAndModal);
-  captureCameraButton.addEventListener('click', captureImage);
-  confirmCaptureButton.addEventListener('click', useCapturedImage);
-  realtimeRecognitionButton.addEventListener('click', function() {
-    showStatus('实时识别暂不可用，请拍照后上传识别。');
+  cameraButton?.addEventListener('click', openCameraModal);
+  recognizeButton?.addEventListener('click', startRecognition);
+  closeCameraModal?.addEventListener('click', closeCameraAndModal);
+  captureCameraButton?.addEventListener('click', captureImage);
+  confirmCaptureButton?.addEventListener('click', useCapturedImage);
+  realtimeRecognitionButton?.addEventListener('click', function() {
+    showStatus('基础版仅支持图片识别，实时识别暂未开放。');
   });
-  stopRealtimeRecognitionButton.addEventListener('click', function() {
-    realtimeResultsOverlay.hidden = true;
+  stopRealtimeRecognitionButton?.addEventListener('click', function() {
+    if (realtimeResultsOverlay) realtimeResultsOverlay.hidden = true;
   });
-  viewKnowledgeButton.addEventListener('click', function() {
+  viewKnowledgeButton?.addEventListener('click', function() {
     if (recognizedHerb?.name) {
       window.location.href = `knowledge-graph.html?herb=${encodeURIComponent(recognizedHerb.name)}`;
     }
   });
 
   function handleFile(file) {
-    selectedFile = file;
-    recognizeButton.disabled = false;
     hideResults();
     resetPreviewObjectUrl();
 
-    if (file.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/')) {
+      selectedFile = null;
+      if (recognizeButton) recognizeButton.disabled = true;
+      clearPreview();
+      showStatus('基础版仅支持图片文件。');
+      return;
+    }
+
+    selectedFile = file;
+    recognizedHerb = null;
+    if (recognizeButton) recognizeButton.disabled = false;
+
+    if (videoPreview) {
       videoPreview.hidden = true;
-      videoPreview.pause();
+      videoPreview.pause?.();
       videoPreview.removeAttribute('src');
-      previewObjectUrl = URL.createObjectURL(file);
+    }
+    previewObjectUrl = URL.createObjectURL(file);
+    if (imagePreview) {
       imagePreview.src = previewObjectUrl;
       imagePreview.hidden = false;
-    } else if (file.type.startsWith('video/')) {
+    }
+    if (fileInput) fileInput.accept = 'image/*';
+  }
+
+  function clearPreview() {
+    if (imagePreview) {
       imagePreview.hidden = true;
       imagePreview.removeAttribute('src');
-      previewObjectUrl = URL.createObjectURL(file);
-      videoPreview.src = previewObjectUrl;
-      videoPreview.load();
-      videoPreview.hidden = false;
-    } else {
-      selectedFile = null;
-      recognizeButton.disabled = true;
-      showStatus('仅支持图片或视频文件。');
     }
-    fileInput.accept = 'image/*,video/*';
+    if (videoPreview) {
+      videoPreview.hidden = true;
+      videoPreview.removeAttribute('src');
+    }
   }
 
   function resetPreviewObjectUrl() {
@@ -131,8 +140,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function startRecognition() {
     if (!selectedFile) return;
-    loadingIndicator.style.display = 'flex';
-    processingText.textContent = '正在识别，请稍候...';
+    if (!selectedFile.type.startsWith('image/')) {
+      showStatus('基础版仅支持图片文件。');
+      return;
+    }
+
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    if (processingText) processingText.textContent = '正在识别，请稍候...';
     hideResults();
 
     try {
@@ -144,36 +158,61 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       const json = await response.json().catch(() => ({}));
       if (!response.ok || json.success === false) {
-        throw new Error(json.message || '识别失败');
+        throw new Error(messageForRecognitionError(json));
       }
-      displayRecognitionResult(json.data.herb, json.data.confidence);
+      displayRecognitionResult(json.data?.herb, json.data?.confidence, json.data?.source);
     } catch (error) {
-      showStatus(error.message || '识别失败');
+      showStatus(error.message || '未能识别出明确药材，请更换清晰图片后重试');
     } finally {
-      loadingIndicator.style.display = 'none';
+      if (loadingIndicator) loadingIndicator.style.display = 'none';
     }
   }
 
-  function displayRecognitionResult(herb, confidence) {
-    recognizedHerb = herb;
-    herbNameText.textContent = herb.name || '未知药材';
-    confidenceValue.textContent = Number.isFinite(Number(confidence)) ? `${Math.round(Number(confidence) * 100) / 100}%` : '已识别';
-    herbTypeValue.textContent = herb.category_name || '暂无分类';
-    herbRegionValue.textContent = herb.region_name || '暂无产地';
-    herbPropertyValue.textContent = (herb.properties || []).join('、') || '暂无性味';
-    herbMeridianValue.textContent = (herb.meridians || []).join('、') || '暂无归经';
-    herbDescriptionValue.textContent = herb.description || herb.efficacies?.join('、') || '暂无详情';
-    confidenceFill.style.width = Number.isFinite(Number(confidence)) ? `${Math.min(100, Math.max(0, Number(confidence)))}%` : '100%';
-    renderResultHerbImage(herb);
+  function displayRecognitionResult(herb, confidence, source) {
+    if (!herb || !herb.name) {
+      showStatus('未能识别出明确药材，请更换清晰图片后重试');
+      return;
+    }
 
+    recognizedHerb = herb;
+    const confidenceNumber = Number(confidence || 0);
+    const confidencePercent = confidenceNumber > 0 ? Math.round(Math.min(1, Math.max(0, confidenceNumber)) * 100) : 0;
+
+    if (herbNameText) herbNameText.textContent = herb.name;
+    if (confidenceValue) confidenceValue.textContent = confidencePercent > 0 ? `${confidencePercent}%` : '已识别';
+    if (herbTypeValue) herbTypeValue.textContent = herb.category_name || '暂无分类';
+    if (herbRegionValue) herbRegionValue.textContent = herb.region_name || '暂无产地';
+    if (herbPropertyValue) herbPropertyValue.textContent = formatNameList(herb.properties) || '暂无性味';
+    if (herbMeridianValue) herbMeridianValue.textContent = formatNameList(herb.meridians) || '暂无归经';
+    if (herbDescriptionValue) herbDescriptionValue.textContent = herb.description || formatNameList(herb.efficacies) || '暂无详情';
+    if (confidenceFill) confidenceFill.style.width = confidencePercent > 0 ? `${confidencePercent}%` : '100%';
+
+    renderResultHerbImage(herb);
     displayRelatedHerbs(herb.related || []);
-    noResult.style.display = 'none';
-    herbInfo.hidden = false;
-    relatedHerbs.hidden = false;
-    viewKnowledgeButton.hidden = false;
+
+    if (noResult) noResult.style.display = 'none';
+    if (herbInfo) herbInfo.hidden = false;
+    if (relatedHerbs) relatedHerbs.hidden = false;
+    if (viewKnowledgeButton) viewKnowledgeButton.hidden = false;
+  }
+
+  function formatNameList(items) {
+    return (Array.isArray(items) ? items : [])
+      .map(item => typeof item === 'string' ? item : item?.name)
+      .filter(Boolean)
+      .join('、');
+  }
+
+  function messageForRecognitionError(json) {
+    if (json?.code === 'VISION_SERVICE_NOT_CONFIGURED') return '药材识别服务尚未配置，请联系管理员配置后再试';
+    if (json?.code === 'HERB_NOT_FOUND') return json.message || '识别结果暂未匹配到知识图谱药材';
+    if (json?.code === 'HERB_RECOGNITION_FAILED') return json.message || '未能识别出明确药材，请更换清晰图片后重试';
+    if (json?.code === 'HERB_RECOGNITION_TIMEOUT') return json.message || '药材识别请求超时，请稍后重试';
+    return json?.message || '未能识别出明确药材，请更换清晰图片后重试';
   }
 
   function displayRelatedHerbs(items) {
+    if (!relatedList) return;
     relatedList.innerHTML = '';
     if (!items.length) {
       relatedList.innerHTML = '<div class="empty-state">暂无相关药材。</div>';
@@ -198,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     herbResultImage.className = imageUrl ? 'result-herb-image has-image' : 'result-herb-image no-image';
     herbResultImage.innerHTML = imageUrl
       ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(herb.name)}药材图片" loading="lazy">`
-      : '<span>暂无药材图片</span>'; 
+      : '<span>暂无药材图片</span>';
     hydrateResultHerbImage(herb);
   }
 
@@ -211,9 +250,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const imageUrl = firstImageUrl(json.data?.images || json.images || []);
       if (!imageUrl) return;
       herbResultImage.className = 'result-herb-image has-image';
-      herbResultImage.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(herb.name)}药材图片" loading="lazy">`; 
+      herbResultImage.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(herb.name)}药材图片" loading="lazy">`;
     } catch (error) {
-      // Keep the explicit no-image state when the backend has no image or the request fails.
+      // 保持明确的无图状态即可。
     }
   }
 
@@ -222,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (imageUrl) {
       return `<div class="related-thumb has-image"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.name)}药材图片" loading="lazy"></div>`;
     }
-    return '<div class="related-thumb no-image"><span>暂无药材图片</span></div>'; 
+    return '<div class="related-thumb no-image"><span>暂无药材图片</span></div>';
   }
 
   async function hydrateRelatedHerbImage(container, item) {
@@ -236,10 +275,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const thumb = container.querySelector('.related-thumb');
       if (thumb) {
         thumb.className = 'related-thumb has-image';
-        thumb.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.name)}药材图片" loading="lazy">`; 
+        thumb.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.name)}药材图片" loading="lazy">`;
       }
     } catch (error) {
-      // Keep the explicit no-image state when the backend has no image or the request fails.
+      // 保持明确的无图状态即可。
     }
   }
 
@@ -266,28 +305,31 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function hideResults() {
-    noResult.style.display = 'block';
-    herbInfo.hidden = true;
-    relatedHerbs.hidden = true;
-    viewKnowledgeButton.hidden = true;
+    if (noResult) noResult.style.display = 'block';
+    if (herbInfo) herbInfo.hidden = true;
+    if (relatedHerbs) relatedHerbs.hidden = true;
+    if (viewKnowledgeButton) viewKnowledgeButton.hidden = true;
     if (videoResults) videoResults.hidden = true;
     if (videoResultList) videoResultList.innerHTML = '';
   }
 
   function showStatus(message) {
-    noResult.style.display = 'block';
-    noResult.innerHTML = `<i class="fas fa-circle-info"></i><p>${escapeHtml(message)}</p>`;
-    herbInfo.hidden = true;
-    relatedHerbs.hidden = true;
-    viewKnowledgeButton.hidden = true;
+    if (noResult) {
+      noResult.style.display = 'block';
+      noResult.innerHTML = `<i class="fas fa-circle-info"></i><p>${escapeHtml(message)}</p>`;
+    }
+    if (herbInfo) herbInfo.hidden = true;
+    if (relatedHerbs) relatedHerbs.hidden = true;
+    if (viewKnowledgeButton) viewKnowledgeButton.hidden = true;
   }
 
   function openCameraModal() {
+    if (!cameraModal) return;
     cameraModal.hidden = false;
     navigator.mediaDevices?.getUserMedia({ video: true })
       .then(stream => {
         mediaStream = stream;
-        cameraPreview.srcObject = stream;
+        if (cameraPreview) cameraPreview.srcObject = stream;
       })
       .catch(() => {
         showStatus('无法访问摄像头，请检查浏览器权限或改用文件上传。');
@@ -300,34 +342,37 @@ document.addEventListener('DOMContentLoaded', function() {
       mediaStream.getTracks().forEach(track => track.stop());
       mediaStream = null;
     }
-    cameraModal.hidden = true;
-    confirmCaptureButton.hidden = true;
-    captureCameraButton.hidden = false;
-    realtimeResultsOverlay.hidden = true;
+    if (cameraModal) cameraModal.hidden = true;
+    if (confirmCaptureButton) confirmCaptureButton.hidden = true;
+    if (captureCameraButton) captureCameraButton.hidden = false;
+    if (realtimeResultsOverlay) realtimeResultsOverlay.hidden = true;
   }
 
   function captureImage() {
+    if (!captureCanvas || !cameraPreview) return;
     const context = captureCanvas.getContext('2d');
     captureCanvas.width = cameraPreview.videoWidth;
     captureCanvas.height = cameraPreview.videoHeight;
     context.drawImage(cameraPreview, 0, 0, captureCanvas.width, captureCanvas.height);
-    confirmCaptureButton.hidden = false;
-    captureCameraButton.hidden = true;
+    if (confirmCaptureButton) confirmCaptureButton.hidden = false;
+    if (captureCameraButton) captureCameraButton.hidden = true;
   }
 
   function useCapturedImage() {
+    if (!captureCanvas) return;
     captureCanvas.toBlob(blob => {
       if (!blob) return;
-      selectedFile = new File([blob], 'camera-capture.png', { type: 'image/png' });
-      imagePreview.src = URL.createObjectURL(selectedFile);
-      imagePreview.hidden = false;
-      videoPreview.hidden = true;
-      recognizeButton.disabled = false;
+      handleFile(new File([blob], 'camera-capture.png', { type: 'image/png' }));
       closeCameraAndModal();
     }, 'image/png');
   }
 
   function escapeHtml(value) {
-    return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 });

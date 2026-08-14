@@ -91,10 +91,15 @@ class RAGServiceV2 {
 
     try {
       const result = await this.cypherChain.invoke({ query: question });
+      const cypher = result.intermediateSteps?.[0]?.action?.toolInput || null;
       return {
         answer: result.result || result.text || "",
         mode: "cypher-chain",
-        cypher: result.intermediateSteps?.[0]?.action?.toolInput || null
+        cypher,
+        pipelineSteps: [
+          { name: "GraphCypherQAChain", status: "done", detail: cypher ? "LangChain 已生成 Cypher 查询" : "LangChain 已完成图问答，但未返回 Cypher 中间步骤" },
+          { name: "答案生成", status: "done", detail: "GraphCypherQAChain 返回最终答案" }
+        ]
       };
     } catch (error) {
       console.warn("[RAG-V2] GraphCypherQAChain 失败:", error.message);
@@ -106,40 +111,93 @@ class RAGServiceV2 {
   // 模式B：手动增强检索（关键词 → Cypher → 图遍历 → LLM）
   // =============================================
   async ragViaManual(question) {
+    const pipelineSteps = [];
     // 步骤0：LLM 提取中医药关键词（药材名、症状、功效等）
     console.log("[RAG-V2] 提取关键词...");
     const keywords = await this.extractKeywords(question);
     console.log("[RAG-V2] 关键词:", keywords);
+    pipelineSteps.push({
+      name: "关键词提取",
+      status: keywords.length > 0 ? "done" : "fallback",
+      detail: keywords.length > 0 ? "提取到关键词：" + keywords.join("、") : "未提取到明确关键词，改用问题原文检索"
+    });
 
     // 步骤1：在 Neo4j 中搜索（使用 LLM 关键词 + 问题原文双路匹配）
     const searchResults = await this.searchNeo4j(question, keywords);
+    pipelineSteps.push({
+      name: "Neo4j 图检索",
+      status: searchResults.searchError ? "error" : "done",
+      detail: searchResults.searchError
+        ? "Neo4j 检索失败，后续将尝试回退回答"
+        : "搜索词 " + (searchResults.searchTerms || []).length + " 个，命中药材 " + searchResults.herbs.length + " 个、方剂 " + searchResults.formulas.length + " 个"
+    });
     
     // 如果 LLM 关键词匹配没有结果，尝试只用问题原文搜索
     let finalResults = searchResults;
     if ((!searchResults || (searchResults.herbs.length === 0 && searchResults.formulas.length === 0)) && keywords.length > 0) {
       console.log("[RAG-V2] 关键词搜索无结果，尝试纯文本搜索...");
       finalResults = await this.searchNeo4j(question, []);
+      pipelineSteps.push({
+        name: "回退检索",
+        status: finalResults.searchError ? "error" : "done",
+        detail: finalResults.searchError
+          ? "问题原文检索失败"
+          : "使用问题原文重新检索，命中药材 " + finalResults.herbs.length + " 个、方剂 " + finalResults.formulas.length + " 个"
+      });
     }
 
     // 如果 Neo4j 完全没有任何匹配，返回 null，由 answer 层处理 LLM 直接回答
     if (!finalResults || (finalResults.herbs.length === 0 && finalResults.formulas.length === 0)) {
       console.log("[RAG-V2] Neo4j 无匹配药材，上升到 LLM 直接回答");
-      return null;
+      return {
+        answer: "",
+        mode: "manual-no-match",
+        sources: [],
+        formulas: [],
+        keywords,
+        cypher: this.formatExecutedCyphers(finalResults?.executedCyphers || searchResults?.executedCyphers || []),
+        executedCyphers: finalResults?.executedCyphers || searchResults?.executedCyphers || [],
+        pipelineSteps: pipelineSteps.concat([{
+          name: "检索结果判断",
+          status: "fallback",
+          detail: "Neo4j 未命中药材或方剂，将交给 LLM 直接回答"
+        }])
+      };
     }
 
     console.log("[RAG-V2] 找到药材:", finalResults.herbs.map(h=>h.name).join(","), "方剂:", finalResults.formulas.map(f=>f.name).join(","));
 
     // 步骤2：对命中的药材做 1-2 跳图遍历，获取丰富上下文
     const enrichedContext = await this.enrichWithGraphTraversal(finalResults);
+    pipelineSteps.push({
+      name: "关联知识扩展",
+      status: "done",
+      detail: "扩展后包含药材 " + enrichedContext.herbs.length + " 个、方剂 " + enrichedContext.formulas.length + " 个、配伍冲突 " + (enrichedContext.conflicts || []).length + " 条"
+    });
     
     // 步骤2.5：LLM 知识增强 —— 调用 DeepSeek 补全每味药材的详细信息
     await this.enrichHerbDetails(enrichedContext);
+    pipelineSteps.push({
+      name: "LLM 知识增强",
+      status: "done",
+      detail: "已对命中药材补充专业说明和上下文信息"
+    });
 
     // 步骤3：构建结构化上下文文本（含 LLM 增强数据）
     const contextText = this.buildContextText(enrichedContext);
+    pipelineSteps.push({
+      name: "上下文构建",
+      status: "done",
+      detail: "构建上下文 " + contextText.length + " 个字符，用于最终回答生成"
+    });
 
     // 步骤4：调用 LLM 生成答案
     const answer = await this.generateAnswer(question, contextText, enrichedContext);
+    pipelineSteps.push({
+      name: "DeepSeek-V3 生成",
+      status: answer ? "done" : "error",
+      detail: answer ? "基于图谱上下文生成最终回答" : "回答生成失败"
+    });
 
     // 检测 LLM 是否返回了 "未找到" 风格的答案
     const notFoundPatterns = [/抱歉.*未找到/i, /未找到相关/, /没有匹配/, /请尝试其他关键词/];
@@ -154,13 +212,34 @@ class RAGServiceV2 {
       mode: "manual-enhanced",
       sources: enrichedContext.herbs.map(h => h.name),
       formulas: enrichedContext.formulas.map(f => f.name),
-      keywords: keywords
+      keywords: keywords,
+      cypher: this.formatExecutedCyphers(finalResults.executedCyphers || []),
+      executedCyphers: finalResults.executedCyphers || [],
+      pipelineSteps,
+      searchStats: {
+        searchTerms: finalResults.searchTerms || [],
+        herbCount: enrichedContext.herbs.length,
+        formulaCount: enrichedContext.formulas.length,
+        conflictCount: (enrichedContext.conflicts || []).length
+      }
     };
   }
 
   // =============================================
   // LLM 提取问题中的中医药关键词
   // =============================================
+  formatExecutedCyphers(executedCyphers = []) {
+    if (!Array.isArray(executedCyphers) || executedCyphers.length === 0) return null;
+    return executedCyphers.map((item, index) => {
+      const params = item.parameters ? JSON.stringify(item.parameters) : "{}";
+      return [
+        "// " + (index + 1) + ". " + (item.name || "Neo4j 查询") + "，返回记录：" + (item.resultCount ?? 0),
+        item.cypher || "",
+        "// 参数：" + params
+      ].join("\n");
+    }).join("\n\n");
+  }
+
   async extractKeywords(question) {
     if (!this.llm) return [];
 
@@ -241,6 +320,7 @@ class RAGServiceV2 {
       session = neo4jManager.getSession();
       const herbs = [];
       const formulas = [];
+      const executedCyphers = [];
       const seenHerbIds = new Set();
 
       // 构建搜索词（去重）
@@ -263,6 +343,12 @@ class RAGServiceV2 {
 
       console.log("[RAG-V2] 第1轮：精确名称匹配...");
       const exactResult = await session.run(exactCypher, { terms: searchTerms });
+      executedCyphers.push({
+        name: "精确名称匹配",
+        cypher: exactCypher,
+        parameters: { terms: searchTerms },
+        resultCount: exactResult.records.length
+      });
 
       for (const record of exactResult.records) {
         const h = record.get("h");
@@ -304,6 +390,12 @@ class RAGServiceV2 {
         ].join("\n");
 
         const fuzzyResult = await session.run(fuzzyCypher, { terms: searchTerms });
+        executedCyphers.push({
+          name: "扩展功效/描述/拼音搜索",
+          cypher: fuzzyCypher,
+          parameters: { terms: searchTerms },
+          resultCount: fuzzyResult.records.length
+        });
 
         for (const record of fuzzyResult.records) {
           const h = record.get("h");
@@ -334,6 +426,15 @@ class RAGServiceV2 {
         "RETURN f LIMIT 5",
         { terms: searchTerms }
       );
+      const formulaCypher = "MATCH (f:Formula) WHERE f.name IS NOT NULL AND f.name <> '' " +
+        "AND any(term IN $terms WHERE f.name CONTAINS term OR f.description CONTAINS term) " +
+        "RETURN f LIMIT 5";
+      executedCyphers.push({
+        name: "方剂名称/描述搜索",
+        cypher: formulaCypher,
+        parameters: { terms: searchTerms },
+        resultCount: formulaResult.records.length
+      });
 
       for (const record of formulaResult.records) {
         const f = record.get("f");
@@ -347,11 +448,11 @@ class RAGServiceV2 {
       }
 
       console.log("[RAG-V2] 总计: " + herbs.length + " 味药材, " + formulas.length + " 首方剂");
-      return { herbs, formulas };
+      return { herbs, formulas, searchTerms, executedCyphers };
 
     } catch (error) {
       console.warn("[RAG-V2] Neo4j 搜索失败:", error.message);
-      return { herbs: [], formulas: [], searchError: true };
+      return { herbs: [], formulas: [], searchTerms: [], executedCyphers: [], searchError: true };
     } finally {
       if (session) await session.close();
     }
@@ -648,14 +749,24 @@ class RAGServiceV2 {
     }
 
     // 如果所有检索模式都无结果，使用 LLM 直接回答（纯知识模式）
-    if (!result) {
+    if (!result || !result.answer) {
+      const previousResult = result;
       console.log("[RAG-V2] 知识库无匹配，使用 LLM 中医药知识直接回答");
       const directAnswer = await this.generateDirectAnswer(question);
       result = {
         answer: directAnswer,
         mode: "llm-direct",
-        sources: [],
-        formulas: []
+        sources: previousResult?.sources || [],
+        formulas: previousResult?.formulas || [],
+        keywords: previousResult?.keywords || [],
+        cypher: previousResult?.cypher || null,
+        executedCyphers: previousResult?.executedCyphers || [],
+        searchStats: previousResult?.searchStats || null,
+        pipelineSteps: (previousResult?.pipelineSteps || []).concat([{
+          name: "LLM 直接回答",
+          status: "fallback",
+          detail: "图谱检索未命中可用上下文，已改用 DeepSeek-V3 直接回答"
+        }])
       };
     }
 
@@ -672,7 +783,12 @@ class RAGServiceV2 {
           answer: directAnswer,
           mode: "llm-direct-fallback",
           sources: [],
-          formulas: []
+          formulas: [],
+          pipelineSteps: (result.pipelineSteps || []).concat([{
+            name: "答案兜底修正",
+            status: "fallback",
+            detail: "检测到未找到类回答，已重新使用 LLM 直接生成"
+          }])
         };
       }
     }

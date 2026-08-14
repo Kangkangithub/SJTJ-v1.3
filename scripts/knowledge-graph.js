@@ -1,10 +1,7 @@
 ﻿// 知识图谱可视化脚本
 document.addEventListener('DOMContentLoaded', function() {
-    // Neo4j连接配置（实际使用时请使用后端API隐藏凭据）
-    const NEO4J_URI = "neo4j+s://demo.neo4jlabs.com"; // 请替换为您的Neo4j实例地址
-    const NEO4J_USER = ""; // 请替换为您的Neo4j用户名
-    const NEO4J_PASSWORD = ""; // 请替换为您的Neo4j密码
-    const NEO4J_DATABASE = "neo4j"; // 请替换为您的Neo4j数据库名称
+    // 本项目采用 Node.js 后端代理 Neo4j，前端不保存任何 Neo4j 凭据。
+    // 图谱数据统一通过后端 API 获取，避免在浏览器端暴露数据库连接信息。
 
     // 图谱可视化配置
     const width = document.getElementById('graph-visualization').clientWidth;
