@@ -224,7 +224,7 @@
   async function loadGraphData() {
     try {
       state.graphError = false;
-      const graph = await apiGet('/api/knowledge/graph-data?common=1');
+      const graph = await apiGet('/api/knowledge/graph-data');
       state.graph = normalizeGraph(unwrap(graph));
       state.apiOnline = true;
     } catch (error) {
@@ -583,7 +583,12 @@
         ? '知识图谱加载失败，请稍后重试。'
         : '暂无知识图谱数据。';
     const graphToolbar = hasGraph ? `
-      <div class="toolbar" style="grid-template-columns: minmax(0, 1fr) auto;">
+      <div class="toolbar graph-toolbar">
+        <div class="field graph-search-field">
+          <label for="graphHerbSearch">搜索中心药材</label>
+          <input class="input js-graph-herb-search" id="graphHerbSearch" value="${escapeAttr(graphView.focusName)}" placeholder="输入药材名或拼音" autocomplete="off" aria-autocomplete="list" aria-controls="graphHerbSuggestions">
+          <div class="graph-search-suggestions js-graph-herb-suggestions" id="graphHerbSuggestions" role="listbox" hidden></div>
+        </div>
         <div class="field">
           <label for="graphHerbSelect">中心药材</label>
           <select class="select js-graph-herb" id="graphHerbSelect">${graphView.herbs.map((item) => `<option value="${escapeAttr(item.name)}"${item.name === graphView.focusName ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}</select>
@@ -854,6 +859,86 @@
       state.selectedHerbName = event.target.value;
       render();
     });
+    const searchInput = document.querySelector('.js-graph-herb-search');
+    const suggestions = document.querySelector('.js-graph-herb-suggestions');
+    const closeSuggestions = () => {
+      if (!suggestions) return;
+      suggestions.hidden = true;
+      suggestions.innerHTML = '';
+    };
+    const chooseHerb = (name) => {
+      if (!name) return;
+      if (searchInput) searchInput.value = name;
+      state.selectedHerbName = name;
+      closeSuggestions();
+      render();
+    };
+    const updateSuggestions = () => {
+      if (!suggestions) return [];
+      const matches = findGraphHerbMatches(searchInput?.value || '', 10);
+      if (!matches.length) {
+        closeSuggestions();
+        return matches;
+      }
+      suggestions.innerHTML = matches.map(renderGraphHerbSuggestion).join('');
+      suggestions.hidden = false;
+      return matches;
+    };
+    const selectHerbFromSearch = () => {
+      const match = findGraphHerb(searchInput?.value || '');
+      if (!match) return;
+      chooseHerb(match.name);
+    };
+    searchInput?.addEventListener('focus', updateSuggestions);
+    searchInput?.addEventListener('input', updateSuggestions);
+    suggestions?.addEventListener('mousedown', (event) => {
+      const option = event.target.closest('.js-graph-herb-option');
+      if (!option) return;
+      event.preventDefault();
+      chooseHerb(option.dataset.name || '');
+    });
+    searchInput?.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const matches = updateSuggestions();
+      if (matches[0]) chooseHerb(matches[0].name);
+      else selectHerbFromSearch();
+    });
+    searchInput?.addEventListener('blur', () => {
+      window.setTimeout(closeSuggestions, 120);
+    });
+  }
+
+  function findGraphHerb(term) {
+    const keyword = normalizeSearchTerm(term);
+    if (!keyword || !state.graph) return null;
+    const herbs = state.graph.nodes.filter((node) => node.type === 'Herb');
+    return herbs.find((node) => graphHerbSearchValues(node).some((value) => normalizeSearchTerm(value) === keyword))
+      || herbs.find((node) => graphHerbSearchValues(node).some((value) => normalizeSearchTerm(value).includes(keyword)))
+      || null;
+  }
+
+  function findGraphHerbMatches(term, limit = 10) {
+    const keyword = normalizeSearchTerm(term);
+    if (!keyword || !state.graph) return [];
+    return state.graph.nodes
+      .filter((node) => node.type === 'Herb' && graphHerbSearchValues(node).some((value) => normalizeSearchTerm(value).includes(keyword)))
+      .slice(0, limit);
+  }
+
+  function renderGraphHerbSuggestion(node) {
+    const props = node.properties || {};
+    const meta = [props.pinyin, props.alias || props.aliases].filter(Boolean).join(' / ');
+    return `<button type="button" class="graph-search-option js-graph-herb-option" role="option" data-name="${escapeAttr(node.name)}"><span>${escapeHtml(node.name)}</span>${meta ? `<small>${escapeHtml(meta)}</small>` : ''}</button>`;
+  }
+
+  function graphHerbSearchValues(node) {
+    const props = node.properties || {};
+    return [node.name, props.name, props.pinyin, props.alias, props.aliases].filter(Boolean);
+  }
+
+  function normalizeSearchTerm(value) {
+    return String(value || '').trim().toLowerCase();
   }
 
   function bindRegionPager() {
@@ -1188,7 +1273,12 @@
   }
 
   function buildRemoteGraphView(graph) {
-    const herbs = graph.nodes.filter((node) => node.type === 'Herb').map((node) => ({ id: node.id, name: node.name }));
+    const herbs = graph.nodes.filter((node) => node.type === 'Herb').map((node) => ({
+      id: node.id,
+      name: node.name,
+      pinyin: node.properties?.pinyin || '',
+      alias: node.properties?.alias || node.properties?.aliases || ''
+    }));
     const focusName = state.selectedHerbName || herbs[0]?.name || '';
     const focus = graph.nodes.find((node) => node.type === 'Herb' && node.name === focusName) || graph.nodes.find((node) => node.type === 'Herb');
     if (!focus) return buildEmptyGraphView();
