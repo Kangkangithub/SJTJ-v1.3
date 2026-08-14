@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - 神农AI</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles/herb-app.css">
+  <link rel="stylesheet" href="styles/common.css">
+  <link rel="stylesheet" href="styles/profile.css">
+  <link rel="stylesheet" href="styles/admin.css">
+</head>
+<body class="profile-page admin-page">
+  <a class="skip-link" href="#adminMain">跳到主内容</a>
+  <div class="profile-shell">
+    <header class="profile-account-header">
+      <a class="profile-brand" href="index.html">
+        <span class="profile-brand-name">神农AI</span>
+        <span class="profile-brand-subtitle">中药药材知识图谱系统</span>
+      </a>
+      <div class="profile-header-actions">
+        <a class="btn secondary" href="index.html">返回首页</a>
+        <a class="btn secondary" href="profile.html">个人中心</a>
+      </div>
+    </header>
+
+    <main id="adminMain" class="admin-main" aria-labelledby="adminTitle">
+      <section id="adminGate" class="admin-gate card" hidden>
+        <h1>无权限访问</h1>
+        <p id="adminGateMessage">当前账号没有管理权限。</p>
+        <a class="btn btn-primary" href="index.html">返回首页</a>
+      </section>
+
+      <section id="adminPanel" hidden>
+        <div class="admin-title-row">
+          <div>
+            <h1 id="adminTitle">管理后台</h1>
+            <p>维护药材基础信息，所有改动都会提交到后端真实接口。</p>
+          </div>
+          <button type="button" id="newHerbBtn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新增药材</button>
+        </div>
+
+        <div id="adminMessage" class="profile-message" role="status" aria-live="polite"></div>
+
+        <section class="admin-card card" aria-labelledby="herbManageTitle">
+          <div class="admin-section-header">
+            <div>
+              <h2 id="herbManageTitle">药材管理</h2>
+              <p>分页查看、搜索、新增、编辑和删除药材。</p>
+            </div>
+          </div>
+
+          <div class="admin-toolbar">
+            <label class="admin-search-field" for="adminHerbSearch">
+              <span>药材搜索</span>
+              <input id="adminHerbSearch" class="input" type="search" placeholder="输入药材名或功效">
+            </label>
+            <button type="button" id="resetAdminSearch" class="btn secondary">重置</button>
+          </div>
+
+          <div id="herbListStatus" class="admin-status">正在加载药材...</div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" aria-describedby="herbListStatus">
+              <thead>
+                <tr>
+                  <th>药材</th>
+                  <th>分类</th>
+                  <th>产地</th>
+                  <th>摘要</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="adminHerbRows"></tbody>
+            </table>
+          </div>
+          <div class="admin-pagination">
+            <button type="button" id="prevHerbPage" class="btn secondary">上一页</button>
+            <span id="herbPageInfo">第 1 页</span>
+            <button type="button" id="nextHerbPage" class="btn secondary">下一页</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="herbFormModal" class="admin-modal" hidden>
+    <div class="admin-modal-backdrop" data-close-admin-modal></div>
+    <section class="admin-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="herbFormTitle">
+      <div class="admin-modal-header">
+        <h2 id="herbFormTitle">新增药材</h2>
+        <button type="button" class="modal-close" data-close-admin-modal aria-label="关闭药材表单">×</button>
+      </div>
+      <form id="herbAdminForm" class="admin-form">
+        <input type="hidden" id="herbId">
+        <div class="admin-form-grid">
+          <label>药材名称 <input id="herbName" class="input" required maxlength="100"></label>
+          <label>拼音 <input id="herbPinyin" class="input" maxlength="50"></label>
+          <label>别名 <input id="herbAlias" class="input" maxlength="100"></label>
+          <label>分类 <select id="herbCategory" class="select"></select></label>
+          <label>产地 <select id="herbRegion" class="select"></select></label>
+          <label>来源 <select id="herbSource" class="select"></select></label>
+        </div>
+        <label>描述 <textarea id="herbDescription" class="input" rows="3" maxlength="500"></textarea></label>
+        <label>功效 <textarea id="herbEfficacy" class="input" rows="3" maxlength="500"></textarea></label>
+        <label>用法用量 <input id="herbUsage" class="input" maxlength="100"></label>
+        <label>注意事项 <textarea id="herbCaution" class="input" rows="3" maxlength="500"></textarea></label>
+        <div class="admin-form-actions">
+          <button type="submit" id="saveHerbBtn" class="btn btn-primary">保存</button>
+          <button type="button" class="btn secondary" data-close-admin-modal>取消</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="scripts/admin.js"></script>
+</body>
+</html>

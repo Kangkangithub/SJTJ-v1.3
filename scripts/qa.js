@@ -12,6 +12,8 @@ var API_BASE = (function(){
 var _busy = false;
 var _marked = null;
 var _abort = null;
+var _allowPendingNavigation = false;
+var LEAVE_WARNING = "回答仍在生成，离开后本次回答可能不会保存。";
 var _d3sim = null;
 var SESSION_KEY = "graphrag_temp_history";
 var conversations = [];
@@ -66,17 +68,19 @@ function getUserInfo() {
 }
 
 function hasLoginState() {
-  var user = getUserInfo();
-  return Boolean(getAuthToken() || user.id || user.userId || user.isLoggedIn);
+  return Boolean(getAuthToken());
+}
+
+function clearInvalidLoginState() {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("token");
+  localStorage.removeItem("userInfo");
 }
 
 function authHeaders(extra) {
   var headers = Object.assign({}, extra || {});
   var token = getAuthToken();
-  var user = getUserInfo();
-  var uid = user.id || user.userId;
   if (token) headers.Authorization = "Bearer " + token;
-  if (uid) headers["X-User-ID"] = String(uid);
   return headers;
 }
 
@@ -86,6 +90,7 @@ async function apiJson(path, options) {
   var resp = await fetch(API_BASE + path, Object.assign({}, opts, { headers: headers }));
   if (resp.status === 401 || resp.status === 403) {
     cloudHistoryEnabled = false;
+    clearInvalidLoginState();
     throw new Error("AUTH_REQUIRED");
   }
   var data = await resp.json().catch(function(){ return {}; });
@@ -144,6 +149,16 @@ function appendMsg(role, content, time) {
   return div;
 }
 
+function appendConversationNotice(text) {
+  var w = cw();
+  if (!w) return null;
+  var div = document.createElement("div");
+  div.className = "conversation-notice";
+  div.innerHTML = '<div class="history-incomplete-notice"><i class="fas fa-circle-info"></i> ' + esc(text) + '</div>';
+  w.appendChild(div);
+  w.scrollTop = w.scrollHeight;
+  return div;
+}
 function clearChatToWelcome() {
   var w = cw();
   if (!w) return;
@@ -172,7 +187,7 @@ function saveTempHistory() {
     w.querySelectorAll(".message").forEach(function(el){
       var content = el.querySelector(".message-content");
       var time = el.querySelector(".message-time");
-      if (!content) return;
+      if (!content || content.querySelector(".rag-interrupted") || el.classList.contains("conversation-notice")) return;
       msgs.push({
         role: el.classList.contains("user-message") ? "user" : "assistant",
         html: content.innerHTML,
@@ -181,6 +196,44 @@ function saveTempHistory() {
     });
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(msgs));
   } catch (e) {}
+}
+
+function markAnswerInterrupted(aiDiv) {
+  var mc = aiDiv ? aiDiv.querySelector(".message-content") : null;
+  if (mc) mc.innerHTML = '<div class="rag-interrupted"><i class="fas fa-circle-exclamation"></i> 回答已中断，请重新提问</div>';
+}
+
+function abortPendingAnswer() {
+  if (_abort) {
+    try { _abort.abort(); } catch (e) {}
+  }
+}
+
+function handleBeforeUnload(event) {
+  if (!_busy || _allowPendingNavigation) return;
+  event.preventDefault();
+  event.returnValue = "";
+}
+
+function wirePendingNavigationGuard() {
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("pagehide", function() {
+    if (_busy) abortPendingAnswer();
+  });
+  document.addEventListener("click", function(event) {
+    if (!_busy || _allowPendingNavigation) return;
+    var link = event.target.closest ? event.target.closest("a[href]") : null;
+    if (!link) return;
+    if (link.target && link.target.toLowerCase() === "_blank") return;
+    var href = link.getAttribute("href") || "";
+    if (!href || href.charAt(0) === "#" || href.indexOf("javascript:") === 0) return;
+    if (!confirm(LEAVE_WARNING + "确定离开吗？")) {
+      event.preventDefault();
+      return;
+    }
+    _allowPendingNavigation = true;
+    abortPendingAnswer();
+  }, true);
 }
 
 function loadTempHistory() {
@@ -282,20 +335,21 @@ async function loadConversation(id) {
     var w = cw();
     if (!w) return;
     w.innerHTML = "";
-    (detail.messages || []).forEach(function(m){
+    var messages = detail.messages || [];
+    messages.forEach(function(m){
       if (m.role === "user") {
         appendMsg("user", m.content || "", m.created_at);
       } else {
         appendMsg("ai", buildAnswerHtml({ answer: m.content || "", sources: parseSources(m.sources), formulas: [] }), m.created_at);
       }
     });
-    if (!detail.messages || !detail.messages.length) clearChatToWelcome();
+    if (!messages.length) clearChatToWelcome();
+    else if (messages[messages.length - 1].role === "user") appendConversationNotice("这次回答未完成，请重新提问。");
     renderConversationList();
   } catch (e) {
     toast("历史对话加载失败，请稍后重试", "error");
   }
 }
-
 function parseSources(value) {
   if (Array.isArray(value)) return value;
   if (!value) return [];
@@ -388,6 +442,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if (!cloudHistoryEnabled) loadTempHistory();
   });
   checkAiHealth();
+  wirePendingNavigationGuard();
 });
 
 async function askRag(question) {
@@ -511,13 +566,16 @@ async function doSend() {
       saveTempHistory();
     }
   } catch (e) {
-    if (e.name !== "AbortError") {
-      var mc = aiDiv ? aiDiv.querySelector(".message-content") : null;
+    var mc = aiDiv ? aiDiv.querySelector(".message-content") : null;
+    if (e.name === "AbortError") {
+      markAnswerInterrupted(aiDiv);
+    } else {
       if (mc) mc.innerHTML = '<div class="rag-error"><i class="fas fa-exclamation-triangle"></i> 回答生成失败，请稍后重试</div>';
       toast(streamToggle && streamToggle.checked ? "流式回答失败，请稍后重试" : "回答生成失败，请稍后重试", "error");
     }
   } finally {
     _busy = false;
+    _allowPendingNavigation = false;
     btn.disabled = false;
     btn.innerHTML = "发送";
     _abort = null;
@@ -671,7 +729,7 @@ function renderHerb(ct, h) {
   if (h.usage_dosage) html += '<div class="detail-row"><span class="detail-label">用法用量</span><span class="detail-value">' + esc(h.usage_dosage) + '</span></div>';
   if (h.caution) html += '<div class="detail-row"><span class="detail-label">注意事项</span><span class="detail-value detail-danger">' + esc(h.caution) + '</span></div>';
   html += '</div>';
-  html += '<div class="herb-kg-link"><a href="knowledge-graph.html?herb=' + encodeURIComponent(h.name || "") + '" target="_blank" class="herb-kg-btn"><i class="fas fa-project-diagram"></i> 在知识图谱中查看完整关系网络</a></div>';
+  html += '<div class="herb-kg-link"><a href="knowledge-graph.html?herb=' + encodeURIComponent(h.name || "") + '" class="herb-kg-btn"><i class="fas fa-project-diagram"></i> 在知识图谱中查看完整关系网络</a></div>';
 
   if (h.graphData && h.graphData.nodes && h.graphData.nodes.length) {
     html += '<div class="herb-mini-graph-container"><h4><i class="fas fa-project-diagram"></i> 知识图谱关联</h4><svg id="herbMiniGraphSvg"></svg><div class="mini-graph-legend"><span class="legend-item"><span class="legend-dot" style="background:#27ae60"></span>药材</span><span class="legend-item"><span class="legend-dot" style="background:#f39c12"></span>性味</span><span class="legend-item"><span class="legend-dot" style="background:#3498db"></span>归经</span><span class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span>功效</span><span class="legend-item"><span class="legend-dot" style="background:#9b59b6"></span>分类</span><span class="legend-item"><span class="legend-dot" style="background:#8e44ad"></span>方剂</span></div></div>';

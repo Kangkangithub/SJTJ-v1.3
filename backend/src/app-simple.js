@@ -48,6 +48,7 @@ const herbRoutes = require('./routes/herbs');
 const herbsManageRoutes = require('./routes/herbs-manage');
 const conversationsRoutes = require('./routes/conversations');
 const knowledgeGraphRoutes = require('./routes/knowledge-graph');
+const recommendationRoutes = require('./routes/recommendations');
 
 class SimpleApp {
   constructor() {
@@ -157,6 +158,7 @@ class SimpleApp {
           herbRecognition: '/api/herb-recognition',
           formulas: '/api/formulas',
           formulaDetail: '/api/formulas/:id',
+          recommendations: '/api/recommendations',
           quiz: '/api/quiz',
           aiChat: '/api/ai-gateway/chat (需登录)',
           aiAnalyzeHerb: '/api/ai-gateway/analyze-herb (需登录)',
@@ -180,6 +182,7 @@ class SimpleApp {
     this.app.use('/api/herb-images', require('./routes/herb-images'));
     this.app.use('/api/herb-recognition', require('./routes/herb-recognition'));
     this.app.use('/api/formulas', require('./routes/formulas'));
+    this.app.use('/api/recommendations', recommendationRoutes);
     this.app.use('/api/quiz', require('./routes/quiz'));
     this.app.use('/api/knowledge', knowledgeGraphRoutes);
     this.app.use('/api/herbs-manage', herbsManageRoutes);

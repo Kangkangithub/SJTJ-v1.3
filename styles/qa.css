@@ -1,4 +1,4 @@
-﻿/* 智能问答页面样式 - 中医药主题 */
+/* 智能问答页面样式 - 中医药主题 */
 
 /* =============================================
    Q&A 容器
@@ -450,6 +450,31 @@
    ============================================= */
 .rag-error { color: #e74c3c; padding: 8px 0; font-weight: 500; }
 .rag-error i { margin-right: 6px; }
+.rag-interrupted {
+  color: #9a5b12;
+  background: #fff8e6;
+  border: 1px solid #f1d7a2;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+.rag-interrupted i { margin-right: 6px; }
+.conversation-notice {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 16px;
+}
+.history-incomplete-notice {
+  max-width: 72%;
+  color: #6f5818;
+  background: #fff8e6;
+  border: 1px dashed #e0c16e;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.history-incomplete-notice i { margin-right: 6px; }
 .rag-error-hint {
   margin-top: 6px;
   font-size: 12px;

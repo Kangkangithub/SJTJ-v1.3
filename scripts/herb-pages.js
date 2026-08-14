@@ -22,6 +22,13 @@
     searchTerm: getQueryParam('q') || '',
     category: getQueryParam('category') || '全部',
     region: getQueryParam('region') || '全部',
+    herbPage: 1,
+    herbLimit: 50,
+    herbPagination: null,
+    herbLoadingMore: false,
+    herbSearchComposing: false,
+    formulaComposing: false,
+    herbLoadError: false,
     formulaTerm: '',
     formulaCategory: '全部',
     selectedHerbId: getQueryParam('id') || null,
@@ -32,12 +39,15 @@
     formulas: [],
     detailFormula: null,
     recommendations: { herbs: [], formulas: [] },
+    recommendationError: false,
     categories: [],
     regions: [],
     stats: normalizeStats({}),
     graph: null,
     graphError: false,
     regionDistribution: null,
+    regionPage: 1,
+    regionPageSize: 6,
     chat: [
       {
         role: 'assistant',
@@ -87,7 +97,7 @@
 
   async function hydratePageData() {
     if (state.page === 'home') {
-      await loadHerbs({ limit: 8 });
+      await loadHerbs({ limit: 24, imageLimit: 4 });
       return;
     }
     if (state.page === 'search') {
@@ -113,17 +123,25 @@
 
   async function loadHerbs(options = {}) {
     const version = ++requestVersion;
-    const limit = options.limit || 50;
+    const limit = options.limit || state.herbLimit || 50;
+    const page = options.page || 1;
+    const append = Boolean(options.append);
     const useFilters = Boolean(options.useFilters);
     const withImages = options.withImages !== false;
+    const imageLimit = options.imageLimit || limit;
     let remote = null;
+    state.herbLimit = limit;
+    let pagination = null;
 
+    state.herbLoadError = false;
     try {
       if (state.searchTerm.trim()) {
         const response = await apiGet(`/api/herbs/search?q=${encodeURIComponent(state.searchTerm.trim())}`);
-        remote = unwrap(response)?.herbs || [];
+        const data = unwrap(response) || {};
+        remote = data.herbs || [];
+        pagination = { current_page: 1, total_pages: 1, total_items: Number(data.total || remote.length), items_per_page: remote.length || limit, isSearch: true };
       } else {
-        const params = new URLSearchParams({ page: '1', limit: String(limit) });
+        const params = new URLSearchParams({ page: String(page), limit: String(limit) });
         if (useFilters) {
           const categoryId = lookupId(state.categories, state.category);
           const regionId = lookupId(state.regions, state.region);
@@ -131,20 +149,27 @@
           if (regionId) params.set('region_id', String(regionId));
         }
         const response = await apiGet(`/api/herbs?${params.toString()}`);
-        remote = unwrap(response)?.herbs || [];
+        const data = unwrap(response) || {};
+        remote = data.herbs || [];
+        pagination = data.pagination || null;
       }
     } catch (error) {
       remote = null;
+      state.herbLoadError = true;
     }
 
     if (version !== requestVersion) return;
 
-    if (remote && remote.length) {
-      state.herbs = filterNormalizedHerbs(normalizeHerbs(remote));
-      if (withImages) await hydrateHerbImages(state.herbs.slice(0, limit));
+    if (remote) {
+      const normalized = filterNormalizedHerbs(normalizeHerbs(remote));
+      state.herbs = append ? state.herbs.concat(normalized) : normalized;
+      state.herbPage = page;
+      state.herbPagination = pagination;
+      if (withImages) await hydrateHerbImages((append ? normalized : state.herbs).slice(0, imageLimit));
       state.apiOnline = true;
-    } else {
+    } else if (!append) {
       state.herbs = [];
+      state.herbPagination = null;
     }
   }
 
@@ -226,10 +251,12 @@
         herbs: normalizeRecommendedHerbs(data.herbs || []),
         formulas: normalizeRecommendedFormulas(data.formulas || [])
       };
+      state.recommendationError = false;
       await hydrateHerbImages(state.recommendations.herbs);
       state.apiOnline = true;
     } catch (error) {
       state.recommendations = { herbs: [], formulas: [] };
+      state.recommendationError = true;
     }
   }
 
@@ -304,7 +331,15 @@
               `).join('')}
             </div>
           </div>
-          <div class="hero-visual"><img src="assets/new-hero.png" alt="神农AI系统示意图"></div>
+          <div class="hero-visual hero-carousel" aria-label="中药材展示轮播">
+            <div class="hero-carousel-track">
+              <img class="hero-carousel-slide" src="assets/hero-herbs-1.jpg" alt="中药材展示图一" aria-hidden="true">
+              <img class="hero-carousel-slide" src="assets/hero-herbs-3.jpg" alt="中药材展示图三">
+              <img class="hero-carousel-slide" src="assets/hero-herbs-2.jpg" alt="中药材展示图二">
+              <img class="hero-carousel-slide" src="assets/hero-herbs-1.jpg" alt="中药材展示图一">
+            </div>
+            <div class="hero-carousel-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          </div>
         </div>
       </section>
     `;
@@ -323,28 +358,29 @@
   }
 
   function renderHome() {
-    const herbs = state.herbs.slice(0, 4);
+    const herbs = getCommonHerbs(4);
     return `
       <section class="section">
         <div class="section-header">
           <div>
-            <h2 class="section-title">首页概览</h2>
-            <p class="section-note">总览药材、方剂、分类和产地数据。</p>
+            <h2 class="section-title">快速入口</h2>
+            <p class="section-note">直接进入常用查询、图谱浏览和智能问答。</p>
           </div>
         </div>
-        <div class="grid grid-4">
-          <div class="card stat-card"><span class="stat-value">${displayCount(state.stats.total_herbs || herbs.length)}</span><span class="stat-label">药材总数</span></div>
-          <div class="card stat-card"><span class="stat-value">${displayCount(state.formulas.length)}</span><span class="stat-label">方剂条目</span></div>
-          <div class="card stat-card"><span class="stat-value">${displayCount(state.stats.by_category.length || state.categories.length)}</span><span class="stat-label">分类维度</span></div>
-          <div class="card stat-card"><span class="stat-value">${displayCount(state.stats.by_region.length || state.regions.length)}</span><span class="stat-label">产地维度</span></div>
+        <div class="grid grid-4 quick-entry-grid">
+          ${renderQuickEntry('herb-search.html', 'fa-magnifying-glass', '药材查询', '按名称、分类和产地查找药材。')}
+          ${renderQuickEntry('knowledge-graph.html', 'fa-diagram-project', '知识图谱', '查看药材、功效、归经等关系。')}
+          ${renderQuickEntry('qa.html', 'fa-comments', 'AI 问答', '围绕药材和方剂进行提问。')}
+          ${renderQuickEntry('formula-library.html', 'fa-book-medical', '方剂库', '浏览方剂组成和来源信息。')}
         </div>
       </section>
       <section class="section">
         <div class="section-header">
           <div>
-            <h2 class="section-title">分类统计</h2>
-            <p class="section-note">统计药材在各类别下的数量分布。</p>
+            <h2 class="section-title">药材分类分布</h2>
+            <p class="section-note">查看当前药材库中主要分类的收录数量。</p>
           </div>
+          <a class="link-btn" href="herb-search.html">查看全部药材</a>
         </div>
         <div class="grid grid-3">
           ${state.stats.by_category.slice(0, 6).map(renderStatListCard).join('') || '<div class="empty-state">暂无分类统计。</div>'}
@@ -353,13 +389,28 @@
       <section class="section">
         <div class="section-header">
           <div>
-            <h2 class="section-title">重点药材</h2>
-            <p class="section-note">浏览精选常用药材。</p>
+            <h2 class="section-title">药材速览</h2>
+            <p class="section-note">快速浏览药材库中的代表性药材。</p>
           </div>
           <a class="link-btn" href="herb-search.html">查看全部药材</a>
         </div>
         <div class="grid grid-2">${herbs.map(renderHerbCard).join('') || '<div class="empty-state">暂无药材数据。</div>'}</div>
       </section>
+    `;
+  }
+
+  function getCommonHerbs(limit) {
+    const common = state.herbs.filter((item) => item.isCommon);
+    const fallback = state.herbs.filter((item) => !item.isCommon);
+    return common.concat(fallback).slice(0, limit);
+  }
+
+  function renderQuickEntry(href, icon, title, note) {
+    return `
+      <a class="card quick-entry-card" href="${href}">
+        <i class="fa-solid ${icon}" aria-hidden="true"></i>
+        <span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(note)}</small></span>
+      </a>
     `;
   }
 
@@ -388,15 +439,73 @@
           </div>
           <button class="btn btn-secondary" id="resetSearch"><i class="fa-solid fa-rotate-left"></i> 重置</button>
         </div>
-        <div class="section-header" style="margin-top: 18px;">
-          <div>
-            <h2 class="section-title">匹配结果</h2>
-            <p class="section-note">当前显示 ${state.herbs.length} 味药材。</p>
-          </div>
+        <div class="js-search-results">
+          ${renderSearchResults()}
         </div>
-        <div class="grid grid-2">${state.herbs.map(renderHerbCard).join('') || '<div class="empty-state">没有找到匹配药材，请调整筛选条件。</div>'}</div>
       </section>
     `;
+  }
+
+  function renderSearchResults() {
+    return `
+      <div class="section-header" style="margin-top: 18px;">
+        <div>
+          <h2 class="section-title">匹配结果</h2>
+          <p class="section-note">${renderHerbResultNote()}</p>
+        </div>
+      </div>
+      <div class="grid grid-2">${state.herbs.map(renderHerbCard).join('') || '<div class="empty-state">没有找到匹配药材，请调整筛选条件。</div>'}</div>
+      ${renderHerbPager()}
+    `;
+  }
+
+  function updateSearchResults() {
+    const target = document.querySelector('.js-search-results');
+    if (!target) return;
+    target.innerHTML = renderSearchResults();
+    bindHerbPager();
+  }
+  function renderHerbResultNote() {
+    if (state.herbLoadError) return '药材加载失败，请稍后重试。';
+    const shown = state.herbs.length;
+    const pagination = state.herbPagination || {};
+    if (pagination.isSearch) return `当前搜索显示 ${displayCount(shown)} 条结果。`;
+    const total = Number(pagination.total_items || state.stats.total_herbs || 0);
+    if (total) return `共 ${displayCount(total)} 味药材，当前显示 ${displayCount(shown)} 味。`;
+    return `当前显示 ${displayCount(shown)} 味药材。`;
+  }
+
+  function renderHerbPager() {
+    const pagination = state.herbPagination || {};
+    if (pagination.isSearch || state.herbLoadError || !state.herbs.length) return '';
+    const current = Number(pagination.current_page || state.herbPage || 1);
+    const totalPages = Number(pagination.total_pages || 1);
+    if (totalPages <= 1) return '<div class="list-footer-note">已显示全部药材。</div>';
+    const pages = getVisibleHerbPages(current, totalPages);
+    return `
+      <div class="pagination-row" aria-label="药材分页">
+        <button class="pagination-btn js-herb-page" type="button" data-page="${current - 1}"${current <= 1 || state.herbLoadingMore ? ' disabled' : ''}>上一页</button>
+        <div class="pagination-pages">
+          ${pages.map((page) => page === 'ellipsis'
+            ? '<span class="pagination-ellipsis">...</span>'
+            : `<button class="pagination-btn js-herb-page${page === current ? ' is-active' : ''}" type="button" data-page="${page}"${page === current || state.herbLoadingMore ? ' disabled' : ''}>${page}</button>`
+          ).join('')}
+        </div>
+        <button class="pagination-btn js-herb-page" type="button" data-page="${current + 1}"${current >= totalPages || state.herbLoadingMore ? ' disabled' : ''}>下一页</button>
+      </div>
+    `;
+  }
+
+  function getVisibleHerbPages(current, totalPages) {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
+    const pages = [1];
+    const start = Math.max(2, current - 1);
+    const end = Math.min(totalPages - 1, current + 1);
+    if (start > 2) pages.push('ellipsis');
+    for (let page = start; page <= end; page += 1) pages.push(page);
+    if (end < totalPages - 1) pages.push('ellipsis');
+    pages.push(totalPages);
+    return pages;
   }
 
   function renderDetail() {
@@ -530,20 +639,21 @@
   function renderRecommendation() {
     const herbs = state.recommendations.herbs || [];
     const formulas = state.recommendations.formulas || [];
+    const herbEmpty = state.recommendationError ? '推荐内容加载失败，请稍后重试。' : '暂无可展示药材，请先完善药材常用标记或方剂关联数据。';
+    const formulaEmpty = state.recommendationError ? '推荐内容加载失败，请稍后重试。' : '暂无可展示方剂，请先完善方剂组成数据。';
     return `
       <section class="section">
-        <div class="section-header"><div><h2 class="section-title">推荐</h2><p class="section-note">基于药材库与方剂库整理常用推荐。</p></div><a class="link-btn" href="herb-search.html">继续查询药材</a></div>
+        <div class="section-header"><div><h2 class="section-title">推荐</h2><p class="section-note">根据常用药材标记、方剂收录关系和方剂组成数据整理。</p></div><a class="link-btn" href="herb-search.html">继续查询药材</a></div>
         ${renderCompatibilityTool()}
         <div class="grid grid-2">
-          <div class="card pad"><h3>推荐药材</h3><div class="list-stack">${herbs.map(renderRecommendationHerbItem).join('') || '<div class="empty-state">暂无推荐药材。</div>'}</div></div>
-          <div class="card pad"><h3>推荐方剂</h3><div class="list-stack">${formulas.map(renderRecommendationFormulaItem).join('') || '<div class="empty-state">暂无推荐方剂。</div>'}</div></div>
+          <div class="card pad"><h3>药材推荐</h3><p class="card-note">常用药材标记来自药材基础库预置，排序同时参考方剂收录数量。</p><div class="list-stack">${herbs.map(renderRecommendationHerbItem).join('') || `<div class="empty-state">${herbEmpty}</div>`}</div></div>
+          <div class="card pad"><h3>推荐方剂</h3><p class="card-note">根据方剂组成数量和方剂库记录整理。</p><div class="list-stack">${formulas.map(renderRecommendationFormulaItem).join('') || `<div class="empty-state">${formulaEmpty}</div>`}</div></div>
         </div>
       </section>
     `;
   }
 
   function renderFormula() {
-    const formulas = filterFormulas();
     return `
       <section class="section">
         <div class="section-header"><div><h2 class="section-title">方剂库</h2><p class="section-note">浏览方剂名称、分类和来源，点击卡片查看详情。</p></div><a class="link-btn" href="qa.html">去 AI 问答</a></div>
@@ -552,11 +662,21 @@
           <div class="field"><label for="formulaCategory">分类</label><select class="select js-formula-category" id="formulaCategory">${renderOptions(['全部', ...new Set(state.formulas.map((item) => item.category).filter(Boolean))], state.formulaCategory)}</select></div>
           <button class="btn btn-secondary" id="resetFormula"><i class="fa-solid fa-rotate-left"></i> 重置</button>
         </div>
-        <div class="formula-layout"><div class="formula-main"><div class="formula-card-grid">${formulas.map(renderFormulaCard).join('') || '<div class="empty-state">没有匹配方剂。</div>'}</div></div></div>
+        <div class="formula-layout"><div class="formula-main"><div class="formula-card-grid js-formula-results">${renderFormulaResults()}</div></div></div>
       </section>
     `;
   }
 
+  function renderFormulaResults() {
+    const formulas = filterFormulas();
+    return formulas.map(renderFormulaCard).join('') || '<div class="empty-state">没有找到匹配方剂，请调整筛选条件。</div>';
+  }
+
+  function updateFormulaResults() {
+    const target = document.querySelector('.js-formula-results');
+    if (!target) return;
+    target.innerHTML = renderFormulaResults();
+  }
   function renderFormulaDetailPage() {
     const formula = state.detailFormula;
     if (!formula) {
@@ -598,23 +718,40 @@
   }
 
   function bindSearch() {
-    document.querySelector('.js-search-term')?.addEventListener('input', (event) => {
+    const searchInput = document.querySelector('.js-search-term');
+    const runSearch = async () => {
+      resetHerbPagination();
+      state.loading = true;
+      await loadHerbs({ limit: 50, useFilters: true });
+      state.loading = false;
+      updateSearchResults();
+    };
+
+    searchInput?.addEventListener('compositionstart', () => {
+      state.herbSearchComposing = true;
+      clearTimeout(searchTimer);
+    });
+    searchInput?.addEventListener('compositionend', (event) => {
+      state.herbSearchComposing = false;
       state.searchTerm = event.target.value;
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(async () => {
-        state.loading = true;
-        await loadHerbs({ limit: 50, useFilters: true });
-        state.loading = false;
-        render();
-      }, 300);
+      searchTimer = setTimeout(runSearch, 300);
+    });
+    searchInput?.addEventListener('input', (event) => {
+      state.searchTerm = event.target.value;
+      if (state.herbSearchComposing || event.isComposing) return;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(runSearch, 300);
     });
     document.querySelector('.js-search-category')?.addEventListener('change', async (event) => {
       state.category = event.target.value;
+      resetHerbPagination();
       await loadHerbs({ limit: 50, useFilters: true });
       render();
     });
     document.querySelector('.js-search-region')?.addEventListener('change', async (event) => {
       state.region = event.target.value;
+      resetHerbPagination();
       await loadHerbs({ limit: 50, useFilters: true });
       render();
     });
@@ -622,9 +759,33 @@
       state.searchTerm = '';
       state.category = '全部';
       state.region = '全部';
+      resetHerbPagination();
       await loadHerbs({ limit: 50, useFilters: true });
       render();
     });
+    bindHerbPager();
+  }
+
+  function bindHerbPager() {
+    document.querySelectorAll('.js-herb-page').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const page = Number(button.dataset.page || 1);
+        const totalPages = Number(state.herbPagination?.total_pages || 1);
+        if (!page || page < 1 || page > totalPages || page === state.herbPage) return;
+        state.herbLoadingMore = true;
+        updateSearchResults();
+        await loadHerbs({ limit: state.herbLimit, page, useFilters: true });
+        state.herbLoadingMore = false;
+        updateSearchResults();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  }
+
+  function resetHerbPagination() {
+    state.herbPage = 1;
+    state.herbPagination = null;
+    state.herbLoadError = false;
   }
 
   function bindDetailTools() {
@@ -687,9 +848,26 @@
   }
 
   function bindGraph() {
+    bindRegionPager();
     document.querySelector('.js-graph-herb')?.addEventListener('change', (event) => {
       state.selectedHerbName = event.target.value;
       render();
+    });
+  }
+
+  function bindRegionPager() {
+    document.querySelectorAll('.js-region-page').forEach((button) => {
+      button.addEventListener('click', () => {
+        const page = Number(button.dataset.page || 1);
+        const regions = state.regionDistribution?.regions || [];
+        const pageSize = state.regionPageSize || 6;
+        const totalPages = Math.max(1, Math.ceil(regions.length / pageSize));
+        if (!page || page < 1 || page > totalPages || page === state.regionPage) return;
+        state.regionPage = page;
+        const target = document.querySelector('.js-region-distribution');
+        if (target) target.outerHTML = renderRegionDistribution();
+        bindRegionPager();
+      });
     });
   }
 
@@ -725,13 +903,23 @@
   }
 
   function bindFormula() {
-    document.querySelector('.js-formula-term')?.addEventListener('input', (event) => {
+    const formulaInput = document.querySelector('.js-formula-term');
+    formulaInput?.addEventListener('compositionstart', () => {
+      state.formulaComposing = true;
+    });
+    formulaInput?.addEventListener('compositionend', (event) => {
+      state.formulaComposing = false;
       state.formulaTerm = event.target.value;
-      render();
+      updateFormulaResults();
+    });
+    formulaInput?.addEventListener('input', (event) => {
+      state.formulaTerm = event.target.value;
+      if (state.formulaComposing || event.isComposing) return;
+      updateFormulaResults();
     });
     document.querySelector('.js-formula-category')?.addEventListener('change', (event) => {
       state.formulaCategory = event.target.value;
-      render();
+      updateFormulaResults();
     });
     document.getElementById('resetFormula')?.addEventListener('click', () => {
       state.formulaTerm = '';
@@ -739,7 +927,6 @@
       render();
     });
   }
-
   async function apiGet(path) {
     if (apiCache.has(path)) return apiCache.get(path);
     const urls = buildApiUrls(path);
@@ -1066,15 +1253,29 @@
 
   function renderRegionDistribution() {
     const regions = state.regionDistribution?.regions || [];
-    if (!regions.length) return `<div class="card pad" style="margin-top: 16px;"><h3>产地分布</h3><p>暂无产地分布数据。</p></div>`;
+    if (!regions.length) return `<div class="card pad js-region-distribution" style="margin-top: 16px;"><h3>产地分布</h3><p>暂无产地分布数据。</p></div>`;
+    const pageSize = state.regionPageSize || 6;
+    const totalPages = Math.max(1, Math.ceil(regions.length / pageSize));
+    state.regionPage = Math.min(Math.max(1, state.regionPage || 1), totalPages);
+    const currentPage = state.regionPage;
+    const start = (currentPage - 1) * pageSize;
+    const visibleRegions = regions.slice(start, start + pageSize);
+    const pager = regions.length > pageSize ? `
+      <div class="region-pager" aria-label="产地分页">
+        <button class="link-btn region-page-btn js-region-page" type="button" data-page="${currentPage - 1}"${currentPage <= 1 ? ' disabled' : ''}>上一页</button>
+        <span class="region-page-info">第 ${currentPage} / ${totalPages} 页</span>
+        <button class="link-btn region-page-btn js-region-page" type="button" data-page="${currentPage + 1}"${currentPage >= totalPages ? ' disabled' : ''}>下一页</button>
+      </div>
+    ` : '';
     return `
-      <div class="card pad" style="margin-top: 16px;">
+      <div class="card pad js-region-distribution" style="margin-top: 16px;">
         <h3>产地分布</h3>
-        <div class="list-stack">${regions.slice(0, 6).map((item) => `<div class="list-item"><span><strong>${escapeHtml(item.name)}</strong><p>${escapeHtml(item.description || '')}</p></span><span class="tag">${displayCount(item.herb_count)}</span></div>`).join('')}</div>
+        <p class="section-note">按药材库中各产地关联药材数量排序。</p>
+        <div class="list-stack region-distribution-list">${visibleRegions.map((item) => `<div class="list-item"><span><strong>${escapeHtml(item.name)}</strong></span><span class="tag region-count-tag">收录 ${displayCount(item.herb_count)} 味</span></div>`).join('')}</div>
+        ${pager}
       </div>
     `;
   }
-
   function renderHerbCard(item) {
     return `
       <a class="card herb-card" href="herb-detail.html?id=${encodeURIComponent(item.id)}&herb=${encodeURIComponent(item.name)}">
@@ -1275,9 +1476,9 @@
   function getHero() {
     const stats = state.stats || normalizeStats({});
     const commonStats = [
-      { value: displayCount(stats.total_herbs), label: '药材总数' },
-      { value: displayCount(stats.by_category.length || state.categories.length), label: '分类维度' },
-      { value: displayCount(state.formulas.length), label: '方剂条目' }
+      { value: displayCount(stats.total_herbs), label: '收录药材' },
+      { value: displayCount(state.formulas.length), label: '收录方剂' },
+      { value: displayCount(stats.by_category.length || state.categories.length), label: '药材分类' }
     ];
     const copy = {
       home: ['神农AI', '中药药材知识图谱系统', '提供药材查询、详情、图谱、问答和方剂浏览。'],

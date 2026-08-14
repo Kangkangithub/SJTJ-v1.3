@@ -104,8 +104,8 @@
                     isLoggedIn: true
                 }));
 
-                showMessage('注册成功，正在进入个人中心。', 'success');
-                window.location.href = 'profile.html';
+                showMessage('注册成功，正在返回首页。', 'success');
+                window.location.href = 'index.html';
             } catch (error) {
                 showMessage(error.message || '注册失败，请稍后重试。', 'error');
             } finally {

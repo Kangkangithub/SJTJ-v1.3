@@ -361,3 +361,12 @@ input[readonly] {
     flex: 1 1 100%;
   }
 }
+
+.profile-admin-entry {
+  margin: 16px 0;
+}
+
+.profile-admin-entry .btn {
+  width: 100%;
+  justify-content: center;
+}

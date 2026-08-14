@@ -42,6 +42,7 @@
                     <p id="avatarHint" class="avatar-hint">可选择头像预览。</p>
                     <h2 id="summaryName">正在读取资料</h2>
                     <p id="summaryEmail"></p>
+                    <div id="adminEntry" class="profile-admin-entry" hidden><a class="btn btn-primary" href="admin.html">管理后台</a></div>
                     <dl class="profile-facts">
                         <div>
                             <dt>账号状态</dt>
@@ -144,6 +145,7 @@
                 return;
             }
             fillProfile(lastProfile);
+            updateAdminEntry(lastProfile);
             showProfileMessage('已恢复到最近一次读取的资料。', 'success');
         });
         document.getElementById('openPasswordBtn').addEventListener('click', openPasswordModal);
@@ -181,6 +183,7 @@
 
                 lastProfile = data.data;
                 fillProfile(lastProfile);
+                updateAdminEntry(lastProfile);
                 setProfileFormEnabled(true);
                 localStorage.setItem('userInfo', JSON.stringify({ ...lastProfile, isLoggedIn: true }));
                 showProfileMessage('', '');
@@ -231,6 +234,7 @@
 
                 lastProfile = data.data;
                 fillProfile(lastProfile);
+                updateAdminEntry(lastProfile);
                 localStorage.setItem('userInfo', JSON.stringify({ ...lastProfile, isLoggedIn: true }));
                 showProfileMessage('资料已保存。', 'success');
             } catch (error) {
@@ -365,7 +369,7 @@
             localStorage.removeItem('authToken');
             localStorage.removeItem('token');
             localStorage.removeItem('userInfo');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         }
 
         function handleUnauthorized() {
@@ -377,6 +381,12 @@
 
         function getAuthToken() {
             return localStorage.getItem('authToken') || localStorage.getItem('token');
+        }
+
+        function updateAdminEntry(profile) {
+            const adminEntry = document.getElementById('adminEntry');
+            if (!adminEntry) return;
+            adminEntry.hidden = !profile || profile.role !== 'admin';
         }
 
         function showProfileMessage(text, type) {

@@ -134,12 +134,19 @@ router.post("/rag-stream", async (req, res) => {
 
     // 设置 SSE
     res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
+    if (typeof res.flushHeaders === "function") res.flushHeaders();
+
+    function writeSse(payload) {
+      if (payload === "[DONE]") res.write("data: [DONE]\n\n");
+      else res.write("data: " + JSON.stringify(payload) + "\n\n");
+      if (typeof res.flush === "function") res.flush();
+    }
 
     // 步骤1：发送搜索状态
-    res.write("data: " + JSON.stringify({ type: "status", content: "正在搜索知识库..." }) + "\n\n");
+    writeSse({ type: "status", content: "正在搜索知识库..." });
 
     // 步骤2：搜索 Neo4j
     const trimmedQuestion = question.trim();
@@ -148,12 +155,12 @@ router.post("/rag-stream", async (req, res) => {
     const context = ragServiceV2.buildContextText(enriched);
 
     // 步骤3：发送上下文信息
-    res.write("data: " + JSON.stringify({
+    writeSse({
       type: "context",
       herbCount: enriched.herbs.length,
       formulaCount: enriched.formulas.length,
       herbs: enriched.herbs.map(h => h.name)
-    }) + "\n\n");
+    });
 
     // 步骤4：流式调用 DeepSeek
     const messages = [
@@ -193,8 +200,8 @@ router.post("/rag-stream", async (req, res) => {
       });
 
       if (!response.ok) {
-        res.write("data: " + JSON.stringify({ type: "error", content: "AI 服务返回错误" }) + "\n\n");
-        res.write("data: [DONE]\n\n");
+        writeSse({ type: "error", content: "AI 服务返回错误" });
+        writeSse("[DONE]");
         res.end();
         return;
       }
@@ -216,6 +223,7 @@ router.post("/rag-stream", async (req, res) => {
           if (line.trim() === "") continue;
           if (line.startsWith("data: ")) {
             res.write(line + "\n\n");
+            if (typeof res.flush === "function") res.flush();
           }
         }
       }
@@ -225,18 +233,18 @@ router.post("/rag-stream", async (req, res) => {
       // 追加来源
       const herbNames = enriched.herbs.map(h => h.name).join("、");
       if (herbNames) {
-        res.write("data: " + JSON.stringify({
+        writeSse({
           type: "sources",
           content: "\n\n---\n📚 **参考来源**\n- 药材：" + herbNames
-        }) + "\n\n");
+        });
       }
 
-      res.write("data: [DONE]\n\n");
+      writeSse("[DONE]");
       res.end();
     } catch (error) {
       if (error.name !== "AbortError") {
-        res.write("data: " + JSON.stringify({ type: "error", content: error.message }) + "\n\n");
-        res.write("data: [DONE]\n\n");
+        writeSse({ type: "error", content: error.message });
+        writeSse("[DONE]");
       }
       res.end();
     } finally {

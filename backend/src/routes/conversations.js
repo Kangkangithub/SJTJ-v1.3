@@ -1,61 +1,44 @@
-﻿/**
+/**
  * 对话历史管理路由
  *
  * @description 提供对话和消息的 CRUD 操作
  * @storage SQLite（conversations + messages 表）
- * @security 支持 JWT 和 x-user-id header 两种认证方式
+ * @security 对话历史必须绑定真实 JWT 登录态
  */
 const express = require("express");
 const router = express.Router();
 const databaseManager = require("../config/database-simple");
+const jwt = require("jsonwebtoken");
+const config = require("../config");
 
 // =============================================
-// 灵活认证中间件：优先 JWT，fallback 到 x-user-id header
+// 对话历史认证中间件：只接受真实 JWT 用户身份
 // =============================================
-function flexAuth(req, res, next) {
-  // 方式1：检查 x-user-id header（前端 localStorage 场景）
-  const userIdHeader = req.headers["x-user-id"];
-  if (userIdHeader) {
-    const uid = parseInt(userIdHeader);
-    if (!isNaN(uid) && uid > 0) {
-      req.userId = uid;
-      return next();
-    }
+function requireConversationAuth(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ success: false, message: "请先登录后再保存对话记录" });
   }
 
-  // 方式2：检查 x-admin-user header（简化管理员模式）
-  const adminHeader = req.headers["x-admin-user"];
-  if (adminHeader === "true") {
-    req.userId = 1;
-    return next();
-  }
-
-  // 方式3：尝试 JWT（Authorization: Bearer xxx）
   try {
-    const authHeader = req.headers["authorization"];
-    if (authHeader) {
-      const jwt = require("jsonwebtoken");
-      const config = require("../config");
-      const token = authHeader.split(" ")[1];
-      if (token) {
-        const decoded = jwt.verify(token, config.jwt.secret);
-        req.userId = decoded.id || decoded.userId || 1;
-        return next();
-      }
+    const decoded = jwt.verify(token, config.jwt.secret);
+    const userId = decoded.id || decoded.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "请先登录后再保存对话记录" });
     }
-  } catch (e) {
-    // JWT 验证失败，继续尝试其他方式
+    req.userId = userId;
+    req.user = decoded;
+    return next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "请先登录后再保存对话记录" });
   }
-
-  // 全部失败，使用默认用户ID=1（开发/演示模式）
-  req.userId = 1;
-  next();
 }
 
 // =============================================
 // GET /api/conversations — 获取当前用户的对话列表
 // =============================================
-router.get("/", flexAuth, async (req, res) => {
+router.get("/", requireConversationAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const page = parseInt(req.query.page) || 1;
@@ -104,7 +87,7 @@ router.get("/", flexAuth, async (req, res) => {
 // =============================================
 // POST /api/conversations — 创建新对话
 // =============================================
-router.post("/", flexAuth, async (req, res) => {
+router.post("/", requireConversationAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const { title } = req.body;
@@ -137,7 +120,7 @@ router.post("/", flexAuth, async (req, res) => {
 // =============================================
 // GET /api/conversations/:id — 获取某对话的全部消息
 // =============================================
-router.get("/:id", flexAuth, async (req, res) => {
+router.get("/:id", requireConversationAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const conversationId = parseInt(req.params.id);
@@ -186,7 +169,7 @@ router.get("/:id", flexAuth, async (req, res) => {
 // =============================================
 // POST /api/conversations/:id/messages — 在对话中添加消息
 // =============================================
-router.post("/:id/messages", flexAuth, async (req, res) => {
+router.post("/:id/messages", requireConversationAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const conversationId = parseInt(req.params.id);
@@ -267,7 +250,7 @@ router.post("/:id/messages", flexAuth, async (req, res) => {
 // =============================================
 // DELETE /api/conversations/:id — 删除对话（级联删除消息）
 // =============================================
-router.delete("/:id", flexAuth, async (req, res) => {
+router.delete("/:id", requireConversationAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const conversationId = parseInt(req.params.id);
@@ -308,7 +291,7 @@ router.delete("/:id", flexAuth, async (req, res) => {
 // =============================================
 // PUT /api/conversations/:id — 更新对话标题
 // =============================================
-router.put("/:id", flexAuth, async (req, res) => {
+router.put("/:id", requireConversationAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const conversationId = parseInt(req.params.id);

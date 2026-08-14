@@ -38,6 +38,17 @@ function buildWhere(query) {
   };
 }
 
+function buildHerbReason(item) {
+  if (item.is_common) return '预置常用药材';
+  if (item.formula_count > 0) return `收录于 ${item.formula_count} 个方剂`;
+  return '来自药材库记录';
+}
+
+function buildFormulaReason(item) {
+  if (item.herb_count > 0) return `包含 ${item.herb_count} 味组成药材`;
+  return '来自方剂库记录';
+}
+
 router.get('/', async (req, res) => {
   try {
     const limit = Math.min(Math.max(Number(req.query.limit) || 12, 1), 50);
@@ -92,22 +103,18 @@ router.get('/', async (req, res) => {
         herbs: herbs.map((item) => ({
           ...item,
           efficacy_names: item.efficacy_names ? item.efficacy_names.split(',') : [],
-          reason: item.is_common
-            ? '数据库标记为常用药材'
-            : item.formula_count > 0
-              ? `收录于 ${item.formula_count} 个方剂`
-              : '来自后端药材库记录'
+          reason: buildHerbReason(item)
         })),
         formulas: formulas.map((item) => ({
           ...item,
           herb_names: item.herb_names ? item.herb_names.split(',') : [],
-          reason: item.herb_count > 0 ? `包含 ${item.herb_count} 味组成药材` : '来自后端方剂库记录'
+          reason: buildFormulaReason(item)
         }))
       }
     });
   } catch (error) {
     logger.error('获取推荐数据失败:', error);
-    res.status(500).json({ success: false, message: '获取推荐数据失败' });
+    res.status(500).json({ success: false, message: '推荐内容加载失败，请稍后重试' });
   }
 });
 
