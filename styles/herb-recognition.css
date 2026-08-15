@@ -209,6 +209,18 @@
   margin-top: 14px;
 }
 
+.confidence-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.confidence-label-row .detail-label {
+  margin-bottom: 0;
+}
+
 .confidence-bar {
   height: 8px;
   overflow: hidden;

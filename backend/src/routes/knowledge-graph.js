@@ -261,7 +261,7 @@ router.get('/herb-details/:name', async (req, res) => {
     const session = neo4jManager.getSession();
     try {
       const result = await session.run(
-        "MATCH (h:Herb {name: }) OPTIONAL MATCH (h)-[:BELONGS_TO_CATEGORY]->(c:Category) OPTIONAL MATCH (h)-[:FROM_REGION]->(r:Region) RETURN h, c.name AS category_name, r.name AS region_name",
+        "MATCH (h:Herb {name: $name}) OPTIONAL MATCH (h)-[:BELONGS_TO_CATEGORY]->(c:Category) OPTIONAL MATCH (h)-[:FROM_REGION]->(r:Region) RETURN h, c.name AS category_name, r.name AS region_name",
         { name: herbName }
       );
 
@@ -288,21 +288,21 @@ router.get('/herb-details/:name', async (req, res) => {
 
       // 性味
       const pRes = await session.run(
-        "MATCH (h:Herb {name: })-[:HAS_PROPERTY]->(p:Property) RETURN p.name AS name, p.type AS type",
+        "MATCH (h:Herb {name: $name})-[:HAS_PROPERTY]->(p:Property) RETURN p.name AS name, p.type AS type",
         { name: herbName }
       );
       const properties = pRes.records.map(r => ({ name: r.get('name'), type: r.get('type') }));
 
       // 归经
       const mRes = await session.run(
-        "MATCH (h:Herb {name: })-[:MERIDIAN_AFFINITY]->(m:Meridian) RETURN m.name AS name, m.abbreviation AS abbreviation",
+        "MATCH (h:Herb {name: $name})-[:MERIDIAN_AFFINITY]->(m:Meridian) RETURN m.name AS name, m.abbreviation AS abbreviation",
         { name: herbName }
       );
       const meridians = mRes.records.map(r => ({ name: r.get('name'), abbreviation: r.get('abbreviation') }));
 
       // 功效
       const eRes = await session.run(
-        "MATCH (h:Herb {name: })-[:HAS_EFFICACY]->(e:Efficacy) RETURN e.name AS name",
+        "MATCH (h:Herb {name: $name})-[:HAS_EFFICACY]->(e:Efficacy) RETURN e.name AS name",
         { name: herbName }
       );
       const efficacies = eRes.records.map(r => ({ name: r.get('name') }));
@@ -311,7 +311,7 @@ router.get('/herb-details/:name', async (req, res) => {
       let formulas = [];
       try {
         const fRes = await session.run(
-          "MATCH (h:Herb {name: })<-[r:CONTAINS_HERB]-(f:Formula) RETURN f.name AS name, r.dosage AS dosage, r.role AS role",
+          "MATCH (h:Herb {name: $name})<-[r:CONTAINS_HERB]-(f:Formula) RETURN f.name AS name, r.dosage AS dosage, r.role AS role",
           { name: herbName }
         );
         formulas = fRes.records.map(r => ({ name: r.get('name'), dosage: r.get('dosage'), role: r.get('role') }));
@@ -321,7 +321,7 @@ router.get('/herb-details/:name', async (req, res) => {
       let incompatibilities = [];
       try {
         const iRes = await session.run(
-          "MATCH (h1:Herb {name: })-[cr:COMPATIBILITY]-(h2:Herb) WHERE cr.relation_type IN ['相反','相恶'] RETURN h2.name AS herb2_name, cr.relation_type AS relation_type, cr.description AS description",
+          "MATCH (h1:Herb {name: $name})-[cr:COMPATIBILITY]-(h2:Herb) WHERE cr.relation_type IN ['相反','相恶'] RETURN h2.name AS herb2_name, cr.relation_type AS relation_type, cr.description AS description",
           { name: herbName }
         );
         incompatibilities = iRes.records.map(r => ({ herb2_name: r.get('herb2_name'), relation_type: r.get('relation_type'), description: r.get('description') }));

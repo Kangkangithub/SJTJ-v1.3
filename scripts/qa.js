@@ -16,6 +16,9 @@ var _allowPendingNavigation = false;
 var LEAVE_WARNING = "回答仍在生成，离开后本次回答可能不会保存。";
 var _d3sim = null;
 var SESSION_KEY = "graphrag_temp_history";
+var QA_FORMAT_INSTRUCTION = [
+  "回答格式要求：中文正文使用完整自然句，不要把一句话拆成多行。标点必须紧跟前文，不要单独换行。加粗只用于少量重点词、风险提示或专有名词，不要随机加粗零散短词。同一组同类内容的格式必须统一，不要出现有的加粗、有的不加粗。‘药材：...’和‘方剂：...’这类参考信息中，仅加粗标签，名称保持普通文本。‘一句话总结：内容’必须同一行展示，不要把冒号换到下一行。列表只用于并列要点，不要把一句话拆成多个列表项。不要输出多余空行或碎片化短行。如果包含代码块、Cypher、表格或引用，请保持原结构完整。"
+].join("\n");
 var conversations = [];
 var currentConversationId = null;
 var cloudHistoryEnabled = false;
@@ -71,6 +74,18 @@ function hasLoginState() {
   return Boolean(getAuthToken());
 }
 
+function buildMessageAvatar(role) {
+  if (role !== "user") return '<i class="fas fa-brain"></i>';
+  var user = getUserInfo() || {};
+  var avatar = user.avatar || (user.profile && user.profile.avatar) || "";
+  if (typeof avatar === "string" && avatar.indexOf("data:image/") === 0) {
+    return '<img class="message-avatar-image" src="' + escA(avatar) + '" alt="用户头像">';
+  }
+  var label = user.name || user.username || user.email || "";
+  var initial = String(label || "用").trim().slice(0, 1).toUpperCase() || "用";
+  return '<span class="message-avatar-initial">' + esc(initial) + '</span>';
+}
+
 function clearInvalidLoginState() {
   localStorage.removeItem("authToken");
   localStorage.removeItem("token");
@@ -98,10 +113,140 @@ async function apiJson(path, options) {
   return data;
 }
 
+function normalizeAnswerText(value) {
+  if (typeof value !== "string") return "";
+  if (!value) return "";
+  return value
+    .replace(/\r\n/g, "\n")
+    .split(/(```[\s\S]*?```)/g)
+    .map(function(part) {
+      if (part.indexOf("```") === 0) return part;
+      return normalizeAnswerTextBlock(part);
+    })
+    .join("")
+    .replace(/([^\n])```/g, "$1\n```")
+    .replace(/(```[\s\S]*?```)([^\n])/g, "$1\n$2")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function normalizeAnswerTextBlock(text) {
+  var lines = mergePunctuationContinuationLines(String(text || "").split("\n"));
+  var out = [];
+  var paragraph = [];
+
+  function flushParagraph() {
+    if (!paragraph.length) return;
+    out.push(paragraph.reduce(joinInlineText));
+    paragraph = [];
+  }
+
+  lines.forEach(function(line) {
+    var raw = String(line || "").replace(/\s+$/g, "");
+    var trimmed = raw.trim();
+    if (!trimmed) {
+      flushParagraph();
+      if (out.length && out[out.length - 1] !== "") out.push("");
+      return;
+    }
+    if (isMarkdownStructureLine(trimmed)) {
+      flushParagraph();
+      out.push(raw);
+      return;
+    }
+    paragraph.push(trimmed);
+  });
+
+  flushParagraph();
+  return out.join("\n");
+}
+
+function mergePunctuationContinuationLines(lines) {
+  var merged = [];
+  lines.forEach(function(line) {
+    var text = String(line || "");
+    var match = text.match(/^\s*([，。；：！？、,.!?;:])\s*(.*)$/);
+    if (match && merged.length && merged[merged.length - 1].trim()) {
+      merged[merged.length - 1] = merged[merged.length - 1].replace(/\s+$/g, "") + normalizeLeadingPunctuation(match[1]) + match[2].replace(/^\s+/g, "");
+      return;
+    }
+    merged.push(text);
+  });
+  return merged;
+}
+
+function normalizeLeadingPunctuation(mark) {
+  if (mark === ":") return "：";
+  if (mark === ",") return "，";
+  if (mark === ";") return "；";
+  if (mark === "!") return "！";
+  if (mark === "?") return "？";
+  return mark;
+}
+
+function isMarkdownStructureLine(line) {
+  var text = String(line || "").trim();
+  return /^(#{1,6})\s+/.test(text) ||
+    /^([-*+])\s+\S/.test(text) ||
+    /^\d+[.)]\s+\S/.test(text) ||
+    /^>\s?/.test(text) ||
+    /^\|.*\|$/.test(text) ||
+    /^\s*[-*_]{3,}\s*$/.test(text);
+}
+
+function joinInlineText(left, right) {
+  var l = String(left || "").replace(/\s+$/g, "");
+  var r = String(right || "").replace(/^\s+/g, "");
+  if (!l) return r;
+  if (!r) return l;
+  var punct = r.match(/^([，。；：！？、,.!?;:])\s*(.*)$/);
+  if (punct) return l + normalizeLeadingPunctuation(punct[1]) + punct[2];
+  if (/[A-Za-z0-9]$/.test(l) && /^[A-Za-z0-9]/.test(r)) return l + " " + r;
+  return l + r;
+}
+
+function normalizeAnswerEmphasis(value) {
+  if (typeof value !== "string") return "";
+  return value.split(/(```[\s\S]*?```)/g).map(function(part) {
+    if (part.indexOf("```") === 0) return part;
+    return part.split("\n").map(normalizeReferenceLineEmphasis).join("\n");
+  }).join("");
+}
+
+function normalizeReferenceLineEmphasis(line) {
+  var text = String(line || "");
+  var match = text.match(/^(\s*)\*\*(药材|方剂)\s*[：:]\*\*\s*(.*)$/) ||
+    text.match(/^(\s*)\*\*(药材|方剂)\*\*\s*[：:]\s*(.*)$/) ||
+    text.match(/^(\s*)(药材|方剂)\s*[：:]\s*(.*)$/);
+  if (!match) return line;
+  var label = match[2];
+  var names = match[3]
+    .replace(/\*\*/g, "")
+    .replace(/__/g, "")
+    .replace(/\s*、\s*/g, "、")
+    .trim();
+  return match[1] + "**" + label + "：**" + (names ? " " + names : "");
+}
+
+function renderMarkdownFallback(text) {
+  return String(text || "")
+    .split(/(```[\s\S]*?```)/g)
+    .map(function(part) {
+      if (!part) return "";
+      if (part.indexOf("```") === 0) {
+        return "<pre><code>" + esc(part.replace(/^```\w*\n?/, "").replace(/```$/, "")) + "</code></pre>";
+      }
+      return part.split(/\n{2,}/).filter(function(block) { return block.trim(); }).map(function(block) {
+        return "<p>" + esc(block.split("\n").reduce(joinInlineText)) + "</p>";
+      }).join("");
+    })
+    .join("");
+}
+
 function renderMarkdown(value) {
   var text = value || "";
   if (_marked) return _marked.parse(text);
-  return esc(text).replace(/\n/g, "<br>");
+  return renderMarkdownFallback(text);
 }
 
 function formatSources(sources) {
@@ -168,7 +313,9 @@ function buildGraphRagPipelineHtml(r) {
 
 function buildAnswerHtml(result) {
   var r = result || {};
-  var html = '<div class="rag-answer-body">' + renderMarkdown(r.answer || "") + '</div>';
+  var cleanAnswer = normalizeAnswerText(r.answer || "");
+  var finalAnswer = normalizeAnswerEmphasis(cleanAnswer);
+  var html = '<div class="rag-answer-body">' + renderMarkdown(finalAnswer) + '</div>';
   html += formatSources(r.sources || []);
   html += formatFormulas(r.formulas || []);
   html += buildGraphRagPipelineHtml(r);
@@ -181,7 +328,7 @@ function appendMsg(role, content, time) {
   var div = document.createElement("div");
   var isUser = role === "user";
   div.className = "message " + (isUser ? "user-message" : "ai-message");
-  var icon = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-brain"></i>';
+  var icon = buildMessageAvatar(isUser ? "user" : "ai");
   div.innerHTML = '<div class="message-avatar">' + icon + '</div><div class="message-body"><div class="message-content">' +
     (isUser ? esc(content) : content) + '</div><div class="message-time">' + nowTime(time) + '</div></div>';
   w.appendChild(div);
@@ -465,7 +612,7 @@ async function checkAiHealth() {
 
 document.addEventListener("DOMContentLoaded", function(){
   import("https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js")
-    .then(function(m){ _marked = m.marked; _marked.setOptions({ breaks: true, gfm: true }); })
+    .then(function(m){ _marked = m.marked; _marked.setOptions({ breaks: false, gfm: true }); })
     .catch(function(){});
 
   var btn = document.getElementById("qaSendBtn");
@@ -489,7 +636,7 @@ async function askRag(question) {
   var resp = await fetch(API_BASE + "/api/ai-engine/rag", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: question, useChain: true }),
+    body: JSON.stringify({ question: question, useChain: true, formatInstruction: QA_FORMAT_INSTRUCTION }),
     signal: _abort.signal
   });
   var data = await resp.json().catch(function(){ return {}; });
@@ -501,7 +648,7 @@ async function askRagStream(question, aiDiv) {
   var resp = await fetch(API_BASE + "/api/ai-engine/rag-stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: question, useChain: true }),
+    body: JSON.stringify({ question: question, useChain: true, formatInstruction: QA_FORMAT_INSTRUCTION }),
     signal: _abort.signal
   });
   if (!resp.ok || !resp.body) throw new Error("STREAM_FAILED");

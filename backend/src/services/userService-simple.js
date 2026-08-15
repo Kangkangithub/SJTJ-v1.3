@@ -252,7 +252,7 @@ class UserService {
 
     // 更新用户资料
     async updateProfile(userId, updateData) {
-        const { name, phone, bio, preferences } = updateData;
+        const { name, phone, bio, preferences, avatar } = updateData;
         
         return new Promise((resolve, reject) => {
             const db = this.getDb();
@@ -272,6 +272,10 @@ class UserService {
             if (bio !== undefined) {
                 updates.push('bio = ?');
                 values.push(bio);
+            }
+            if (avatar !== undefined) {
+                updates.push('avatar = ?');
+                values.push(avatar);
             }
             if (preferences !== undefined) {
                 updates.push('preferences = ?');

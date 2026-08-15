@@ -322,8 +322,14 @@ class SimpleDatabaseManager {
     });
   }
 
-  // 数据库迁移：给旧版本 schema 补齐缺失的列（如 is_common）
+  // 数据库迁移：给旧版本 schema 补齐缺失的列
   async migrateDatabase() {
+    await this.ensureColumns('users', {
+      phone: 'phone TEXT',
+      bio: 'bio TEXT',
+      avatar: 'avatar TEXT'
+    });
+
     return new Promise((resolve, reject) => {
       this.db.all(`PRAGMA table_info(herbs)`, (err, columns) => {
         if (err) { reject(err); return; }
@@ -341,6 +347,27 @@ class SimpleDatabaseManager {
         } else {
           resolve();
         }
+      });
+    });
+  }
+
+  async ensureColumns(tableName, columnDefs) {
+    const entries = Object.entries(columnDefs);
+    return new Promise((resolve, reject) => {
+      this.db.all(`PRAGMA table_info(${tableName})`, (err, columns) => {
+        if (err) { reject(err); return; }
+        const existing = new Set((columns || []).map(c => c.name));
+        const missing = entries.filter(([name]) => !existing.has(name));
+        const addNext = (index) => {
+          if (index >= missing.length) { resolve(); return; }
+          const [name, definition] = missing[index];
+          this.db.run(`ALTER TABLE ${tableName} ADD COLUMN ${definition}`, (alterErr) => {
+            if (alterErr) { reject(alterErr); return; }
+            logger.info(`✅ 已自动迁移：${tableName} 表新增 ${name} 列`);
+            addNext(index + 1);
+          });
+        };
+        addNext(0);
       });
     });
   }

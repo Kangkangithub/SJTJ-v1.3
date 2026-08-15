@@ -85,6 +85,19 @@
     flex-shrink: 0;
     font-size: 14px;
     color: #fff;
+    overflow: hidden;
+}
+
+.message-avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.message-avatar-initial {
+    font-weight: 800;
+    line-height: 1;
 }
 
 .ai-message .message-avatar {
@@ -330,6 +343,18 @@
 .ai-message .message-content strong {
     color: #fff;
     font-weight: 600;
+    display: inline;
+}
+
+.ai-message .message-content em,
+.rag-answer-body strong,
+.rag-answer-body em,
+.rag-answer-body span {
+    display: inline;
+}
+
+.rag-answer-body strong {
+    font-weight: 600;
 }
 /* =============================================
    RAG 管道动画 - 5步加载指示器
@@ -444,6 +469,9 @@
 .rag-answer-body {
   padding: 4px 0;
   line-height: 1.7;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 /* =============================================

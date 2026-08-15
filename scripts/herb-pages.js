@@ -187,6 +187,7 @@
       if (herbId) {
         const detail = await apiGet(`/api/herbs/${encodeURIComponent(herbId)}`);
         state.detailHerb = normalizeHerb(unwrap(detail));
+        await loadSimilarHerbsForDetail(state.detailHerb);
         await hydrateHerbImages([state.detailHerb]);
         state.apiOnline = true;
         return;
@@ -195,11 +196,22 @@
       if (state.selectedHerbName) {
         const detail = await apiGet(`/api/knowledge/herb-details/${encodeURIComponent(state.selectedHerbName)}`);
         state.detailHerb = normalizeHerb(unwrap(detail));
+        await loadSimilarHerbsForDetail(state.detailHerb);
         await hydrateHerbImages([state.detailHerb]);
         state.apiOnline = true;
       }
     } catch (error) {
       state.detailHerb = null;
+    }
+  }
+
+  async function loadSimilarHerbsForDetail(herb) {
+    if (!herb?.id) return;
+    try {
+      const response = await apiGet(`/api/herbs/${encodeURIComponent(herb.id)}/similar?limit=4`);
+      herb.similarHerbs = normalizeHerbs(unwrap(response)?.similar_herbs || []);
+    } catch (error) {
+      herb.similarHerbs = [];
     }
   }
 
@@ -515,7 +527,7 @@
       return `<section class="section"><div class="empty-state">暂无药材详情，请从药材查询页选择一条药材。</div></section>`;
     }
     const relatedFormulas = findRelatedFormulas(herb);
-    const relatedHerbs = state.herbs.filter((item) => item.id !== herb.id && item.category === herb.category).slice(0, 4);
+    const relatedHerbs = findRelatedHerbs(herb);
 
     return `
       <section class="section">
@@ -545,17 +557,14 @@
               </div>
             </div>
             ${renderHerbVideo(herb)}
-            ${renderHerbEnrichTool(herb)}
             <div class="grid grid-2" style="margin-top: 16px;">
               ${renderInfoCard('性味', herb.nature || herb.properties.join('、') || '暂无')}
+              <div class="card pad"><h3>归经</h3><div class="chip-row">${renderChips(herb.meridian)}</div></div>
               ${renderInfoCard('用法用量', herb.usage || '暂无')}
               ${renderInfoCard('功效', herb.efficacy.join('、') || '暂无')}
-              ${renderInfoCard('注意事项', herb.caution || '暂无')}
+              ${renderInfoCard('注意事项', herb.caution || '暂无', 'detail-info-wide')}
             </div>
-            <div class="grid grid-2" style="margin-top: 16px;">
-              <div class="card pad"><h3>归经</h3><div class="chip-row">${renderChips(herb.meridian)}</div></div>
-              <div class="card pad"><h3>相关方剂</h3><div class="list-stack">${relatedFormulas.map(renderFormulaLinkItem).join('') || '<div class="empty-state">暂无关联方剂。</div>'}</div></div>
-            </div>
+            <div class="card pad" style="margin-top: 16px;"><h3>相关方剂</h3><div class="list-stack">${relatedFormulas.map(renderFormulaLinkItem).join('') || '<div class="empty-state">暂无关联方剂。</div>'}</div></div>
           </div>
           <aside>
             <div class="card pad">
@@ -567,6 +576,7 @@
                 <div><dt>分类</dt><dd>${escapeHtml(herb.category || '暂无')}</dd></div>
               </dl>
             </div>
+            ${renderHerbEnrichTool(herb)}
             <div class="card pad" style="margin-top: 16px;"><h3>同类药材</h3><div class="list-stack">${relatedHerbs.map(renderHerbLinkItem).join('') || '<div class="empty-state">暂无同类药材。</div>'}</div></div>
           </aside>
         </div>
@@ -618,7 +628,7 @@
           </div>
           <aside>
             <div class="card pad"><h3>图谱规模</h3><p>节点 ${graphView.totalNodes} 个，关系 ${graphView.totalLinks} 条。</p></div>
-            ${renderRegionDistribution()}
+            ${renderCurrentHerbSummary(graphView)}
           </aside>
         </div>
       </section>
@@ -652,7 +662,7 @@
         <div class="section-header"><div><h2 class="section-title">推荐</h2><p class="section-note">根据常用药材标记、方剂收录关系和方剂组成数据整理。</p></div><a class="link-btn" href="herb-search.html">继续查询药材</a></div>
         ${renderCompatibilityTool()}
         <div class="grid grid-2">
-          <div class="card pad"><h3>药材推荐</h3><p class="card-note">常用药材标记来自药材基础库预置，排序同时参考方剂收录数量。</p><div class="list-stack">${herbs.map(renderRecommendationHerbItem).join('') || `<div class="empty-state">${herbEmpty}</div>`}</div></div>
+          <div class="card pad"><h3>药材推荐</h3><p class="card-note">根据常用药材标记和方剂收录数量排序。</p><div class="list-stack">${herbs.map(renderRecommendationHerbItem).join('') || `<div class="empty-state">${herbEmpty}</div>`}</div></div>
           <div class="card pad"><h3>推荐方剂</h3><p class="card-note">根据方剂组成数量和方剂库记录整理。</p><div class="list-stack">${formulas.map(renderRecommendationFormulaItem).join('') || `<div class="empty-state">${formulaEmpty}</div>`}</div></div>
         </div>
       </section>
@@ -1127,6 +1137,7 @@
     const meridian = normalizeList(source.meridian || source.meridians, 'name');
     const properties = normalizeList(source.properties, 'name');
     const formulas = normalizeFormulas(source.formulas || []);
+    const similarHerbs = normalizeHerbs(source.similarHerbs || source.relatedHerbs || source.similar_herbs || []);
     const category = source.category || source.category_name || source.categoryName || '';
     const region = source.region || source.region_name || source.regionName || '';
     const nature = source.nature || properties.join('、') || source.property || '';
@@ -1150,6 +1161,7 @@
       description: source.description || source.efficacy || '',
       composition: normalizeList(source.composition),
       formulas,
+      similarHerbs,
       formulaIds: normalizeList(source.formulaIds).map(Number).filter(Boolean),
       isCommon: Boolean(source.is_common || source.isCommon),
       images,
@@ -1342,6 +1354,48 @@
     return `<${tag} class="graph-node${item.center ? ' center' : ''}"${href} style="left:${item.x}%; top:${item.y}%; --node:${item.color};"><span>${escapeHtml(item.name)}</span><small>${escapeHtml(item.subtitle || item.type || '')}</small></${tag}>`;
   }
 
+  function renderCurrentHerbSummary(graphView) {
+    const center = graphView.nodes.find((node) => node.center) || graphView.nodes.find((node) => node.type === 'Herb');
+    if (!center) {
+      return '<div class="card pad" style="margin-top: 16px;"><h3>当前药材关系摘要</h3><div class="empty-state">请选择中心药材后查看关系摘要。</div></div>';
+    }
+    const grouped = groupGraphSummaryNodes(graphView.nodes.filter((node) => node.id !== center.id));
+    const rows = [
+      ['当前药材', center.name],
+      ['所属分类', formatGraphSummaryNames(grouped.Category)],
+      ['产地', formatGraphSummaryNames(grouped.Region)],
+      ['性味', formatGraphSummaryNames(grouped.Property)],
+      ['归经', formatGraphSummaryNames(grouped.Meridian)],
+      ['功效', formatGraphSummaryNames(grouped.Efficacy)]
+    ];
+    const stats = ['Category', 'Region', 'Property', 'Meridian', 'Efficacy', 'Formula']
+      .map((type) => ({ type, label: graphTypeLabel(type), count: grouped[type]?.length || 0 }))
+      .filter((item) => item.count > 0);
+    return `
+      <div class="card pad current-herb-summary" style="margin-top: 16px;">
+        <h3>当前药材关系摘要</h3>
+        <dl class="fact-list">${rows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || '暂无')}</dd></div>`).join('')}</dl>
+        ${stats.length ? `<div class="graph-summary-stats"><p class="section-note">关联节点统计</p><div class="chip-row">${stats.map((item) => `<span class="chip">${escapeHtml(item.label)} ${displayCount(item.count)}</span>`).join('')}</div></div>` : ''}
+      </div>
+    `;
+  }
+
+  function groupGraphSummaryNodes(nodes) {
+    return nodes.reduce((groups, node) => {
+      if (!groups[node.type]) groups[node.type] = [];
+      if (!groups[node.type].some((item) => item.name === node.name)) groups[node.type].push(node);
+      return groups;
+    }, {});
+  }
+
+  function formatGraphSummaryNames(nodes) {
+    return (nodes || []).map((node) => node.name).filter(Boolean).join('、') || '暂无';
+  }
+
+  function graphTypeLabel(type) {
+    return { Category: '分类', Region: '产地', Property: '性味', Meridian: '归经', Efficacy: '功效', Formula: '方剂' }[type] || '节点';
+  }
+
   function renderRegionDistribution() {
     const regions = state.regionDistribution?.regions || [];
     if (!regions.length) return `<div class="card pad js-region-distribution" style="margin-top: 16px;"><h3>产地分布</h3><p>暂无产地分布数据。</p></div>`;
@@ -1499,8 +1553,9 @@
     return String(value || '').split(/[，,、\s]+/).map((item) => item.trim()).filter(Boolean);
   }
 
-  function renderInfoCard(title, text) {
-    return `<div class="card pad"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text || '暂无')}</p></div>`;
+  function renderInfoCard(title, text, className = '') {
+    const extraClass = className ? ` ${escapeAttr(className)}` : '';
+    return `<div class="card pad${extraClass}"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text || '暂无')}</p></div>`;
   }
 
   function renderStatListCard(item) {
@@ -1563,6 +1618,12 @@
     const remote = normalizeFormulas(herb.formulas || []);
     if (remote.length) return remote;
     return state.formulas.filter((formula) => formula.herbs.includes(herb.name) || herb.formulaIds.includes(Number(formula.id))).slice(0, 4);
+  }
+
+  function findRelatedHerbs(herb) {
+    const remote = normalizeHerbs(herb.similarHerbs || herb.relatedHerbs || []);
+    if (remote.length) return remote.slice(0, 4);
+    return state.herbs.filter((item) => item.id !== herb.id && item.category === herb.category).slice(0, 4);
   }
 
   function resolveFormulaId(query) {

@@ -432,6 +432,10 @@ img {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.detail-info-wide {
+  grid-column: 1 / -1;
+}
+
 .grid-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1055,6 +1059,10 @@ img {
 
 .fact-list dd {
   margin: 0;
+}
+
+.graph-summary-stats {
+  margin-top: 14px;
 }
 
 .list-stack {

@@ -136,11 +136,28 @@ async function getHerbFullInfo(db, herbId) {
     );
   });
 
+  // 相关方剂
+  const formulas = await new Promise((resolve, reject) => {
+    db.all(
+      `SELECT f.id, f.name, fh.dosage, fh.role
+       FROM formula_herbs fh
+       JOIN formulas f ON fh.formula_id = f.id
+       WHERE fh.herb_id = ?
+       ORDER BY f.name`,
+      [herbId],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      }
+    );
+  });
+
   return {
     ...herb,
     properties,
     meridians,
     efficacies,
+    formulas,
     images: resolveHerbImages(herb.name, JSON.parse(herb.images || '[]')),
     video: resolveHerbVideo(herb.name, null),
     quality: JSON.parse(herb.quality || '{}')

@@ -39,7 +39,7 @@ function buildWhere(query) {
 }
 
 function buildHerbReason(item) {
-  if (item.is_common) return '预置常用药材';
+  if (item.is_common) return '常用药材';
   if (item.formula_count > 0) return `收录于 ${item.formula_count} 个方剂`;
   return '来自药材库记录';
 }

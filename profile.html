@@ -32,69 +32,63 @@
                 <div id="profileMessage" class="profile-message" role="status" aria-live="polite"></div>
             </div>
 
-            <div class="profile-layout">
-                <aside class="profile-summary card" aria-label="账户摘要">
-                    <button type="button" id="avatarButton" class="avatar-button" aria-label="选择头像预览">
-                        <span id="avatarInitial" class="avatar-initial"></span>
-                        <img id="avatarImage" class="avatar-image" alt="" hidden>
-                    </button>
-                    <input type="file" id="avatarInput" accept="image/*" hidden>
-                    <p id="avatarHint" class="avatar-hint">可选择头像预览。</p>
-                    <h2 id="summaryName">正在读取资料</h2>
-                    <p id="summaryEmail"></p>
-                    <div id="adminEntry" class="profile-admin-entry" hidden><a class="btn btn-primary" href="admin.html">管理后台</a></div>
-                    <dl class="profile-facts">
-                        <div>
-                            <dt>账号状态</dt>
-                            <dd id="summaryStatus">-</dd>
-                        </div>
-                        <div>
-                            <dt>角色</dt>
-                            <dd id="summaryRole">-</dd>
-                        </div>
-                    </dl>
-                </aside>
-
-                <section class="profile-form-panel card" aria-label="资料表单">
-                    <form id="profileForm">
-                        <section class="form-section" aria-labelledby="basicInfoTitle">
-                            <h2 id="basicInfoTitle">基本信息</h2>
-                            <div class="profile-form-grid">
-                                <div class="form-group">
-                                    <label for="username">用户名</label>
-                                    <input type="text" id="username" name="username" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">电子邮箱</label>
-                                    <input type="email" id="email" name="email" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label for="displayName">显示名称</label>
-                                    <input type="text" id="displayName" name="displayName" placeholder="请输入显示名称">
-                                </div>
-                                <div class="form-group">
-                                    <label for="phone">手机号</label>
-                                    <input type="tel" id="phone" name="phone" placeholder="请输入手机号" autocomplete="tel">
-                                </div>
+            <section class="profile-card card" aria-label="个人资料">
+                <div class="profile-card-grid">
+                    <aside class="profile-summary" aria-label="账户摘要">
+                        <button type="button" id="avatarButton" class="avatar-button" aria-label="选择头像预览">
+                            <span id="avatarInitial" class="avatar-initial"></span>
+                            <img id="avatarImage" class="avatar-image" alt="" hidden>
+                        </button>
+                        <input type="file" id="avatarInput" accept="image/*" hidden>
+                        <p id="avatarHint" class="avatar-hint">可选择头像预览。</p>
+                        <div class="profile-identity">
+                            <div>
+                                <span class="profile-identity-label">显示名称</span>
+                                <strong id="summaryName">正在读取资料</strong>
                             </div>
-                        </section>
-
-                        <section class="form-section" aria-labelledby="bioTitle">
-                            <h2 id="bioTitle">个人简介</h2>
-                            <div class="form-group">
-                                <label for="bio">简介</label>
-                                <textarea id="bio" name="bio" rows="5" placeholder="写一点你的学习方向或关注的药材"></textarea>
+                            <div>
+                                <span class="profile-identity-label">电子邮箱</span>
+                                <span id="summaryEmail"></span>
                             </div>
-                        </section>
-
-                        <div class="profile-form-actions">
-                            <button type="submit" id="saveProfileBtn" class="btn btn-primary" disabled>保存修改</button>
-                            <button type="button" id="resetProfileBtn" class="btn secondary" disabled>重置</button>
-                            <button type="button" id="openPasswordBtn" class="btn ghost" disabled>修改密码</button>
                         </div>
-                    </form>
-                </section>
-            </div>
+                        <div id="adminEntry" class="profile-admin-entry" hidden><a class="btn btn-primary" href="admin.html">管理后台</a></div>
+                        <dl class="profile-facts">
+                            <div>
+                                <dt>角色</dt>
+                                <dd><span id="summaryRole" class="profile-role-badge">-</span></dd>
+                            </div>
+                        </dl>
+                    </aside>
+
+                    <section class="profile-form-panel" aria-label="资料表单">
+                        <form id="profileForm">
+                            <section class="form-section" aria-labelledby="editableInfoTitle">
+                                <h2 id="editableInfoTitle">资料编辑</h2>
+                                <div class="profile-form-grid">
+                                    <div class="form-group">
+                                        <label for="displayName">显示名称</label>
+                                        <input type="text" id="displayName" name="displayName" placeholder="请输入显示名称">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">手机号</label>
+                                        <input type="tel" id="phone" name="phone" placeholder="请输入手机号" autocomplete="tel">
+                                    </div>
+                                    <div class="form-group profile-form-wide">
+                                        <label for="bio">关注方向</label>
+                                        <textarea id="bio" name="bio" rows="3" placeholder="例如：补虚药、方剂配伍、药材识别"></textarea>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div class="profile-form-actions">
+                                <button type="submit" id="saveProfileBtn" class="btn btn-primary" disabled>保存修改</button>
+                                <button type="button" id="resetProfileBtn" class="btn secondary" disabled>重置</button>
+                                <button type="button" id="openPasswordBtn" class="btn ghost" disabled>修改密码</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -134,7 +128,9 @@
         const profileMessage = document.getElementById('profileMessage');
         const passwordMessage = document.getElementById('passwordMessage');
         const passwordModal = document.getElementById('passwordModal');
+        const MAX_AVATAR_SIZE = 1024 * 1024;
         let lastProfile = null;
+        let pendingAvatarDataUrl = '';
 
         document.addEventListener('DOMContentLoaded', loadProfile);
         profileForm.addEventListener('submit', saveProfile);
@@ -146,6 +142,8 @@
             }
             fillProfile(lastProfile);
             updateAdminEntry(lastProfile);
+            pendingAvatarDataUrl = '';
+            document.getElementById('avatarInput').value = '';
             showProfileMessage('已恢复到最近一次读取的资料。', 'success');
         });
         document.getElementById('openPasswordBtn').addEventListener('click', openPasswordModal);
@@ -207,6 +205,9 @@
                 phone: document.getElementById('phone').value.trim(),
                 bio: document.getElementById('bio').value.trim()
             };
+            if (pendingAvatarDataUrl) {
+                payload.avatar = pendingAvatarDataUrl;
+            }
 
             try {
                 saveBtn.disabled = true;
@@ -235,6 +236,8 @@
                 lastProfile = data.data;
                 fillProfile(lastProfile);
                 updateAdminEntry(lastProfile);
+                pendingAvatarDataUrl = '';
+                document.getElementById('avatarInput').value = '';
                 localStorage.setItem('userInfo', JSON.stringify({ ...lastProfile, isLoggedIn: true }));
                 showProfileMessage('资料已保存。', 'success');
             } catch (error) {
@@ -309,14 +312,12 @@
             const displayName = user.name || user.username || '';
             document.getElementById('summaryName').textContent = displayName || '未填写名称';
             document.getElementById('summaryEmail').textContent = user.email || '';
-            document.getElementById('summaryStatus').textContent = normalizeStatus(user.status);
             document.getElementById('summaryRole').textContent = normalizeRole(user.role);
-            document.getElementById('username').value = user.username || '';
-            document.getElementById('email').value = user.email || '';
             document.getElementById('displayName').value = user.name || '';
             document.getElementById('phone').value = user.phone || '';
             document.getElementById('bio').value = user.bio || '';
             renderAvatar(user.avatar, displayName || user.email || '');
+            document.getElementById('avatarHint').textContent = user.avatar ? '点击头像可更换。' : '可选择头像预览。';
         }
 
         function setProfileFormEnabled(enabled) {
@@ -342,13 +343,28 @@
         function previewAvatar(event) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                event.target.value = '';
+                showProfileMessage('请选择图片格式的头像文件。', 'error');
+                return;
+            }
+            if (file.size > MAX_AVATAR_SIZE) {
+                event.target.value = '';
+                showProfileMessage('头像文件不能超过 1MB。', 'error');
+                return;
+            }
             const reader = new FileReader();
             reader.onload = function() {
                 const image = document.getElementById('avatarImage');
                 document.getElementById('avatarInitial').textContent = '';
                 image.src = reader.result;
                 image.hidden = false;
-                document.getElementById('avatarHint').textContent = '头像仅在当前页面预览，暂未接入保存。';
+                pendingAvatarDataUrl = reader.result;
+                document.getElementById('avatarHint').textContent = '头像将在保存资料后生效。';
+                showProfileMessage('头像已预览，保存资料后生效。', 'success');
+            };
+            reader.onerror = function() {
+                showProfileMessage('头像读取失败，请重新选择图片。', 'error');
             };
             reader.readAsDataURL(file);
         }
@@ -399,9 +415,6 @@
             passwordMessage.className = `profile-message ${type || ''}`.trim();
         }
 
-        function normalizeStatus(status) {
-            return ({ active: '正常', disabled: '已停用' })[status] || (status || '-');
-        }
 
         function normalizeRole(role) {
             return ({ admin: '管理员', user: '用户' })[role] || (role || '-');
