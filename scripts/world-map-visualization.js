@@ -307,12 +307,14 @@ class WorldMapVisualization {
             });
             const categories = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
 
-            // 常用药 / 其他
-            const commonHerbs = herbs.filter(h => h.is_common);
-            const normalHerbs = herbs.filter(h => !h.is_common);
+            // 所属药材统一展示：可按常用优先排序，但不再拆分“常用/其他”分组
+            const allHerbs = this.uniqueHerbsByName(herbs).sort((a, b) => {
+                if (Boolean(a.is_common) !== Boolean(b.is_common)) return a.is_common ? -1 : 1;
+                return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hans-CN');
+            });
 
-            // 并行获取主要药材的详细信息（功效、性味、归经）
-            const detailHerbs = [...commonHerbs, ...normalHerbs].slice(0, 10);
+            // 并行获取药材详情（功效、性味、归经）
+            const detailHerbs = allHerbs.slice(0, 10);
             const details = await Promise.all(detailHerbs.map(async h => {
                 try {
                     const r = await fetch(`/api/herbs-manage/${encodeURIComponent(h.name)}`);
@@ -330,14 +332,6 @@ class WorldMapVisualization {
             const herbCount = herbs.length;
             const catCount = categories.length;
 
-            // 其他药材折叠展示（前 12 种，超出显示“展开全部”）
-            const NORMAL_LIMIT = 12;
-            const normalCollapsed = normalHerbs.length > NORMAL_LIMIT;
-            const normalShown = normalCollapsed ? normalHerbs.slice(0, NORMAL_LIMIT) : normalHerbs;
-            const normalTagsHtml = normalShown.map(h => `<span class="herb-tag">${h.name}</span>`).join('');
-            const normalExpandBtn = normalCollapsed
-                ? `<button type="button" class="herb-tag-expand js-expand-herbs" data-count="${normalHerbs.length}">展开全部 ${normalHerbs.length} 种</button>`
-                : '';
 
             // 生成内容
             body.innerHTML = `
@@ -369,33 +363,20 @@ class WorldMapVisualization {
                 </div>
                 ` : ''}
 
-                <!-- 常用药材 -->
-                ${commonHerbs.length > 0 ? `
+                <!-- 所属药材 -->
+                ${allHerbs.length > 0 ? `
                 <div class="panel-section">
-                    <h4 class="section-title star-title">⭐ 常用药材</h4>
+                    <h4 class="section-title">🌿 所属药材</h4>
                     <div class="herb-tags">
-                        ${commonHerbs.map(h => `
-                            <span class="herb-tag common">${h.name}</span>
-                        `).join('')}
+                        ${allHerbs.map(h => `<span class="herb-tag">${h.name}</span>`).join('')}
                     </div>
                 </div>
                 ` : ''}
 
-                <!-- 其他药材 -->
-                ${normalHerbs.length > 0 ? `
-                <div class="panel-section">
-                    <h4 class="section-title">🌿 其他药材</h4>
-                    <div class="herb-tags">
-                        ${normalTagsHtml}
-                        ${normalExpandBtn}
-                    </div>
-                </div>
-                ` : ''}
-
-                <!-- 主要药材详情 -->
+                <!-- 药材详情 -->
                 ${details.length > 0 ? `
                 <div class="panel-section">
-                    <h4 class="section-title herb-detail-title">📖 主要药材详情</h4>
+                    <h4 class="section-title herb-detail-title">📖 药材详情</h4>
                     ${details.map(d => this.buildHerbCard(d)).join('')}
                 </div>
                 ` : ''}
@@ -403,37 +384,22 @@ class WorldMapVisualization {
                 ${herbs.length === 0 ? '<p class="panel-empty">暂无药材数据</p>' : ''}
             `;
 
-            // 绑定“其他药材”展开/收回事件（展开后显示“收回”，点击恢复折叠）
-            const otherSection = Array.from(body.querySelectorAll('.panel-section')).find(s =>
-                (s.querySelector('.section-title')?.textContent || '').includes('其他药材')
-            );
-            const herbsTagsBox = otherSection ? otherSection.querySelector('.herb-tags') : null;
-            if (herbsTagsBox) {
-                // 折叠态：前 NORMAL_LIMIT 种 + “展开全部 N 种”
-                const renderCollapsed = () => {
-                    herbsTagsBox.innerHTML = normalShown.map(h => `<span class="herb-tag">${h.name}</span>`).join('')
-                        + (normalCollapsed
-                            ? `<button type="button" class="herb-tag-expand js-expand-herbs" data-count="${normalHerbs.length}">展开全部 ${normalHerbs.length} 种</button>`
-                            : '');
-                };
-                // 展开态：全部 + “收回”按钮
-                const renderExpanded = () => {
-                    herbsTagsBox.innerHTML = normalHerbs.map(h => `<span class="herb-tag">${h.name}</span>`).join('')
-                        + `<button type="button" class="herb-tag-expand js-collapse-herbs">收回</button>`;
-                };
-                herbsTagsBox.addEventListener('click', (e) => {
-                    const btn = e.target.closest('button');
-                    if (!btn) return;
-                    if (btn.classList.contains('js-expand-herbs')) {
-                        renderExpanded();
-                    } else if (btn.classList.contains('js-collapse-herbs')) {
-                        renderCollapsed();
-                    }
-                });
-            }
         } catch (error) {
             body.innerHTML = `<div class="panel-error">加载失败: ${error.message}</div>`;
         }
+    }
+
+    /**
+     * 按药材名称去重，避免省份面板重复显示同一药材
+     */
+    uniqueHerbsByName(items) {
+        const seen = new Set();
+        return (Array.isArray(items) ? items : []).filter(item => {
+            const name = item && (item.name || item.herb_name);
+            if (!name || seen.has(name)) return false;
+            seen.add(name);
+            return true;
+        });
     }
 
     /**

@@ -291,8 +291,8 @@
 
   function renderTopbar() {
     const isAuthenticated = Boolean(localStorage.getItem('authToken') || localStorage.getItem('token'));
-    const userName = isAuthenticated ? getStoredUserName() : '';
-    const userLabel = userName || '个人中心';
+    const userInfo = isAuthenticated ? getStoredUserInfo() : {};
+    const userLabel = isAuthenticated ? getStoredUserName(userInfo) || '个人中心' : '登录';
     return `
       <header class="topbar">
         <div class="topbar-inner">
@@ -304,7 +304,14 @@
             </div>
           </a>
           <div class="user-entry">
-            <a class="btn ${isAuthenticated ? 'btn-secondary' : 'btn-primary'}" href="${isAuthenticated ? 'profile.html' : 'login.html'}" aria-label="${isAuthenticated ? '打开个人中心' : '登录'}"><i class="fa-solid ${isAuthenticated ? 'fa-user' : 'fa-right-to-bracket'}"></i> ${isAuthenticated ? escapeHtml(userLabel) : '登录'}</a>
+            ${isAuthenticated ? `
+              <a class="user-profile-link" href="profile.html" aria-label="打开个人中心：${escapeAttr(userLabel)}">
+                ${renderUserAvatar(userInfo, userLabel)}
+                <span class="user-display-name">${escapeHtml(userLabel)}</span>
+              </a>
+            ` : `
+              <a class="btn btn-primary" href="login.html" aria-label="登录"><i class="fa-solid fa-right-to-bracket"></i> 登录</a>
+            `}
           </div>
         </div>
         <nav class="nav">
@@ -1810,14 +1817,26 @@
     return options.map((item) => `<option value="${escapeAttr(item)}"${item === selected ? ' selected' : ''}>${escapeHtml(item)}</option>`).join('');
   }
 
-  function getStoredUserName() {
+  function getStoredUserInfo() {
     try {
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-      const value = userInfo.name || userInfo.username || ''; 
-      return typeof value === 'string' ? value.trim() : ''; 
+      return JSON.parse(localStorage.getItem('userInfo') || '{}') || {};
     } catch (error) {
-      return ''; 
+      return {};
     }
+  }
+
+  function getStoredUserName(userInfo = getStoredUserInfo()) {
+    const value = userInfo.name || userInfo.username || userInfo.email || '';
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  function renderUserAvatar(userInfo, label) {
+    const avatar = userInfo?.avatar || userInfo?.profile?.avatar || '';
+    if (typeof avatar === 'string' && avatar.startsWith('data:image/')) {
+      return `<span class="user-avatar"><img src="${escapeAttr(avatar)}" alt="用户头像"></span>`;
+    }
+    const initial = String(label || '用').trim().charAt(0).toUpperCase() || '用';
+    return `<span class="user-avatar user-avatar-initial">${escapeHtml(initial)}</span>`;
   }
 
   function renderFooter() {

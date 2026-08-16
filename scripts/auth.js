@@ -14,20 +14,36 @@ function updateUserStatusDisplay() {
         return;
     }
 
-    const userName = getStoredUserName();
+    const userInfo = getStoredUserInfo();
+    const userName = getStoredUserName(userInfo);
     userStatusElement.innerHTML = `
-        <a href="profile.html" class="btn btn-secondary secondary"><i class="fa-solid fa-user"></i> ${escapeHtml(userName || '个人中心')}</a>
+        <a href="profile.html" class="user-profile-link" aria-label="打开个人中心：${escapeHtml(userName || '个人中心')}">
+            ${renderUserAvatar(userInfo, userName || '个人中心')}
+            <span class="user-display-name">${escapeHtml(userName || '个人中心')}</span>
+        </a>
     `;
 }
 
-function getStoredUserName() {
+function getStoredUserInfo() {
     try {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-        const value = userInfo.name || userInfo.username || '';
-        return typeof value === 'string' ? value.trim() : '';
+        return JSON.parse(localStorage.getItem('userInfo') || '{}') || {};
     } catch (error) {
-        return '';
+        return {};
     }
+}
+
+function getStoredUserName(userInfo = getStoredUserInfo()) {
+    const value = userInfo.name || userInfo.username || userInfo.email || '';
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function renderUserAvatar(userInfo, label) {
+    const avatar = userInfo && (userInfo.avatar || (userInfo.profile && userInfo.profile.avatar));
+    if (typeof avatar === 'string' && avatar.indexOf('data:image/') === 0) {
+        return `<span class="user-avatar"><img src="${escapeHtml(avatar)}" alt="用户头像"></span>`;
+    }
+    const initial = String(label || '用').trim().charAt(0).toUpperCase() || '用';
+    return `<span class="user-avatar user-avatar-initial">${escapeHtml(initial)}</span>`;
 }
 
 function logout() {
