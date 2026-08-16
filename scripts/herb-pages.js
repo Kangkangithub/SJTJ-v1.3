@@ -45,6 +45,7 @@
     stats: normalizeStats({}),
     graph: null,
     graphError: false,
+    mapMode: false,
     regionDistribution: null,
     regionPage: 1,
     regionPageSize: 6,
@@ -592,6 +593,10 @@
       : state.graphError
         ? '知识图谱加载失败，请稍后重试。'
         : '暂无知识图谱数据。';
+    const sectionNote = state.mapMode
+      ? '通过中国地图直观展示各省份中药材分布与产地关系。'
+      : '通过关系网络直观展示药材之间的关联结构。';
+    // —— 图谱视图布局 ——
     const graphToolbar = hasGraph ? `
       <div class="toolbar graph-toolbar">
         <div class="field graph-search-field">
@@ -605,33 +610,73 @@
         </div>
         <a class="btn btn-primary" href="herb-detail.html?herb=${encodeURIComponent(graphView.focusName)}"><i class="fa-solid fa-circle-info"></i> 打开详情</a>
       </div>
-    ` : `<div class="empty-state">${graphStatusMessage}</div>`; 
+    ` : `<div class="empty-state">${graphStatusMessage}</div>`;
     const graphCanvas = hasGraph ? `
       <div class="graph-canvas" role="img" aria-label="药材知识图谱关系图">
         <svg class="graph-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${graphView.lines.map((item) => `<line x1="${item.x1}" y1="${item.y1}" x2="${item.x2}" y2="${item.y2}" stroke="${item.stroke}" stroke-width="0.7" stroke-linecap="round" />`).join('')}</svg>
         ${graphView.nodes.map((item) => renderGraphNode(item)).join('')}
       </div>
-    ` : `<div class="graph-canvas empty-graph"><div class="empty-state">${graphStatusMessage}</div></div>`; 
+    ` : `<div class="graph-canvas empty-graph"><div class="empty-state">${graphStatusMessage}</div></div>`;
+    const graphViewHtml = `
+      <div class="graph-layout"${state.mapMode ? ' style="display:none"' : ''}>
+        <div class="graph-stage">
+          ${graphToolbar}
+          ${graphCanvas}
+          ${hasGraph ? `<div class="graph-legend">${graphView.legend.map((item) => `<span class="legend-item"><span class="legend-dot" style="--color:${item.color}"></span>${escapeHtml(item.label)}</span>`).join('')}</div>` : ''}
+        </div>
+        <aside>
+          <div class="card pad"><h3>图谱规模</h3><p>节点 ${graphView.totalNodes} 个，关系 ${graphView.totalLinks} 条。</p></div>
+          ${renderCurrentHerbSummary(graphView)}
+        </aside>
+      </div>
+    `;
+    // —— 地图视图布局（地图为视觉中心 + 右侧省份详情常驻栏） ——
+    const mapViewHtml = `
+      <div class="map-layout"${state.mapMode ? '' : ' style="display:none"'}>
+        <div class="map-card">
+          <div class="map-container" id="map-container">
+            <div class="map-visualization" id="map-visualization"></div>
+          </div>
+        </div>
+        ${renderRegionDetailsPanel()}
+      </div>
+    `;
     return `
-      <section class="section">
+      <section class="section graph-section">
         <div class="section-header">
           <div>
             <h2 class="section-title">知识图谱</h2>
-            <p class="section-note">通过关系网络直观展示药材之间的关联结构。</p>
+            <p class="section-note">${sectionNote}</p>
+          </div>
+          <div class="view-switch" role="group" aria-label="视图切换">
+            <button type="button" class="btn ${state.mapMode ? 'btn-secondary' : 'btn-primary'} js-graph-view-btn" data-view="graph">图谱视图</button>
+            <button type="button" class="btn ${state.mapMode ? 'btn-primary' : 'btn-secondary'} js-map-view-btn" data-view="map">地图视图</button>
           </div>
         </div>
-        <div class="graph-layout">
-          <div class="graph-stage">
-            ${graphToolbar}
-            ${graphCanvas}
-            ${hasGraph ? `<div class="graph-legend">${graphView.legend.map((item) => `<span class="legend-item"><span class="legend-dot" style="--color:${item.color}"></span>${escapeHtml(item.label)}</span>`).join('')}</div>` : ''}
-          </div>
-          <aside>
-            <div class="card pad"><h3>图谱规模</h3><p>节点 ${graphView.totalNodes} 个，关系 ${graphView.totalLinks} 条。</p></div>
-            ${renderCurrentHerbSummary(graphView)}
-          </aside>
-        </div>
+        ${graphViewHtml}
+        ${mapViewHtml}
       </section>
+    `;
+  }
+
+  function renderRegionDetailsPanel() {
+    return `
+      <div class="region-details-panel" id="regionDetailsPanel">
+        <div class="panel-header">
+          <button type="button" class="panel-close js-map-panel-close" aria-label="关闭">✕</button>
+          <div class="panel-title">
+            <div class="title-stamp">🌿</div>
+            <div class="title-text">
+              <h2 id="panelRegionCn">省份</h2>
+              <span id="panelRegionEn">Province</span>
+            </div>
+          </div>
+          <div class="header-ornament">⚕</div>
+        </div>
+        <div class="panel-body" id="regionPanelBody">
+          <div class="panel-loading">点击地图省份，查看该省药材分布详情。</div>
+        </div>
+      </div>
     `;
   }
 
@@ -865,6 +910,27 @@
 
   function bindGraph() {
     bindRegionPager();
+    // —— 图谱 / 地图 视图切换 ——
+    document.querySelectorAll('.js-graph-view-btn, .js-map-view-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const next = button.dataset.view === 'map';
+        if (state.mapMode === next) return;
+        state.mapMode = next;
+        render();
+      });
+    });
+    document.querySelector('.js-map-panel-close')?.addEventListener('click', () => {
+      const panel = document.getElementById('regionDetailsPanel');
+      const body = document.getElementById('regionPanelBody');
+      if (body) body.innerHTML = '<div class="panel-loading">点击地图省份，查看该省药材分布详情。</div>';
+      const cn = document.getElementById('panelRegionCn');
+      const en = document.getElementById('panelRegionEn');
+      if (cn) cn.textContent = '省份';
+      if (en) en.textContent = 'Province';
+    });
+    if (state.mapMode && window.worldMapVisualization) {
+      window.worldMapVisualization.initialize();
+    }
     document.querySelector('.js-graph-herb')?.addEventListener('change', (event) => {
       state.selectedHerbName = event.target.value;
       render();

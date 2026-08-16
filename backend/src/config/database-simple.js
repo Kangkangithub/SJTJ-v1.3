@@ -12,8 +12,12 @@ class SimpleDatabaseManager {
   async connect() {
     try {
       // 优先使用环境变量 SQLITE_PATH，否则使用默认相对路径
+      // 相对路径统一以 backend/ 目录为基准解析（与 .env 中 SQLITE_PATH=data/herb-knowledge.db 的意图一致），
+      // 避免因启动目录不同（如项目根 vs backend/）解析到错误的空库。
       const dbPath = process.env.SQLITE_PATH
-        ? path.resolve(process.env.SQLITE_PATH)
+        ? (path.isAbsolute(process.env.SQLITE_PATH)
+            ? process.env.SQLITE_PATH
+            : path.join(__dirname, '../..', process.env.SQLITE_PATH))
         : path.join(__dirname, '../../data/herb-knowledge.db');
 
       // 确保数据目录存在
