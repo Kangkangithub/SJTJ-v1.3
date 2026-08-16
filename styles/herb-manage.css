@@ -1,0 +1,829 @@
+﻿/* ============================================================
+ * 药材管理面板样式 (herb-manage.css)
+ * @description Tab 栏、管理面板、表格、模态弹窗样式
+ * @design 与知识图谱深色主题一致
+ * ============================================================ */
+
+/* ---------- Tab 栏 ---------- */
+.herb-tab-bar {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0 8px;
+  padding: 4px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  width: fit-content;
+}
+
+.herb-tab-btn {
+  padding: 10px 24px;
+  border: none;
+  background: transparent;
+  color: #8892b0;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.herb-tab-btn:hover {
+  color: #ccd6f6;
+  background: rgba(255,255,255,0.05);
+}
+
+.herb-tab-btn.active {
+  color: #64ffda;
+  background: rgba(100,255,218,0.1);
+  box-shadow: 0 0 12px rgba(100,255,218,0.15);
+}
+
+/* ---------- 管理面板容器 ---------- */
+#herb-manage-panel {
+  display: none;
+  animation: fadeInUp 0.35s ease;
+}
+
+#herb-manage-panel.active {
+  display: block;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ---------- 返回图谱按钮 ---------- */
+.btn-back-graph {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(100,255,218,0.08);
+  border: 1px solid rgba(100,255,218,0.2);
+  border-radius: 8px;
+  color: #64ffda;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn-back-graph:hover {
+  background: rgba(100,255,218,0.15);
+  border-color: rgba(100,255,218,0.4);
+  box-shadow: 0 0 12px rgba(100,255,218,0.1);
+}
+.btn-back-graph i {
+  font-size: 14px;
+}
+/* ---------- 管理工具栏 ---------- */
+.herb-manage-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.herb-manage-toolbar .search-group {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.herb-manage-toolbar input[type="text"] {
+  flex: 1;
+  padding: 10px 14px;
+  background: #1a2234;
+  border: 1px solid rgba(52,152,219,0.25);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.herb-manage-toolbar input[type="text"]:focus {
+  border-color: #64ffda;
+}
+
+.herb-manage-toolbar select {
+  padding: 10px 14px;
+  background: #1a2234;
+  border: 1px solid rgba(52,152,219,0.25);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.btn-primary-sm {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-primary-sm:hover {
+  background: linear-gradient(135deg, #27ae60, #1e8449);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(46,204,113,0.3);
+}
+
+/* ---------- 药材表格 ---------- */
+.herb-table-wrapper {
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+
+.herb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.herb-table thead {
+  background: rgba(255,255,255,0.04);
+}
+
+.herb-table th {
+  padding: 12px 14px;
+  text-align: left;
+  color: #8892b0;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.herb-table td {
+  padding: 12px 14px;
+  color: #ccd6f6;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  vertical-align: middle;
+}
+
+.herb-table tbody tr {
+  transition: background 0.15s;
+}
+
+.herb-table tbody tr:hover {
+  background: rgba(100,255,218,0.04);
+}
+
+.herb-table .herb-name-cell {
+  font-weight: 600;
+  color: #64ffda;
+  cursor: pointer;
+}
+
+.herb-table .herb-name-cell:hover {
+  text-decoration: underline;
+}
+
+.herb-table .badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.herb-table .badge-common {
+  background: rgba(46,204,113,0.15);
+  color: #2ecc71;
+}
+
+.herb-table .badge-normal {
+  background: rgba(255,255,255,0.06);
+  color: #8892b0;
+}
+
+.herb-table .actions-cell {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-icon-sm {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-icon-sm.edit-btn {
+  background: rgba(52,152,219,0.15);
+  color: #3498db;
+}
+
+.btn-icon-sm.edit-btn:hover {
+  background: rgba(52,152,219,0.3);
+}
+
+.btn-icon-sm.delete-btn {
+  background: rgba(231,76,60,0.15);
+  color: #e74c3c;
+}
+
+.btn-icon-sm.delete-btn:hover {
+  background: rgba(231,76,60,0.3);
+}
+
+/* ---------- 分页 ---------- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+}
+
+.pagination button {
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: #ccd6f6;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: rgba(100,255,218,0.1);
+  border-color: rgba(100,255,218,0.3);
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  color: #8892b0;
+  font-size: 13px;
+  padding: 0 8px;
+}
+
+/* ---------- 模态弹窗 ---------- */
+.herb-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.herb-modal.open {
+  display: flex;
+}
+
+.herb-modal .modal-content {
+  background: #0f172a;
+  border: 1px solid rgba(100,255,218,0.2);
+  border-radius: 14px;
+  width: 680px;
+  max-width: 94vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
+
+.herb-modal .modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: #0f172a;
+  border-radius: 14px 14px 0 0;
+  z-index: 1;
+}
+
+.herb-modal .modal-header h3 {
+  margin: 0;
+  color: #64ffda;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.herb-modal .modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: #8892b0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.herb-modal .modal-close:hover {
+  background: rgba(231,76,60,0.2);
+  color: #e74c3c;
+}
+
+.herb-modal .modal-body {
+  padding: 20px 24px;
+}
+
+/* ---------- 表单样式 ---------- */
+.herb-form .form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.herb-form .form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.herb-form .form-group.full {
+  flex: 1 1 100%;
+}
+
+.herb-form label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8892b0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.herb-form input[type="text"],
+.herb-form input[type="number"],
+.herb-form textarea,
+.herb-form select {
+  padding: 10px 12px;
+  background: #1a2234;
+  border: 1px solid rgba(52,152,219,0.2);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.herb-form input:focus,
+.herb-form textarea:focus,
+.herb-form select:focus {
+  border-color: #64ffda;
+}
+
+.herb-form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* 多选标签组 */
+.herb-form .tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.herb-form .tag-chip {
+  padding: 5px 12px;
+  background: rgba(52,152,219,0.12);
+  border: 1px solid rgba(52,152,219,0.2);
+  border-radius: 16px;
+  color: #8892b0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.herb-form .tag-chip:hover {
+  background: rgba(52,152,219,0.2);
+  color: #ccd6f6;
+}
+
+.herb-form .tag-chip.selected {
+  background: rgba(100,255,218,0.15);
+  border-color: rgba(100,255,218,0.4);
+  color: #64ffda;
+}
+
+/* 功效搜索下拉 */
+.efficacy-search-wrapper {
+  position: relative;
+}
+
+.efficacy-search-wrapper .efficacy-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #1a2234;
+  border: 1px solid rgba(100,255,218,0.3);
+  border-radius: 0 0 8px 8px;
+  z-index: 10;
+}
+
+.efficacy-search-wrapper .efficacy-dropdown.open {
+  display: block;
+}
+
+.efficacy-search-wrapper .efficacy-dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #8892b0;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.efficacy-search-wrapper .efficacy-dropdown-item:hover {
+  background: rgba(100,255,218,0.1);
+  color: #64ffda;
+}
+
+/* 选中功效标签展示 */
+.selected-efficacies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.selected-efficacies .eff-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(100,255,218,0.12);
+  border: 1px solid rgba(100,255,218,0.25);
+  border-radius: 14px;
+  font-size: 12px;
+  color: #64ffda;
+}
+
+.selected-efficacies .eff-tag .remove-tag {
+  cursor: pointer;
+  font-size: 14px;
+  color: #e74c3c;
+  margin-left: 2px;
+}
+
+/* 表单操作按钮 */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.btn-save {
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #64ffda, #2ecc71);
+  border: none;
+  border-radius: 8px;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(100,255,218,0.4);
+}
+
+.btn-cancel {
+  padding: 10px 24px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #8892b0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: rgba(255,255,255,0.1);
+  color: #ccd6f6;
+}
+
+/* ---------- 加载和空态 ---------- */
+.herb-loading {
+  text-align: center;
+  padding: 40px;
+  color: #8892b0;
+}
+
+.herb-loading i {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.herb-empty {
+  text-align: center;
+  padding: 40px;
+  color: #8892b0;
+}
+
+.herb-empty i {
+  font-size: 36px;
+  margin-bottom: 10px;
+  display: block;
+  opacity: 0.4;
+}
+
+/* ---------- 通知提示 ---------- */
+.herb-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 99999;
+  animation: slideInRight 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.herb-toast.success {
+  background: linear-gradient(135deg, #2ecc71, #1e8449);
+}
+
+.herb-toast.error {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ---------- 删除确认弹窗 ---------- */
+.confirm-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-dialog {
+  background: #0f172a;
+  border: 1px solid rgba(231,76,60,0.3);
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+}
+
+.confirm-dialog .confirm-icon {
+  font-size: 48px;
+  color: #e74c3c;
+  margin-bottom: 12px;
+}
+
+.confirm-dialog h3 {
+  color: #e74c3c;
+  margin: 0 0 8px;
+}
+
+.confirm-dialog p {
+  color: #8892b0;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.confirm-dialog .confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.confirm-dialog .btn-danger {
+  padding: 10px 24px;
+  background: #e74c3c;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirm-dialog .btn-danger:hover {
+  background: #c0392b;
+}
+
+.confirm-dialog .btn-secondary {
+  padding: 10px 24px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #8892b0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* ---------- 药材详情面板 ---------- */
+#herb-detail-panel {
+  animation: fadeSlideIn 0.3s ease;
+}
+.herb-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.herb-detail-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #e0e0e0;
+  font-weight: 600;
+}
+.btn-back-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(100,255,218,0.06);
+  border: 1px solid rgba(100,255,218,0.15);
+  border-radius: 6px;
+  color: #64ffda;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-back-list:hover {
+  background: rgba(100,255,218,0.12);
+  border-color: rgba(100,255,218,0.3);
+}
+
+.herb-detail-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .herb-detail-content { grid-template-columns: 1fr; }
+}
+
+.detail-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.detail-card.full-width {
+  grid-column: 1 / -1;
+}
+.detail-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64ffda;
+  font-weight: 500;
+}
+.detail-card .detail-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.detail-card .detail-label {
+  color: #8892b0;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+.detail-card .detail-value {
+  color: #e0e0e0;
+  font-weight: 500;
+}
+.detail-card .detail-value.large {
+  font-size: 18px;
+  color: #64ffda;
+}
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.detail-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(100,255,218,0.08);
+  border: 1px solid rgba(100,255,218,0.15);
+  border-radius: 12px;
+  font-size: 12px;
+  color: #64ffda;
+}
+.detail-tag.warm {
+  background: rgba(255,152,0,0.08);
+  border-color: rgba(255,152,0,0.2);
+  color: #ff9800;
+}
+.detail-tag.cool {
+  background: rgba(33,150,243,0.08);
+  border-color: rgba(33,150,243,0.2);
+  color: #2196f3;
+}
+
+.detail-section-title {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: #8892b0;
+  margin: 8px 0 4px 0;
+  padding-left: 4px;
+}
+
+.detail-formulas {
+  grid-column: 1 / -1;
+}
+.detail-formulas .formula-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.detail-formulas .formula-name {
+  color: #e0e0e0;
+  font-weight: 500;
+}
+.detail-formulas .formula-role {
+  color: #8892b0;
+  font-size: 12px;
+  padding: 2px 8px;
+  background: rgba(100,255,218,0.06);
+  border-radius: 10px;
+}
+.detail-empty {
+  color: #6c7a8d;
+  font-size: 13px;
+  font-style: italic;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -69,7 +69,7 @@ window.mapApiIntegration = {
     // 根据国家名称获取武器数据
     async getWeaponsByCountry(countryName) {
         try {
-            const response = await fetch(`http://localhost:3001/api/weapons?country=${encodeURIComponent(countryName)}`);
+            const response = await fetch(`http://localhost:3001/api/herbs?region=${encodeURIComponent(countryName)}`);
             if (response.ok) {
                 const result = await response.json();
                 if (result.success) {

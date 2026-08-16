@@ -3,116 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户登录 - 神机图鉴</title>
+    <title>登录 - 神农AI</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles/herb-app.css">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/auth.css">
 </head>
 <body>
+    <a class="skip-link" href="#loginForm">跳到主内容</a>
     <div class="container">
         <header class="auth-header">
-            <div class="logo">神机图鉴</div>
+            <a class="auth-brand" href="index.html">
+                <span class="logo">神农AI</span>
+                <span>中药药材知识图谱系统</span>
+            </a>
         </header>
-        <div class="content">
+        <main class="content">
             <div class="auth-card">
-                <h1>用户登录</h1>
+                <h1>登录</h1>
+                <p class="auth-note">登录后进入个人中心管理账户资料。</p>
                 <form id="loginForm">
                     <div class="form-group">
-                        <label for="username">用户名</label>
-                        <input type="text" id="username" name="username" required>
+                        <label for="username">用户名或邮箱</label>
+                        <input type="text" id="username" name="username" autocomplete="username" required>
                     </div>
                     <div class="form-group">
                         <label for="password">密码</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" autocomplete="current-password" required>
                     </div>
-                    <div class="form-group remember-group">
-                        <input type="checkbox" id="rememberMe" name="rememberMe">
-                        <label for="rememberMe">记住我</label>
-                    </div>
+                    <div id="loginMessage" class="auth-message" role="status" aria-live="polite"></div>
                     <button type="submit" class="auth-btn">登录</button>
                 </form>
                 <div class="auth-links">
-                    <p>还没有账号？<a href="register.html">立即注册</a></p>
-                    <p><a href="forgot-password.html">忘记密码？</a></p>
+                    <p>没有账号？<a href="register.html">注册</a></p>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
     <script>
         const API_BASE = 'http://localhost:3001/api';
+        const loginForm = document.getElementById('loginForm');
+        const loginMessage = document.getElementById('loginMessage');
 
-        // 页面加载时检查是否已经登录
         document.addEventListener('DOMContentLoaded', function() {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
-                // 如果已经登录，直接跳转到个人中心
-                window.location.href = 'profile.html';
+            if (localStorage.getItem('authToken')) {
+                window.location.href = 'index.html';
             }
         });
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        function showMessage(text, type) {
+            loginMessage.textContent = text;
+            loginMessage.className = `auth-message ${type || ''}`.trim();
+        }
+
+        loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
-            
+            const submitBtn = loginForm.querySelector('.auth-btn');
+            const originalText = submitBtn.textContent;
+
             if (!username || !password) {
-                alert('请输入用户名和密码');
+                showMessage('请输入用户名和密码。', 'error');
                 return;
             }
 
             try {
-                // 显示登录中状态
-                const submitBtn = document.querySelector('.auth-btn');
-                const originalText = submitBtn.textContent;
                 submitBtn.disabled = true;
-                submitBtn.textContent = '登录中...';
+                submitBtn.textContent = '登录中';
+                showMessage('', '');
 
-                // 发送登录请求
                 const response = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        password: password
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
+                const data = await response.json().catch(() => ({}));
 
-                const data = await response.json();
-
-                if (data.success) {
-                    // 登录成功，保存用户信息和令牌
-                    localStorage.setItem('authToken', data.data.token);
-                    localStorage.setItem('userInfo', JSON.stringify({
-                        ...data.data.user,
-                        isLoggedIn: true,
-                        loginTime: new Date().toISOString()
-                    }));
-
-                    // 提示登录成功
-                    submitBtn.textContent = '登录成功！';
-                    alert('登录成功！即将跳转到个人中心');
-                    
-                    // 跳转到个人中心
-                    setTimeout(() => {
-                        window.location.href = 'profile.html';
-                    }, 1000);
-                } else {
-                    alert('登录失败：' + data.message);
-                    // 恢复按钮状态
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || '登录失败，请稍后重试。');
                 }
+
+                localStorage.setItem('authToken', data.data.token);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    ...data.data.user,
+                    isLoggedIn: true,
+                    loginTime: new Date().toISOString()
+                }));
+
+                showMessage('登录成功，正在返回首页。', 'success');
+                window.location.href = 'index.html';
             } catch (error) {
-                console.error('登录请求失败:', error);
-                alert('登录失败，请检查网络连接或稍后重试');
-                
-                // 恢复按钮状态
-                const submitBtn = document.querySelector('.auth-btn');
-                submitBtn.textContent = '登录';
+                showMessage(error.message || '登录失败，请稍后重试。', 'error');
                 submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
         });
     </script>

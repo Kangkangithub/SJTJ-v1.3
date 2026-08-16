@@ -183,6 +183,10 @@ class UserService {
           username: user.username,
           email: user.email,
           profile: user.profile,
+          name: user.profile && user.profile.name,
+          phone: user.profile && user.profile.phone,
+          bio: user.profile && user.profile.bio,
+          avatar: user.profile && user.profile.avatar,
           role: user.role,
           status: user.status,
           created_at: user.created_at,
@@ -206,9 +210,15 @@ class UserService {
         'profile.preferences': profileData.preferences,
         updated_at: new Date()
       };
+      if (profileData.phone !== undefined) {
+        updateData['profile.phone'] = profileData.phone;
+      }
+      if (profileData.bio !== undefined) {
+        updateData['profile.bio'] = profileData.bio;
+      }
 
       // 如果有头像数据，也更新头像
-      if (profileData.avatar) {
+      if (profileData.avatar !== undefined) {
         updateData['profile.avatar'] = profileData.avatar;
       }
 
@@ -222,11 +232,8 @@ class UserService {
       }
 
       logger.info(`用户资料更新成功: ${userId}`);
+      return this.getUserById(userId);
 
-      return {
-        success: true,
-        message: '资料更新成功'
-      };
     } catch (error) {
       logger.error('更新用户资料失败:', error);
       throw error;

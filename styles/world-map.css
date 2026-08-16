@@ -330,51 +330,91 @@
 .country-details-panel ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
-/* ==================== 中药药材详情抽屉面板 ==================== */
-/* 颜色方案 */
-.herb-region-panel {
+/* ==================== 地图视图布局（知识图谱 SPA 集成） ==================== */
+/* 地图为视觉中心 + 右侧省份详情常驻栏 */
+/* 左右两栏互相独立：align-items:start 禁止右侧内容把左侧地图拉高 */
+.map-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 18px;
+    align-items: start;
+}
+
+/* 地图独立卡片：固定高度，不受右侧面板内容影响 */
+.map-card {
+    position: relative;
+    height: 520px;
+    min-height: 520px;
+    max-height: 520px;
+    background: #fbfcf9;
+    border: 1px solid #e2e8e4;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(27, 67, 50, 0.06);
+    overflow: hidden;
+}
+
+.map-container {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    position: relative;
+}
+
+.map-container .map-visualization {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+/* 视图切换按钮组 */
+.view-switch {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.view-switch .btn {
+    min-width: 96px;
+    height: 36px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* ==================== 右侧省份详情常驻面板 ==================== */
+.region-details-panel {
     --ink-green: #1B4332;
     --herb-green: #40916C;
     --beige: #F8F1E3;
     --bronze: #B08968;
     --dark-brown: #2d1f14;
     --sage: #6b8f71;
-}
 
-/* 抽屉面板主体 */
-.herb-region-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 380px;
-    height: 100vh;
-    background: linear-gradient(180deg, #1B4332 0%, #143a2b 40%, #0f2c20 100%);
-    color: #F8F1E3;
-    box-shadow: -8px 0 40px rgba(0,0,0,0.45);
-    z-index: 9999;
-    transform: translateX(100%);
-    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
     display: flex;
     flex-direction: column;
+    /* 固定可视高度（与左侧地图等高），内容超出仅内部滚动，绝不撑高页面/地图 */
+    height: min(520px, calc(100vh - 180px));
+    min-height: 0;
+    background: linear-gradient(180deg, #1B4332 0%, #143a2b 45%, #0f2c20 100%);
+    color: #F8F1E3;
+    border-radius: 12px;
+    border: 1px solid rgba(176, 137, 104, 0.35);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.14);
     overflow: hidden;
-    border-left: 2px solid rgba(176, 137, 104, 0.4);
-}
-
-.herb-region-panel.open {
-    transform: translateX(0);
 }
 
 /* 顶部标题区域 */
-.panel-header {
+.region-details-panel .panel-header {
     position: relative;
-    padding: 28px 20px 22px;
+    padding: 22px 20px 18px;
     background: linear-gradient(135deg, #1B4332 0%, #2d6a4f 60%, #B08968 160%);
     border-bottom: 1px solid rgba(176, 137, 104, 0.35);
     flex-shrink: 0;
     overflow: hidden;
 }
 
-.panel-header::before {
+.region-details-panel .panel-header::before {
     content: '';
     position: absolute;
     top: -40px; right: -30px;
@@ -448,11 +488,13 @@
     opacity: 0.35;
 }
 
-/* 面板主体 - 可滚动 */
+/* 面板主体 - 独立滚动（省份药材过多时不在页面产生巨大高度） */
 .panel-body {
     flex: 1;
+    min-height: 0;  /* 允许在固定高度面板内收缩，启用内部滚动 */
     overflow-y: auto;
-    padding: 18px 16px 30px;
+    overflow-x: hidden;
+    padding: 16px 16px 28px;
     scrollbar-width: thin;
     scrollbar-color: #B08968 rgba(255,255,255,0.1);
 }
@@ -466,22 +508,27 @@
     font-size: 14px;
 }
 
-/* 药材概况 - 三个数据卡片 */
+/* 药材概况 - 三个数据卡片（宽度均匀、等高、数字突出） */
 .herb-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 9px;
+    margin-bottom: 16px;
 }
 
 .stat-card {
     background: #F8F1E3;
     border: 1px solid #B08968;
     border-radius: 10px;
-    padding: 12px 8px;
+    padding: 10px 6px;
+    min-height: 76px;
     text-align: center;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.15);
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 .stat-card::before {
     content: '';
@@ -492,139 +539,266 @@
 }
 
 .stat-num {
-    font-size: 26px;
-    font-weight: 800;
+    font-size: 25px;
+    font-weight: 700;
     color: #1B4332;
-    line-height: 1.2;
+    line-height: 1.15;
+    white-space: nowrap;
 }
 .stat-label {
-    font-size: 12px;
+    font-size: 11.5px;
     color: #B08968;
     margin-top: 4px;
     letter-spacing: 1px;
+    white-space: nowrap;
 }
 
-/* 区块标题 */
+/* 区块标题（作用域限定在详情面板内，避免污染图谱页顶部 .section-title）
+   层级“中等”：明显小于省份名(28px)/统计数字(25px)，但大于标签(12px) */
 .panel-section {
-    margin-bottom: 22px;
+    margin-bottom: 16px;
 }
-.section-title {
-    margin: 0 0 12px;
-    font-size: 15px;
-    font-weight: 600;
+.region-details-panel .section-title {
+    margin: 0 0 10px;
+    font-size: 17px;
+    line-height: 1.3;
+    font-weight: 700;
     color: #F8F1E3;
     letter-spacing: 1px;
-    padding-bottom: 8px;
+    padding-bottom: 7px;
     border-bottom: 1px solid rgba(176,137,104,0.3);
     display: flex;
     align-items: center;
     gap: 6px;
 }
-.star-title { color: #ffd166; }
+.region-details-panel .star-title { color: #ffd166; }
 
-/* 分类标签 */
+/* “主要药材详情”标题：与其他区块标题同级，不与下方卡片拥挤 */
+.region-details-panel .herb-detail-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    letter-spacing: 1.5px;
+}
+
+/* 分类标签（紧凑胶囊） */
 .category-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 7px;
 }
 .category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 26px;
+    padding: 6px 10px;
     background: rgba(64,145,108,0.18);
     border: 1px solid rgba(64,145,108,0.4);
     color: #95d5b2;
     border-radius: 14px;
-    padding: 4px 12px;
     font-size: 12px;
+    line-height: 1;
 }
 .category-tag b {
     color: #ffd166;
-    margin-left: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(27,67,50,0.35);
+    border-radius: 9px;
+    padding: 1px 6px;
 }
 
-/* 药材标签 */
+/* 药材标签（紧凑胶囊、自动换行） */
 .herb-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 .herb-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 10px;
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(248,241,227,0.2);
     color: #F8F1E3;
-    border-radius: 14px;
-    padding: 4px 12px;
+    border-radius: 999px;
     font-size: 12px;
+    line-height: 1;
 }
 .herb-tag.common {
-    background: rgba(255,209,102,0.12);
+    background: rgba(255,209,102,0.14);
     border-color: rgba(255,209,102,0.4);
     color: #ffd166;
 }
+.herb-tag-expand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 10px;
+    background: rgba(176,137,104,0.2);
+    border: 1px dashed rgba(176,137,104,0.6);
+    color: #d9b89a;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.herb-tag-expand:hover {
+    background: rgba(176,137,104,0.35);
+    color: #F8F1E3;
+}
 
-/* 药材信息卡片（药典风格） */
+/* ==================== 主要药材详情卡片 ==================== */
+/* display:block 覆盖 herb-app.css 中全局 .herb-card 的 display:grid（86px 两列布局）
+   否则详情字段会被塞进 86px 窄列，导致“功效/简介”竖排成一列 */
 .herb-card {
-    background: #F8F1E3;
-    border: 1px solid #B08968;
+    display: block;
+    grid-template-columns: none;
+    gap: 0;
+    position: relative;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    background: #FDFAF3;
+    border: 1px solid #e6dfd2;
     border-left: 4px solid #40916C;
     border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-    position: relative;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
 }
+/* 覆盖 herb-app.css 的 .herb-card:hover 上浮效果，避免详情卡片悬停跳动 */
+.region-details-panel .herb-card:hover {
+    transform: none;
+    border-color: #e6dfd2;
+}
+/* 右下角“药”字水印（非常淡，不遮挡正文） */
 .herb-card::after {
     content: '藥';
     position: absolute;
-    right: 12px; bottom: 6px;
-    font-size: 32px;
-    color: rgba(64,145,108,0.08);
+    right: 14px;
+    bottom: 2px;
+    font-size: 44px;
+    color: rgba(64, 145, 108, 0.05);
     font-weight: bold;
+    line-height: 1;
+    pointer-events: none;
 }
 
-.herb-card-title {
+/* 标题区：图标 + 名称 + 右侧“常用”标签，分类单独一行 */
+.herb-card-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px dashed rgba(176,137,104,0.4);
+    width: 100%;
+    margin-bottom: 8px;
 }
-.herb-icon { font-size: 18px; }
+.herb-icon { font-size: 17px; line-height: 1; flex-shrink: 0; }
 .herb-name {
+    flex: 1;
+    min-width: 0;
     font-size: 17px;
     font-weight: 700;
     color: #1B4332;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
+    line-height: 1.3;
 }
 .herb-common-badge {
+    margin-left: auto;
+    flex-shrink: 0;
     background: #ffd166;
     color: #1B4332;
     font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
+    font-weight: 700;
+    padding: 4px 7px;
+    border-radius: 999px;
 }
 
-.herb-card-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 6px;
+.herb-category {
     font-size: 12.5px;
-    line-height: 1.5;
+    color: #8a7a68;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ece5d8;
 }
-.row-label {
-    color: #B08968;
+
+/* 详情字段：两列 grid（固定标签列 + 可自由换行的正文列），杜绝窄列竖排 */
+.herb-detail-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 48px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 10px;
+    align-items: start;
+}
+.herb-detail-row {
+    display: contents;
+}
+.detail-label {
+    width: 48px;
     flex-shrink: 0;
-    width: 40px;
+    font-size: 12.5px;
     font-weight: 600;
+    color: #B08968;
+    line-height: 1.6;
 }
-.row-value {
+.detail-value {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    font-size: 12.5px;
     color: #4a4038;
-    flex: 1;
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
+}
+
+/* 图谱页顶部标题（26~30px 加粗深色，禁止被覆盖成低对比度）
+   必须限定到 .section-header：否则会同时命中右侧面板内 h4.section-title，
+   把“药材分类/常用药材”等覆盖成 28px（此前 bug 根因） */
+.graph-section .section-header .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #16241d;
+    margin: 0;
+}
+
+/* ==================== 响应式 ==================== */
+@media (max-width: 900px) {
+    .map-layout {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    /* 小屏上下排列：地图固定高度、面板恢复自然高度（仍各自独立） */
+    .region-details-panel {
+        height: auto;
+        max-height: none;
+        min-height: 0;
+    }
+    .map-card {
+        height: 420px;
+        min-height: 420px;
+        max-height: 420px;
+    }
+    .map-container {
+        min-height: 0;
+    }
+    .map-container .map-visualization {
+        min-height: 0;
+    }
 }
 
 @media (max-width: 480px) {
-    .herb-region-panel {
-        width: 100%;
+    .view-switch .btn {
+        min-width: 80px;
+    }
+    .region-details-panel {
+        border-radius: 10px;
     }
 }

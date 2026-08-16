@@ -12,8 +12,12 @@ class SimpleDatabaseManager {
   async connect() {
     try {
       // 优先使用环境变量 SQLITE_PATH，否则使用默认相对路径
+      // 相对路径统一以 backend/ 目录为基准解析（与 .env 中 SQLITE_PATH=data/herb-knowledge.db 的意图一致），
+      // 避免因启动目录不同（如项目根 vs backend/）解析到错误的空库。
       const dbPath = process.env.SQLITE_PATH
-        ? path.resolve(process.env.SQLITE_PATH)
+        ? (path.isAbsolute(process.env.SQLITE_PATH)
+            ? process.env.SQLITE_PATH
+            : path.join(__dirname, '../..', process.env.SQLITE_PATH))
         : path.join(__dirname, '../../data/herb-knowledge.db');
 
       // 确保数据目录存在
@@ -276,6 +280,28 @@ class SimpleDatabaseManager {
           cache_key TEXT UNIQUE NOT NULL,
           cache_data TEXT NOT NULL,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`,
+
+        // ===== 对话表（用户隔离，每个用户多个对话） =====
+        `CREATE TABLE IF NOT EXISTS conversations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )`,
+
+        // ===== 消息表（每条消息属于一个对话） =====
+        `CREATE TABLE IF NOT EXISTS messages (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          conversation_id INTEGER NOT NULL,
+          role TEXT NOT NULL CHECK(role IN ('user','assistant')),
+          content TEXT NOT NULL,
+          sources TEXT DEFAULT '[]',
+          mode TEXT DEFAULT '',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
         )`
       ];
 
@@ -300,8 +326,14 @@ class SimpleDatabaseManager {
     });
   }
 
-  // 数据库迁移：给旧版本 schema 补齐缺失的列（如 is_common）
+  // 数据库迁移：给旧版本 schema 补齐缺失的列
   async migrateDatabase() {
+    await this.ensureColumns('users', {
+      phone: 'phone TEXT',
+      bio: 'bio TEXT',
+      avatar: 'avatar TEXT'
+    });
+
     return new Promise((resolve, reject) => {
       this.db.all(`PRAGMA table_info(herbs)`, (err, columns) => {
         if (err) { reject(err); return; }
@@ -319,6 +351,27 @@ class SimpleDatabaseManager {
         } else {
           resolve();
         }
+      });
+    });
+  }
+
+  async ensureColumns(tableName, columnDefs) {
+    const entries = Object.entries(columnDefs);
+    return new Promise((resolve, reject) => {
+      this.db.all(`PRAGMA table_info(${tableName})`, (err, columns) => {
+        if (err) { reject(err); return; }
+        const existing = new Set((columns || []).map(c => c.name));
+        const missing = entries.filter(([name]) => !existing.has(name));
+        const addNext = (index) => {
+          if (index >= missing.length) { resolve(); return; }
+          const [name, definition] = missing[index];
+          this.db.run(`ALTER TABLE ${tableName} ADD COLUMN ${definition}`, (alterErr) => {
+            if (alterErr) { reject(alterErr); return; }
+            logger.info(`✅ 已自动迁移：${tableName} 表新增 ${name} 列`);
+            addNext(index + 1);
+          });
+        };
+        addNext(0);
       });
     });
   }

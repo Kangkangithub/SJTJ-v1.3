@@ -27,25 +27,25 @@ function clearCache() {
 // 图片兜底目录：backend/uploads/herbs
 // =============================================
 const HERB_IMAGE_DIR = path.join(__dirname, '../../uploads', 'herbs');
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
 
 // 当数据库未记录图片时，按「文件名 = 药材名」约定兜底，返回动态图片条目
 // 使图片文件在仓库内即可直接显示，不依赖每台机器的私有数据库
 function resolveHerbImages(herbName, dbImages) {
   if (dbImages && dbImages.length > 0) return dbImages;
-  const filename = `${herbName}.png`;
+  const ext = IMAGE_EXTENSIONS.find((item) => fs.existsSync(path.join(HERB_IMAGE_DIR, `${herbName}${item}`)));
+  if (!ext) return [];
+  const filename = `${herbName}${ext}`;
   const filePath = path.join(HERB_IMAGE_DIR, filename);
-  if (fs.existsSync(filePath)) {
-    return [{
-      id: `fallback_${herbName}`,
-      filename,
-      originalName: filename,
-      path: `/uploads/herbs/${filename}`,
-      size: fs.statSync(filePath).size,
-      description: '',
-      uploadedAt: null
-    }];
-  }
-  return [];
+  return [{
+    id: `fallback_${herbName}`,
+    filename,
+    originalName: filename,
+    path: `/uploads/herbs/${filename}`,
+    size: fs.statSync(filePath).size,
+    description: '',
+    uploadedAt: null
+  }];
 }
 
 // =============================================
@@ -136,11 +136,28 @@ async function getHerbFullInfo(db, herbId) {
     );
   });
 
+  // 相关方剂
+  const formulas = await new Promise((resolve, reject) => {
+    db.all(
+      `SELECT f.id, f.name, fh.dosage, fh.role
+       FROM formula_herbs fh
+       JOIN formulas f ON fh.formula_id = f.id
+       WHERE fh.herb_id = ?
+       ORDER BY f.name`,
+      [herbId],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      }
+    );
+  });
+
   return {
     ...herb,
     properties,
     meridians,
     efficacies,
+    formulas,
     images: resolveHerbImages(herb.name, JSON.parse(herb.images || '[]')),
     video: resolveHerbVideo(herb.name, null),
     quality: JSON.parse(herb.quality || '{}')
@@ -153,7 +170,9 @@ async function getHerbFullInfo(db, herbId) {
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const { category_id, region_id, page = 1, limit = 20 } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
 
     const db = databaseManager.getDatabase();
 
@@ -172,21 +191,31 @@ router.get('/', optionalAuth, async (req, res) => {
 
     const herbs = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT h.id, h.name, h.pinyin, h.alias, hc.name as category_name,
+        `SELECT h.id, h.name, h.pinyin, h.alias, h.images, hc.name as category_name,
                 hr.name as region_name, h.description, h.usage_dosage, h.is_common
          FROM herbs h
          LEFT JOIN herb_categories hc ON h.category_id = hc.id
          LEFT JOIN herb_regions hr ON h.region_id = hr.id
          ${whereClause}
-         ORDER BY h.name ASC
-         LIMIT ? OFFSET ?`,
-        [...params, parseInt(limit), offset],
+         ORDER BY h.name ASC`,
+        params,
         (err, rows) => {
           if (err) reject(err);
           else resolve(rows);
         }
       );
     });
+
+    const enrichedHerbs = herbs.map((herb) => {
+      let dbImages = [];
+      try { dbImages = herb.images ? JSON.parse(herb.images) : []; } catch (error) { dbImages = []; }
+      return { ...herb, images: resolveHerbImages(herb.name, dbImages) };
+    }).sort((a, b) => {
+      const imageDiff = Number(Boolean(b.images?.length)) - Number(Boolean(a.images?.length));
+      return imageDiff || String(a.name).localeCompare(String(b.name), 'zh-Hans');
+    });
+
+    const pagedHerbs = enrichedHerbs.slice(offset, offset + limitNum);
 
     const total = await new Promise((resolve, reject) => {
       db.get(
@@ -202,12 +231,12 @@ router.get('/', optionalAuth, async (req, res) => {
     res.json({
       success: true,
       data: {
-        herbs,
+        herbs: pagedHerbs,
         pagination: {
-          current_page: parseInt(page),
-          total_pages: Math.ceil(total / parseInt(limit)),
+          current_page: pageNum,
+          total_pages: Math.ceil(total / limitNum),
           total_items: total,
-          items_per_page: parseInt(limit)
+          items_per_page: limitNum
         }
       }
     });
@@ -316,7 +345,58 @@ router.get('/statistics', async (req, res) => {
     const cached = getCached('statistics');
     if (cached) return res.json({ success: true, data: cached, cached: true });
 
-    const db = databaseManager.getDatabase();
+    
+    // 优先从 Neo4j 获取统计数据
+    try {
+      const neo4jManager = require('../config/neo4j-simple');
+      const session = neo4jManager.getSession();
+      try {
+        // 分类统计
+        const catResult = await session.run(
+          'MATCH (h:Herb)-[:BELONGS_TO_CATEGORY]->(c:Category) RETURN c.name AS name, count(h) AS count ORDER BY count DESC'
+        );
+        const categoryStats = catResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        // 产地统计
+        const regResult = await session.run(
+          'MATCH (h:Herb)-[:FROM_REGION]->(r:Region) RETURN r.name AS name, count(h) AS count ORDER BY count DESC'
+        );
+        const regionStats = regResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        // 药材总数
+        const totalResult = await session.run('MATCH (h:Herb) RETURN count(h) AS count');
+        const totalHerbs = totalResult.records[0].get('count').toNumber();
+
+        // 功效统计（Top 20）
+        const effResult = await session.run(
+          'MATCH (h:Herb)-[:HAS_EFFICACY]->(e:Efficacy) RETURN e.name AS name, count(DISTINCT h) AS count ORDER BY count DESC LIMIT 20'
+        );
+        const efficacyStats = effResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        // 常用药材分类统计
+        const comResult = await session.run(
+          'MATCH (h:Herb {is_common: 1})-[:BELONGS_TO_CATEGORY]->(c:Category) RETURN c.name AS name, count(h) AS count ORDER BY count DESC'
+        );
+        const commonCategoryStats = comResult.records.map(r => ({ name: r.get('name'), count: r.get('count').toNumber() }));
+
+        const statsData = {
+          total_herbs: totalHerbs,
+          by_category: categoryStats,
+          by_region: regionStats,
+          by_efficacy: efficacyStats,
+          common_by_category: commonCategoryStats
+        };
+        setCached('statistics', statsData);
+        return res.json({ success: true, data: statsData, source: 'neo4j' });
+      } finally {
+        await session.close();
+      }
+    } catch (neoError) {
+      console.warn('[herbs] Neo4j 统计查询失败，回退到 SQLite:', neoError.message);
+    }
+
+    // 回退：SQLite 查询
+const db = databaseManager.getDatabase();
 
     const categoryStats = await new Promise((resolve, reject) => {
       db.all(

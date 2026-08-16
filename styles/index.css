@@ -301,7 +301,40 @@ canvas {
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 响应式调整 */
+/* 药材轮播卡片 */
+.herb-slide-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, rgba(26, 188, 156, 0.08), rgba(52, 152, 219, 0.08));
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.herb-slide-content:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.herb-slide-content h3 {
+    color: var(--secondary-color);
+    margin: 1rem 0 0.8rem;
+    font-size: 1.6rem;
+}
+
+.herb-slide-content p {
+    color: #bdc3c7;
+    font-size: 1rem;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* 响应式调整 - 第一处 */
 @media (max-width: 768px) {
     .dashboard {
         grid-template-columns: 1fr;

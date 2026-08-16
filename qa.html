@@ -1,78 +1,156 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能问答 - 神机图鉴</title>
+    <title>AI 问答 - 神农AI</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
     <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/herb-app.css">
     <link rel="stylesheet" href="styles/qa.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo">神机图鉴</div>
-            <div class="user-status">
-                <!-- 用户状态将由auth.js动态更新 -->
-                <a href="login.html" class="btn">登录</a>
+<body class="qa-page">
+    <div class="page-shell">
+        <header class="topbar">
+            <div class="topbar-inner">
+                <a class="brand" href="index.html">
+                    <div class="brand-mark"><img src="assets/herb-ornament.svg" alt="神农AI图标"></div>
+                    <div class="brand-copy">
+                        <p class="brand-name">神农AI</p>
+                        <p class="brand-subtitle">中药药材知识图谱系统</p>
+                    </div>
+                </a>
+                <div class="user-entry user-status">
+                    <a href="login.html" class="btn btn-primary">登录</a>
+                </div>
             </div>
+            <nav class="nav" aria-label="主导航">
+            <div class="nav-inner">
+                <a class="nav-link" href="index.html"><i class="fa-solid fa-house"></i>首页</a>
+                <a class="nav-link" href="herb-search.html"><i class="fa-solid fa-magnifying-glass"></i>药材查询</a>
+                <a class="nav-link" href="knowledge-graph.html"><i class="fa-solid fa-diagram-project"></i>知识图谱</a>
+                <a class="nav-link active" href="qa.html"><i class="fa-solid fa-comments"></i>AI 问答</a>
+                <a class="nav-link" href="formula-library.html"><i class="fa-solid fa-book-medical"></i>方剂库</a>
+                <a class="nav-link" href="recommendation.html"><i class="fa-solid fa-thumbs-up"></i>方剂推荐</a>
+                <a class="nav-link" href="quiz.html"><i class="fa-solid fa-bullseye"></i>知识测评</a>
+                <a class="nav-link" href="herb-recognition.html"><i class="fa-solid fa-camera"></i>药材识别</a>
+            </div>
+            </nav>
         </header>
 
-        <nav>
-            <ul>
-                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
-                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
-                <li><a href="qa.html" class="active"><i class="fas fa-comments"></i> 智能问答</a></li>
-                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
-                <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
-                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
-                <li><a href="profile.html"><i class="fas fa-user"></i> 个人中心</a></li>
-            </ul>
-        </nav>
-
+        <div class="container">
         <main>
-            <h1>智能问答系统</h1>
-            
+            <section class="qa-page-header">
+            <div class="qa-title-row">
+                <h1><i class="fas fa-comments" aria-hidden="true"></i>AI 问答</h1>
+                <a href="knowledge-graph.html" class="btn btn-secondary qa-back-link">
+                    <i class="fas fa-arrow-left"></i> 返回知识图谱
+                </a>
+            </div>
+            </section>
+
+            <div class="tech-stack-bar" aria-label="GraphRAG 技术栈">
+                <span class="tech-badge-item" style="background:#27ae60;">
+                    <i class="fas fa-database"></i> Neo4j AuraDB
+                    <span class="tech-tooltip">
+                        <strong>Neo4j AuraDB</strong><br>
+                        全托管云图数据库<br><br>
+                        中医药知识以节点+关系存储，支持复杂图查询。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#2563eb;">
+                    <i class="fas fa-link"></i> LangChain.js
+                    <span class="tech-tooltip">
+                        <strong>LangChain.js</strong><br>
+                        Node.js 端 GraphRAG 编排框架。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#7c3aed;">
+                    <i class="fas fa-code"></i> GraphCypherQAChain
+                    <span class="tech-tooltip">
+                        <strong>GraphCypherQAChain</strong><br>
+                        自然语言 → Cypher 图查询。当前接口会优先使用可用图检索能力，并在不可用时回退增强检索。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#f59e0b;">
+                    <i class="fas fa-wand-magic-sparkles"></i> LLM知识增强
+                    <span class="tech-tooltip">
+                        <strong>LLM知识增强</strong><br>
+                        基于图谱上下文补全药材功效、配伍、归经等知识。
+                    </span>
+                </span>
+                <span class="tech-arrow">→</span>
+                <span class="tech-badge-item" style="background:#0891b2;">
+                    <i class="fas fa-robot"></i> DeepSeek-V3
+                    <span class="tech-tooltip">
+                        <strong>DeepSeek-V3</strong><br>
+                        基于图谱上下文生成最终回答。
+                    </span>
+                </span>
+            </div>
+
             <div class="qa-container">
-                <div class="chat-window">
+                <div class="qa-controls" aria-label="AI 问答工具栏">
+                    <div class="qa-history-control">
+                        <button id="qaHistoryBtn" class="qa-tool-btn" type="button" aria-expanded="false" aria-controls="qaHistoryPanel">历史对话</button>
+                        <button id="qaNewChatBtn" class="qa-tool-btn" type="button">新对话</button>
+                        <div id="qaHistoryPanel" class="qa-history-panel" hidden></div>
+                    </div>
+                    <label class="qa-stream-toggle" for="qaStreamToggle">
+                        <input id="qaStreamToggle" type="checkbox">
+                        <span>流式回答</span>
+                    </label>
+                    <span id="qaServiceStatus" class="qa-service-status" aria-live="polite"></span>
+                </div>
+                <div class="chat-window" role="log" aria-live="polite" aria-label="AI 问答对话记录">
                     <div class="message ai-message">
-                        您好！我是兵智视界AI智能助手。请问有什么关于武器装备的问题需要解答？
+                        <div class="message-avatar"><i class="fas fa-leaf"></i></div>
+                        <div class="message-body">
+                            <div class="message-content">您好，我是神农AI。您可以咨询药材功效、方剂组成、配伍关系和常见中医药知识。</div>
+                            <div class="message-time">--:--</div>
+                            <div class="suggestion-chips" aria-label="建议问题">
+                                <button class="suggestion-chip" type="button" data-question="人参有什么功效？">人参有什么功效？</button>
+                                <button class="suggestion-chip" type="button" data-question="四君子汤的组成与作用是什么？">四君子汤的组成与作用是什么？</button>
+                                <button class="suggestion-chip" type="button" data-question="脾胃虚寒怎么调理？">脾胃虚寒怎么调理？</button>
+                                <button class="suggestion-chip" type="button" data-question="黄芪和当归如何配伍？">黄芪和当归如何配伍？</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="input-area">
-                    <textarea placeholder="请输入您的问题..."></textarea>
-                    <button>发送</button>
+                    <textarea placeholder="输入中医药问题，例如：人参有什么功效？" id="qaTextarea" aria-label="输入中医药问题"></textarea>
+                    <button id="qaSendBtn" type="button">发送</button>
                 </div>
             </div>
         </main>
-        
-        <!-- 引入公共底部 -->
-        <div id="footer-placeholder"></div>
+    </div>
+        <footer class="footer"><div><strong>神农AI</strong><div>中药药材知识图谱系统</div></div></footer>
     </div>
 
+    <!-- ========== 右侧药材详情面板 ========== -->
+    <div id="herbSidePanel" class="herb-side-panel">
+        <div class="herb-side-panel-header">
+            <h3 id="herbSidePanelTitle"><i class="fas fa-leaf"></i> 药材详情</h3>
+            <button class="herb-side-panel-close" onclick="closeHerbPanel()" title="关闭">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="herb-side-panel-body" id="herbSidePanelBody">
+            <div class="herb-loading"><i class="fas fa-spinner fa-spin"></i> 选择药材查看详情...</div>
+        </div>
+    </div>
+    <div id="herbPanelOverlay" class="herb-panel-overlay" onclick="closeHerbPanel()"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/common.js"></script>
-    <script src="scripts/qa.js"></script>
-    <script>
-        // 加载公共头部和底部
-        fetch('templates/header.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('header-placeholder').innerHTML = data;
-                // 在头部加载后再执行common.js中的导航激活逻辑
-                const event = new Event('DOMContentLoaded');
-                document.dispatchEvent(event);
-            });
-            
-        fetch('templates/footer.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('footer-placeholder').innerHTML = data;
-            });
-    </script>
+    <script src="scripts/qa.js?v=20260813ai"></script>
 </body>
 </html>

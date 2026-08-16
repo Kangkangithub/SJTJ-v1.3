@@ -233,7 +233,7 @@ class WeaponImageManager {
         
         // 加载图片并显示第一张
         try {
-            const response = await fetch(`http://localhost:3001/api/weapon-images/${weaponId}`);
+            const response = await fetch(`http://localhost:3001/api/herb-images/${weaponId}`);
             const data = await response.json();
             
             if (data.success && data.data.images && data.data.images.length > 0) {
@@ -277,7 +277,7 @@ class WeaponImageManager {
         `;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/weapon-images/${weaponId}`);
+            const response = await fetch(`http://localhost:3001/api/herb-images/${weaponId}`);
             const data = await response.json();
 
             if (data.success && data.data.images && data.data.images.length > 0) {
@@ -435,7 +435,7 @@ class WeaponImageManager {
         `;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/weapon-images/${this.currentWeaponId}`);
+            const response = await fetch(`http://localhost:3001/api/herb-images/${this.currentWeaponId}`);
             const data = await response.json();
 
             if (data.success) {
@@ -543,7 +543,7 @@ class WeaponImageManager {
         this.showMessage('正在上传图片...', 'loading');
 
         try {
-            const response = await fetch(`http://localhost:3001/api/weapon-images/${this.currentWeaponId}`, {
+            const response = await fetch(`http://localhost:3001/api/herb-images/${this.currentWeaponId}`, {
                 method: 'POST',
                 headers: {
                     'x-admin-user': 'true' // 使用简化管理员认证
@@ -634,7 +634,7 @@ class WeaponImageManager {
         }
 
         try {
-            const response = await fetch(`http://localhost:3001/api/weapon-images/${this.currentWeaponId}/${imageId}`, {
+            const response = await fetch(`http://localhost:3001/api/herb-images/${this.currentWeaponId}/${imageId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -671,7 +671,7 @@ class WeaponImageManager {
         this.showMessage('正在删除图片...', 'loading');
 
         try {
-            const response = await fetch(`http://localhost:3001/api/weapon-images/${this.currentWeaponId}/${imageId}`, {
+            const response = await fetch(`http://localhost:3001/api/herb-images/${this.currentWeaponId}/${imageId}`, {
                 method: 'DELETE',
                 headers: {
                     'x-admin-user': 'true' // 使用简化管理员认证
@@ -730,7 +730,7 @@ class WeaponImageManager {
             }
             
             try {
-                const response = await fetch(`http://localhost:3001/api/weapon-images/${this.currentWeaponId}`);
+                const response = await fetch(`http://localhost:3001/api/herb-images/${this.currentWeaponId}`);
                 const data = await response.json();
                 
                 if (data.success && data.data.images) {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 中国地图可视化模块
  * 基于ECharts实现中国地图，展示药材产地分布
  */
@@ -41,10 +41,10 @@ class WorldMapVisualization {
                 this.chart = null;
             }
 
-            // 清理容器，设置显式尺寸
+            // 清理容器（尺寸由 CSS .map-container/.map-visualization 控制，随地图卡片自适应）
             mapVisualizationElement.innerHTML = '';
             mapVisualizationElement.style.width = '100%';
-            mapVisualizationElement.style.height = '520px';
+            mapVisualizationElement.style.height = '100%';
 
             // 地图已注册则跳过重复注册
             if (!this.chinaMap) {
@@ -94,7 +94,7 @@ class WorldMapVisualization {
      */
     async loadChinaMap() {
         try {
-            const response = await fetch('http://localhost:3001/public/china.json');
+            const response = await fetch('/public/china.json');
             if (!response.ok) throw new Error('加载中国地图数据失败: HTTP ' + response.status);
             const geoJson = await response.json();
 
@@ -113,7 +113,7 @@ class WorldMapVisualization {
      */
     async loadRegionData() {
         try {
-            const response = await fetch('http://localhost:3001/api/knowledge/region-distribution');
+            const response = await fetch('/api/knowledge/region-distribution');
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.data && data.data.regions) {
@@ -178,16 +178,20 @@ class WorldMapVisualization {
             });
         }
 
+        // 动态色阶上限（广东 32 最高，取数据最大值 + 缓冲）
+        const maxValue = Math.max(...this.regionData.map(r => r.herbCount), 0);
+        const visualMax = Math.max(30, maxValue + 2);
+
         const option = {
-            backgroundColor: '#d6e8f7',  // 海洋色背景
+            backgroundColor: '#e8f1ea',  // 水域浅蓝灰
             tooltip: {
                 trigger: 'item',
-                backgroundColor: 'rgba(15,23,42,0.9)',
-                borderColor: 'rgba(255,255,255,0.1)',
-                textStyle: { color: '#fff', fontSize: 13 },
+                backgroundColor: 'rgba(27,67,50,0.94)',
+                borderColor: 'rgba(176,137,104,0.45)',
+                textStyle: { color: '#F8F1E3', fontSize: 13 },
                 formatter: function(params) {
                     if (params.data && params.data.value !== undefined) {
-                        return `<b>${params.name}</b><br/>药材数量: ${params.data.value}`;
+                        return `<b>${params.name}</b><br/>药材数量：${params.data.value} 种`;
                     }
                     return params.name;
                 }
@@ -196,17 +200,19 @@ class WorldMapVisualization {
                 type: 'continuous',
                 orient: 'vertical',
                 min: 0,
-                max: 30,
-                left: 20,
+                max: visualMax,
+                left: 16,
                 top: 'center',
                 text: ['多', '少'],
                 calculable: true,
-                itemWidth: 16,
-                itemHeight: 120,
+                itemWidth: 14,
+                itemHeight: 130,
                 inRange: {
-                    color: ['#fdf6e3', '#f7b731', '#f39c12', '#e74c3c', '#c0392b']
+                    // 药材数量少→多：浅米 → 浅绿 → 中绿 → 深绿
+                    color: ['#f7f1e1', '#dfeccb', '#aed294', '#79b083', '#2f6a4f']
                 },
-                textStyle: { color: '#333' }
+                textStyle: { color: '#4a5d52', fontSize: 12 },
+                handleStyle: { color: '#40916C' }
             },
             series: [{
                 name: '药材产地',
@@ -216,19 +222,19 @@ class WorldMapVisualization {
                 zoom: 1.2,
                 label: {
                     show: true,
-                    fontSize: 9,
-                    color: '#333'
+                    fontSize: 11,
+                    color: '#3c4f46'
                 },
                 itemStyle: {
-                    borderColor: '#4a7a4c',
+                    borderColor: '#d5e3da',
                     borderWidth: 1
                 },
                 emphasis: {
-                    label: { color: '#000', fontWeight: 'bold' },
+                    label: { color: '#1B4332', fontWeight: 'bold', fontSize: 12 },
                     itemStyle: {
-                        areaColor: '#ff8a80',
-                        shadowBlur: 10,
-                        shadowColor: 'rgba(0,0,0,0.3)'
+                        areaColor: '#2e7d52',
+                        shadowBlur: 12,
+                        shadowColor: 'rgba(27,67,50,0.35)'
                     }
                 },
                 data: allProvinceData
@@ -288,13 +294,11 @@ class WorldMapVisualization {
         document.getElementById('panelRegionEn').textContent = (this.provinceEnNames[shortName] || '') + ' Province';
 
         try {
-            // 获取该产地的药材
+            // 获取该产地的药材（使用 Neo4j herbs-manage API，按产地名称查询）
             let herbs = [];
-            if (region) {
-                const response = await fetch(`http://localhost:3001/api/herbs?region_id=${region.id}&limit=100`);
+            const response = await fetch(`/api/herbs-manage?region=${encodeURIComponent(shortName)}&limit=100`);
                 const result = await response.json();
                 herbs = result.data && result.data.herbs ? result.data.herbs : [];
-            }
 
             // 分类统计（按药材分类）
             const catMap = {};
@@ -311,7 +315,7 @@ class WorldMapVisualization {
             const detailHerbs = [...commonHerbs, ...normalHerbs].slice(0, 10);
             const details = await Promise.all(detailHerbs.map(async h => {
                 try {
-                    const r = await fetch(`http://localhost:3001/api/herbs/${h.id}`);
+                    const r = await fetch(`/api/herbs-manage/${encodeURIComponent(h.name)}`);
                     const d = await r.json();
                     return d.data ? { ...h, ...d.data } : h;
                 } catch (e) {
@@ -323,8 +327,17 @@ class WorldMapVisualization {
             const effSet = new Set();
             details.forEach(d => (d.efficacies || []).forEach(e => effSet.add(e.name)));
             const mainEffCount = effSet.size || categories.length;
-            const herbCount = region ? region.herbCount : herbs.length;
+            const herbCount = herbs.length;
             const catCount = categories.length;
+
+            // 其他药材折叠展示（前 12 种，超出显示“展开全部”）
+            const NORMAL_LIMIT = 12;
+            const normalCollapsed = normalHerbs.length > NORMAL_LIMIT;
+            const normalShown = normalCollapsed ? normalHerbs.slice(0, NORMAL_LIMIT) : normalHerbs;
+            const normalTagsHtml = normalShown.map(h => `<span class="herb-tag">${h.name}</span>`).join('');
+            const normalExpandBtn = normalCollapsed
+                ? `<button type="button" class="herb-tag-expand js-expand-herbs" data-count="${normalHerbs.length}">展开全部 ${normalHerbs.length} 种</button>`
+                : '';
 
             // 生成内容
             body.innerHTML = `
@@ -350,7 +363,7 @@ class WorldMapVisualization {
                     <h4 class="section-title">🌿 药材分类</h4>
                     <div class="category-tags">
                         ${categories.map(([name, count]) => `
-                            <span class="category-tag">${name} <b>${count}</b></span>
+                            <span class="category-tag"><span>${name}</span><b>${count}</b></span>
                         `).join('')}
                     </div>
                 </div>
@@ -362,7 +375,7 @@ class WorldMapVisualization {
                     <h4 class="section-title star-title">⭐ 常用药材</h4>
                     <div class="herb-tags">
                         ${commonHerbs.map(h => `
-                            <span class="herb-tag common">⭐ ${h.name}</span>
+                            <span class="herb-tag common">${h.name}</span>
                         `).join('')}
                     </div>
                 </div>
@@ -371,11 +384,10 @@ class WorldMapVisualization {
                 <!-- 其他药材 -->
                 ${normalHerbs.length > 0 ? `
                 <div class="panel-section">
-                    <h4 class="section-title">🍂 其他药材</h4>
+                    <h4 class="section-title">🌿 其他药材</h4>
                     <div class="herb-tags">
-                        ${normalHerbs.map(h => `
-                            <span class="herb-tag">${h.name}</span>
-                        `).join('')}
+                        ${normalTagsHtml}
+                        ${normalExpandBtn}
                     </div>
                 </div>
                 ` : ''}
@@ -383,13 +395,42 @@ class WorldMapVisualization {
                 <!-- 主要药材详情 -->
                 ${details.length > 0 ? `
                 <div class="panel-section">
-                    <h4 class="section-title">📖 主要药材详情</h4>
+                    <h4 class="section-title herb-detail-title">📖 主要药材详情</h4>
                     ${details.map(d => this.buildHerbCard(d)).join('')}
                 </div>
                 ` : ''}
 
                 ${herbs.length === 0 ? '<p class="panel-empty">暂无药材数据</p>' : ''}
             `;
+
+            // 绑定“其他药材”展开/收回事件（展开后显示“收回”，点击恢复折叠）
+            const otherSection = Array.from(body.querySelectorAll('.panel-section')).find(s =>
+                (s.querySelector('.section-title')?.textContent || '').includes('其他药材')
+            );
+            const herbsTagsBox = otherSection ? otherSection.querySelector('.herb-tags') : null;
+            if (herbsTagsBox) {
+                // 折叠态：前 NORMAL_LIMIT 种 + “展开全部 N 种”
+                const renderCollapsed = () => {
+                    herbsTagsBox.innerHTML = normalShown.map(h => `<span class="herb-tag">${h.name}</span>`).join('')
+                        + (normalCollapsed
+                            ? `<button type="button" class="herb-tag-expand js-expand-herbs" data-count="${normalHerbs.length}">展开全部 ${normalHerbs.length} 种</button>`
+                            : '');
+                };
+                // 展开态：全部 + “收回”按钮
+                const renderExpanded = () => {
+                    herbsTagsBox.innerHTML = normalHerbs.map(h => `<span class="herb-tag">${h.name}</span>`).join('')
+                        + `<button type="button" class="herb-tag-expand js-collapse-herbs">收回</button>`;
+                };
+                herbsTagsBox.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button');
+                    if (!btn) return;
+                    if (btn.classList.contains('js-expand-herbs')) {
+                        renderExpanded();
+                    } else if (btn.classList.contains('js-collapse-herbs')) {
+                        renderCollapsed();
+                    }
+                });
+            }
         } catch (error) {
             body.innerHTML = `<div class="panel-error">加载失败: ${error.message}</div>`;
         }
@@ -397,6 +438,7 @@ class WorldMapVisualization {
 
     /**
      * 生成药材信息卡片（药典风格）
+     * 字段统一使用两列 grid：固定标签列 + 可自由换行的正文列，杜绝窄列竖排
      */
     buildHerbCard(d) {
         const props = (d.properties || []).map(p => p.name).join('、');
@@ -404,45 +446,36 @@ class WorldMapVisualization {
         const effs = (d.efficacies || []).map(e => e.name).join('、') || d.description || '未记载';
         const intro = `${d.name}，${d.pinyin || ''}，为${d.category_name || '未分类'}。${d.description || ''}`.trim();
 
+        const rows = [];
+        if (props) rows.push(this.buildDetailRow('性味', props));
+        if (meridians) rows.push(this.buildDetailRow('归经', meridians));
+        rows.push(this.buildDetailRow('功效', effs));
+        if (d.usage_dosage) rows.push(this.buildDetailRow('用量', d.usage_dosage));
+        rows.push(this.buildDetailRow('简介', intro));
+
         return `
             <div class="herb-card">
-                <div class="herb-card-title">
+                <div class="herb-card-header">
                     <span class="herb-icon">🌿</span>
                     <span class="herb-name">${d.name}</span>
                     ${d.is_common ? '<span class="herb-common-badge">⭐ 常用</span>' : ''}
                 </div>
-                ${d.category_name ? `
-                    <div class="herb-card-row">
-                        <span class="row-label">分类</span>
-                        <span class="row-value">${d.category_name}</span>
-                    </div>
-                ` : ''}
-                ${props ? `
-                    <div class="herb-card-row">
-                        <span class="row-label">性味</span>
-                        <span class="row-value">${props}</span>
-                    </div>
-                ` : ''}
-                ${meridians ? `
-                    <div class="herb-card-row">
-                        <span class="row-label">归经</span>
-                        <span class="row-value">${meridians}</span>
-                    </div>
-                ` : ''}
-                <div class="herb-card-row">
-                    <span class="row-label">功效</span>
-                    <span class="row-value">${effs}</span>
+                ${d.category_name ? `<div class="herb-category">分类：${d.category_name}</div>` : ''}
+                <div class="herb-detail-grid">
+                    ${rows.join('')}
                 </div>
-                ${d.usage_dosage ? `
-                    <div class="herb-card-row">
-                        <span class="row-label">用量</span>
-                        <span class="row-value">${d.usage_dosage}</span>
-                    </div>
-                ` : ''}
-                <div class="herb-card-row">
-                    <span class="row-label">简介</span>
-                    <span class="row-value">${intro}</span>
-                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * 单行详情字段（grid 两列，minmax(0,1fr) 保证正文可正常换行）
+     */
+    buildDetailRow(label, value) {
+        return `
+            <div class="herb-detail-row">
+                <span class="detail-label">${label}</span>
+                <span class="detail-value">${value}</span>
             </div>
         `;
     }
@@ -484,3 +517,7 @@ window.worldMapVisualization = new WorldMapVisualization();
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = WorldMapVisualization;
 }
+
+
+
+

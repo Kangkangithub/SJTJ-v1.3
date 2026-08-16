@@ -11,7 +11,7 @@ window.deleteWeapon = async function(weaponId, weaponName) {
     
     try {
         // 使用完整的URL路径，确保请求到正确的端点
-        const response = await fetch(`http://localhost:3001/api/weapons/direct-delete/${weaponId}`, {
+        const response = await fetch(`http://localhost:3001/api/herbs/direct-delete/${weaponId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ window.updateWeapon = async function(weaponId, weaponData) {
     console.log('开始更新武器，ID:', weaponId, '数据:', weaponData);
     
     try {
-        const response = await fetch(`/api/weapons/direct-update/${weaponId}`, {
+        const response = await fetch(`/api/herbs/direct-update/${weaponId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

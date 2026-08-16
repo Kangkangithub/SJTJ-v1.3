@@ -4,6 +4,14 @@ const userService = require('../services/userService-simple');
 const { validate, userRegistrationSchema, userLoginSchema } = require('../middleware/validation');
 const { authenticateToken } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const MAX_AVATAR_DATA_URL_LENGTH = 1400000;
+
+function validateAvatar(avatar) {
+  if (avatar === undefined || avatar === null || avatar === '') return;
+  if (typeof avatar !== 'string') throw new Error('头像数据格式无效');
+  if (!avatar.startsWith('data:image/')) throw new Error('头像必须是图片 Data URL');
+  if (avatar.length > MAX_AVATAR_DATA_URL_LENGTH) throw new Error('头像文件不能超过 1MB');
+}
 
 // 用户注册
 router.post('/register', validate(userRegistrationSchema), async (req, res) => {
@@ -55,6 +63,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 router.put('/profile', authenticateToken, async (req, res) => {
   try {
     const { name, phone, bio, preferences, avatar } = req.body;
+    validateAvatar(avatar);
     const result = await userService.updateProfile(req.user.userId, {
       name,
       phone,

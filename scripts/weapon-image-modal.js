@@ -166,7 +166,7 @@ class WeaponImageModal {
             }
             
             console.log('处理后的武器ID:', weaponId);
-            const apiUrl = `http://localhost:3001/api/weapon-images/${weaponId}`;
+            const apiUrl = `http://localhost:3001/api/herb-images/${weaponId}`;
             console.log('请求URL:', apiUrl);
             
             const response = await fetch(apiUrl, {
@@ -334,7 +334,7 @@ class WeaponImageModal {
                     weaponId = weaponId.replace('weapon_', '');
                 }
 
-                const response = await fetch(`/api/weapon-images/${weaponId}`, {
+                const response = await fetch(`/api/herb-images/${weaponId}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -416,7 +416,7 @@ class WeaponImageModal {
                     weaponId = weaponId.replace('weapon_', '');
                 }
 
-                const response = await fetch(`/api/weapon-images/${weaponId}/${image.id}`, {
+                const response = await fetch(`/api/herb-images/${weaponId}/${image.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -450,7 +450,7 @@ class WeaponImageModal {
                     weaponId = weaponId.replace('weapon_', '');
                 }
 
-                const response = await fetch(`/api/weapon-images/${weaponId}/${image.id}`, {
+                const response = await fetch(`/api/herb-images/${weaponId}/${image.id}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,

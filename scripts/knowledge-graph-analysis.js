@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!ctx) return;
 
         // 从后端API获取制造商武器数量数据
-        fetch('/api/manufacturer-statistics/weapon-count')
+        fetch('/api/source-statistics/weapon-count')
             .then(response => response.json())
             .then(data => {
                 if (!data || !data.success || !data.data) {
@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!ctx) return;
 
         // 从后端API获取制造商数据
-        fetch('/api/manufacturer-statistics/details')
+        fetch('/api/source-statistics/details')
             .then(response => response.json())
             .then(data => {
                 if (!data || !Array.isArray(data)) {

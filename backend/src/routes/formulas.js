@@ -65,7 +65,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     const herbs = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT fh.id, h.name, h.pinyin, fh.dosage, fh.role, fh.note
+        `SELECT fh.id, h.id as herb_id, h.name, h.pinyin, fh.dosage, fh.role, fh.note
          FROM formula_herbs fh
          JOIN herbs h ON fh.herb_id = h.id
          WHERE fh.formula_id = ?

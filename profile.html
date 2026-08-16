@@ -3,248 +3,422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人中心 - 神机图鉴</title>
+    <title>个人中心 - 神农AI</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles/herb-app.css">
     <link rel="stylesheet" href="styles/common.css">
     <link rel="stylesheet" href="styles/profile.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo">神机图鉴</div>
-            <div class="user-status">
-                <!-- 用户状态将由auth.js动态更新 -->
-                <a href="login.html" class="btn">登录</a>
+<body class="profile-page">
+    <a class="skip-link" href="#mainContent">跳到主内容</a>
+    <div class="profile-shell">
+        <header class="profile-account-header">
+            <a class="profile-brand" href="index.html">
+                <span class="profile-brand-name">神农AI</span>
+                <span class="profile-brand-subtitle">中药药材知识图谱系统</span>
+            </a>
+            <div class="profile-header-actions">
+                <a class="btn secondary" href="index.html">返回首页</a>
+                <button type="button" id="logoutBtn" class="btn danger-secondary">退出登录</button>
             </div>
         </header>
 
-        <nav>
-            <ul>
-                <li><a href="index.html"><i class="fas fa-home"></i> 首页</a></li>
-                <li><a href="knowledge-graph.html"><i class="fas fa-project-diagram"></i> 知识图谱</a></li>
-                <li><a href="qa.html"><i class="fas fa-comments"></i> 智能问答</a></li>
-                <li><a href="recommendation.html"><i class="fas fa-thumbs-up"></i> 智能推荐</a></li>
-                <li><a href="test.html"><i class="fas fa-bullseye"></i> 军事测验</a></li>
-                <li><a href="weapon-recognition.html"><i class="fas fa-camera"></i> 武器识别</a></li>
-                <li><a href="profile.html" class="active"><i class="fas fa-user"></i> 个人中心</a></li>
-            </ul>
-        </nav>
-        <div class="content">
-            <div class="card">
-                <h1>个人中心</h1>
-                
-                <div class="profile-header">
-                    <div class="profile-avatar"></div>
-                    <h2 id="profileName">张三</h2>
+        <main id="mainContent" class="profile-main" aria-labelledby="profileTitle">
+            <div class="profile-title-row">
+                <div>
+                    <h1 id="profileTitle">个人中心</h1>
+                    <p>管理账户资料和安全设置。</p>
                 </div>
-                
-                <form id="profileForm">
-                    <div class="form-group">
-                        <label for="username">用户名</label>
-                        <input type="text" id="username" name="username" value="张三">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">电子邮箱</label>
-                        <input type="email" id="email" name="email" value="zhangsan@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">手机号码</label>
-                        <input type="tel" id="phone" name="phone" value="13800138000">
-                    </div>
-                    <div class="form-group">
-                        <label for="bio">个人简介</label>
-                        <textarea id="bio" name="bio" rows="4">我是一名军事武器爱好者，喜欢学习和分享关于军事的相关知识。</textarea>
-                    </div>
-                    <button type="submit">保存修改</button>
-                </form>
+                <div id="profileMessage" class="profile-message" role="status" aria-live="polite"></div>
             </div>
-        </div>
+
+            <section class="profile-card card" aria-label="个人资料">
+                <div class="profile-card-grid">
+                    <aside class="profile-summary" aria-label="账户摘要">
+                        <button type="button" id="avatarButton" class="avatar-button" aria-label="选择头像预览">
+                            <span id="avatarInitial" class="avatar-initial"></span>
+                            <img id="avatarImage" class="avatar-image" alt="" hidden>
+                        </button>
+                        <input type="file" id="avatarInput" accept="image/*" hidden>
+                        <p id="avatarHint" class="avatar-hint">可选择头像预览。</p>
+                        <div class="profile-identity">
+                            <div>
+                                <span class="profile-identity-label">显示名称</span>
+                                <strong id="summaryName">正在读取资料</strong>
+                            </div>
+                            <div>
+                                <span class="profile-identity-label">电子邮箱</span>
+                                <span id="summaryEmail"></span>
+                            </div>
+                        </div>
+                        <div id="adminEntry" class="profile-admin-entry" hidden><a class="btn btn-primary" href="admin.html">管理后台</a></div>
+                        <dl class="profile-facts">
+                            <div>
+                                <dt>角色</dt>
+                                <dd><span id="summaryRole" class="profile-role-badge">-</span></dd>
+                            </div>
+                        </dl>
+                    </aside>
+
+                    <section class="profile-form-panel" aria-label="资料表单">
+                        <form id="profileForm">
+                            <section class="form-section" aria-labelledby="editableInfoTitle">
+                                <h2 id="editableInfoTitle">资料编辑</h2>
+                                <div class="profile-form-grid">
+                                    <div class="form-group">
+                                        <label for="displayName">显示名称</label>
+                                        <input type="text" id="displayName" name="displayName" placeholder="请输入显示名称">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">手机号</label>
+                                        <input type="tel" id="phone" name="phone" placeholder="请输入手机号" autocomplete="tel">
+                                    </div>
+                                    <div class="form-group profile-form-wide">
+                                        <label for="bio">关注方向</label>
+                                        <textarea id="bio" name="bio" rows="3" placeholder="例如：补虚药、方剂配伍、药材识别"></textarea>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div class="profile-form-actions">
+                                <button type="submit" id="saveProfileBtn" class="btn btn-primary" disabled>保存修改</button>
+                                <button type="button" id="resetProfileBtn" class="btn secondary" disabled>重置</button>
+                                <button type="button" id="openPasswordBtn" class="btn ghost" disabled>修改密码</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </section>
+        </main>
     </div>
+
+    <div id="passwordModal" class="profile-modal" hidden>
+        <div class="profile-modal-backdrop" data-close-password></div>
+        <section class="profile-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
+            <div class="profile-modal-header">
+                <h2 id="passwordTitle">修改密码</h2>
+                <button type="button" class="modal-close" data-close-password aria-label="关闭修改密码">×</button>
+            </div>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="oldPassword">当前密码</label>
+                    <input type="password" id="oldPassword" autocomplete="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">新密码</label>
+                    <input type="password" id="newPassword" autocomplete="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">确认新密码</label>
+                    <input type="password" id="confirmNewPassword" autocomplete="new-password" required>
+                </div>
+                <div id="passwordMessage" class="profile-message" role="status" aria-live="polite"></div>
+                <div class="profile-form-actions modal-actions">
+                    <button type="submit" id="savePasswordBtn" class="btn btn-primary">保存密码</button>
+                    <button type="button" class="btn secondary" data-close-password>取消</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
     <script>
         const API_BASE = 'http://localhost:3001/api';
+        const profileForm = document.getElementById('profileForm');
+        const passwordForm = document.getElementById('passwordForm');
+        const profileMessage = document.getElementById('profileMessage');
+        const passwordMessage = document.getElementById('passwordMessage');
+        const passwordModal = document.getElementById('passwordModal');
+        const MAX_AVATAR_SIZE = 1024 * 1024;
+        let lastProfile = null;
+        let pendingAvatarDataUrl = '';
 
-        // 检查用户是否已登录并加载用户信息
-        document.addEventListener('DOMContentLoaded', async function() {
-            const authToken = localStorage.getItem('authToken');
-            
-            if (!authToken) {
-                alert('请先登录');
-                window.location.href = 'login.html';
+        document.addEventListener('DOMContentLoaded', loadProfile);
+        profileForm.addEventListener('submit', saveProfile);
+        passwordForm.addEventListener('submit', changePassword);
+        document.getElementById('resetProfileBtn').addEventListener('click', function() {
+            if (!lastProfile) {
+                showProfileMessage('资料尚未读取，请稍后重试。', 'error');
                 return;
             }
-
-            try {
-                console.log('正在获取用户信息...');
-                
-                // 从后端获取用户信息
-                const response = await fetch(`${API_BASE}/auth/profile`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-
-                console.log('API响应状态:', response.status);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('获取到的用户数据:', data);
-                    
-                    if (data.success && data.data) {
-                        const user = data.data;
-                        
-                        // 显示用户信息
-                        document.getElementById('profileName').textContent = user.name || user.username;
-                        document.getElementById('username').value = user.username || '';
-                        document.getElementById('email').value = user.email || '';
-                        document.getElementById('phone').value = user.phone || '';
-                        document.getElementById('bio').value = user.bio || '';
-                        
-                        // 更新localStorage中的用户信息
-                        localStorage.setItem('userInfo', JSON.stringify({
-                            ...user,
-                            isLoggedIn: true
-                        }));
-                        
-                        console.log('用户信息加载成功');
-                    } else {
-                        throw new Error('用户数据格式错误');
-                    }
-                } else if (response.status === 401 || response.status === 403) {
-                    // 令牌无效，清除本地存储并重定向到登录页面
-                    console.log('令牌无效，清除本地存储');
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('userInfo');
-                    alert('登录已过期，请重新登录');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1000);
-                } else {
-                    // 其他HTTP错误
-                    const errorData = await response.text();
-                    console.error('API错误响应:', errorData);
-                    throw new Error(`服务器错误: ${response.status}`);
-                }
-            } catch (error) {
-                console.error('获取用户信息时出错:', error);
-                
-                // 检查是否是网络连接问题
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    alert('无法连接到服务器，请检查网络连接或确认后端服务是否正在运行');
-                } else {
-                    alert('获取用户信息失败：' + error.message);
-                }
-                
-                // 清除可能损坏的令牌
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userInfo');
-                
-                // 延迟跳转，避免无限循环
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-            }
+            fillProfile(lastProfile);
+            updateAdminEntry(lastProfile);
+            pendingAvatarDataUrl = '';
+            document.getElementById('avatarInput').value = '';
+            showProfileMessage('已恢复到最近一次读取的资料。', 'success');
+        });
+        document.getElementById('openPasswordBtn').addEventListener('click', openPasswordModal);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('avatarButton').addEventListener('click', function() {
+            document.getElementById('avatarInput').click();
+        });
+        document.getElementById('avatarInput').addEventListener('change', previewAvatar);
+        document.querySelectorAll('[data-close-password]').forEach(function(node) {
+            node.addEventListener('click', closePasswordModal);
         });
 
-        // 处理表单提交
-        document.getElementById('profileForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const authToken = localStorage.getItem('authToken');
+        async function loadProfile() {
+            const authToken = getAuthToken();
             if (!authToken) {
-                alert('请先登录');
                 window.location.href = 'login.html';
                 return;
             }
 
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const bio = document.getElementById('bio').value;
+            try {
+                showProfileMessage('正在读取资料。', '');
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (response.status === 401 || response.status === 403) {
+                    handleUnauthorized();
+                    return;
+                }
+
+                if (!response.ok || !data.success || !data.data) {
+                    throw new Error(data.message || '资料读取失败，请稍后重试。');
+                }
+
+                lastProfile = data.data;
+                fillProfile(lastProfile);
+                updateAdminEntry(lastProfile);
+                setProfileFormEnabled(true);
+                localStorage.setItem('userInfo', JSON.stringify({ ...lastProfile, isLoggedIn: true }));
+                showProfileMessage('', '');
+            } catch (error) {
+                showProfileMessage(error.message || '资料读取失败，请稍后重试。', 'error');
+            }
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            const authToken = getAuthToken();
+            if (!authToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveProfileBtn');
+            const originalText = saveBtn.textContent;
+            const payload = {
+                name: document.getElementById('displayName').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                bio: document.getElementById('bio').value.trim()
+            };
+            if (pendingAvatarDataUrl) {
+                payload.avatar = pendingAvatarDataUrl;
+            }
 
             try {
-                // 显示加载状态
-                const submitBtn = document.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = '保存中...';
-                submitBtn.disabled = true;
+                saveBtn.disabled = true;
+                saveBtn.textContent = '保存中';
+                showProfileMessage('', '');
 
-                // 发送更新请求
                 const response = await fetch(`${API_BASE}/auth/profile`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authToken}`
                     },
-                    body: JSON.stringify({
-                        name: username,
-                        phone: phone,
-                        bio: bio
-                    })
+                    body: JSON.stringify(payload)
                 });
+                const data = await response.json().catch(() => ({}));
 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('更新响应数据:', data);
-
-                    if (data.success) {
-                        alert('个人资料保存成功！');
-                        
-                        // 更新页面显示
-                        document.getElementById('profileName').textContent = username;
-                        
-                        // 更新localStorage中的用户信息
-                        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-                        userInfo.name = username;
-                        userInfo.phone = phone;
-                        userInfo.bio = bio;
-                        localStorage.setItem('userInfo', JSON.stringify(userInfo));
-                    } else {
-                        alert('保存失败：' + (data.message || '未知错误'));
-                    }
-                } else if (response.status === 401 || response.status === 403) {
-                    // 令牌无效
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('userInfo');
-                    alert('登录已过期，请重新登录');
-                    window.location.href = 'login.html';
-                } else {
-                    // 其他HTTP错误
-                    const errorData = await response.json().catch(() => ({}));
-                    alert('保存失败：' + (errorData.message || `服务器错误 ${response.status}`));
+                if (response.status === 401 || response.status === 403) {
+                    handleUnauthorized();
+                    return;
                 }
-            } catch (error) {
-                console.error('保存个人资料时出错:', error);
-                alert('保存失败，请检查网络连接或稍后重试');
-            } finally {
-                // 恢复按钮状态
-                const submitBtn = document.querySelector('button[type="submit"]');
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
-        });
 
-        // 添加退出登录功能
-        function logout() {
-            if (confirm('确定要退出登录吗？')) {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userInfo');
-                alert('已退出登录');
-                window.location.href = 'login.html';
+                if (!response.ok || !data.success || !data.data) {
+                    throw new Error(data.message || '保存失败，请稍后重试。');
+                }
+
+                lastProfile = data.data;
+                fillProfile(lastProfile);
+                updateAdminEntry(lastProfile);
+                pendingAvatarDataUrl = '';
+                document.getElementById('avatarInput').value = '';
+                localStorage.setItem('userInfo', JSON.stringify({ ...lastProfile, isLoggedIn: true }));
+                showProfileMessage('资料已保存。', 'success');
+            } catch (error) {
+                showProfileMessage(error.message || '保存失败，请稍后重试。', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
             }
         }
 
-        // 在页面加载完成后添加退出登录按钮
-        document.addEventListener('DOMContentLoaded', function() {
-            // 在用户状态区域添加退出登录按钮
-            const userStatus = document.querySelector('.user-status');
-            if (userStatus) {
-                userStatus.innerHTML = `
-                    <span>欢迎回来！</span>
-                    <button onclick="logout()" class="btn" style="margin-left: 10px;">退出登录</button>
-                `;
+        async function changePassword(event) {
+            event.preventDefault();
+            const authToken = getAuthToken();
+            if (!authToken) {
+                closePasswordModal();
+                window.location.href = 'login.html';
+                return;
             }
-        });
+
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            const saveBtn = document.getElementById('savePasswordBtn');
+            const originalText = saveBtn.textContent;
+
+            if (newPassword !== confirmNewPassword) {
+                showPasswordMessage('两次输入的新密码不一致。', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showPasswordMessage('新密码至少需要 6 个字符。', 'error');
+                return;
+            }
+
+            try {
+                saveBtn.disabled = true;
+                saveBtn.textContent = '保存中';
+                showPasswordMessage('', '');
+
+                const response = await fetch(`${API_BASE}/auth/change-password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ oldPassword, newPassword })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (response.status === 401 || response.status === 403) {
+                    handleUnauthorized();
+                    return;
+                }
+
+                if (!response.ok || data.success === false) {
+                    throw new Error(data.message || '密码修改失败，请稍后重试。');
+                }
+
+                showPasswordMessage('密码已修改。', 'success');
+                passwordForm.reset();
+                setTimeout(closePasswordModal, 700);
+            } catch (error) {
+                showPasswordMessage(error.message || '密码修改失败，请稍后重试。', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        }
+
+        function fillProfile(user) {
+            const displayName = user.name || user.username || '';
+            document.getElementById('summaryName').textContent = displayName || '未填写名称';
+            document.getElementById('summaryEmail').textContent = user.email || '';
+            document.getElementById('summaryRole').textContent = normalizeRole(user.role);
+            document.getElementById('displayName').value = user.name || '';
+            document.getElementById('phone').value = user.phone || '';
+            document.getElementById('bio').value = user.bio || '';
+            renderAvatar(user.avatar, displayName || user.email || '');
+            document.getElementById('avatarHint').textContent = user.avatar ? '点击头像可更换。' : '可选择头像预览。';
+        }
+
+        function setProfileFormEnabled(enabled) {
+            document.getElementById('saveProfileBtn').disabled = !enabled;
+            document.getElementById('resetProfileBtn').disabled = !enabled;
+            document.getElementById('openPasswordBtn').disabled = !enabled;
+        }
+
+        function renderAvatar(avatar, label) {
+            const image = document.getElementById('avatarImage');
+            const initial = document.getElementById('avatarInitial');
+            if (avatar) {
+                image.src = avatar;
+                image.hidden = false;
+                initial.textContent = '';
+                return;
+            }
+            image.removeAttribute('src');
+            image.hidden = true;
+            initial.textContent = (label || '').trim().slice(0, 1).toUpperCase() || '用';
+        }
+
+        function previewAvatar(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                event.target.value = '';
+                showProfileMessage('请选择图片格式的头像文件。', 'error');
+                return;
+            }
+            if (file.size > MAX_AVATAR_SIZE) {
+                event.target.value = '';
+                showProfileMessage('头像文件不能超过 1MB。', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function() {
+                const image = document.getElementById('avatarImage');
+                document.getElementById('avatarInitial').textContent = '';
+                image.src = reader.result;
+                image.hidden = false;
+                pendingAvatarDataUrl = reader.result;
+                document.getElementById('avatarHint').textContent = '头像将在保存资料后生效。';
+                showProfileMessage('头像已预览，保存资料后生效。', 'success');
+            };
+            reader.onerror = function() {
+                showProfileMessage('头像读取失败，请重新选择图片。', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openPasswordModal() {
+            passwordForm.reset();
+            showPasswordMessage('', '');
+            passwordModal.hidden = false;
+            document.getElementById('oldPassword').focus();
+        }
+
+        function closePasswordModal() {
+            passwordModal.hidden = true;
+        }
+
+        function logout() {
+            if (!confirm('确定要退出登录吗？')) return;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            window.location.href = 'index.html';
+        }
+
+        function handleUnauthorized() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            window.location.href = 'login.html';
+        }
+
+        function getAuthToken() {
+            return localStorage.getItem('authToken') || localStorage.getItem('token');
+        }
+
+        function updateAdminEntry(profile) {
+            const adminEntry = document.getElementById('adminEntry');
+            if (!adminEntry) return;
+            adminEntry.hidden = !profile || profile.role !== 'admin';
+        }
+
+        function showProfileMessage(text, type) {
+            profileMessage.textContent = text;
+            profileMessage.className = `profile-message ${type || ''}`.trim();
+        }
+
+        function showPasswordMessage(text, type) {
+            passwordMessage.textContent = text;
+            passwordMessage.className = `profile-message ${type || ''}`.trim();
+        }
+
+
+        function normalizeRole(role) {
+            return ({ admin: '管理员', user: '用户' })[role] || (role || '-');
+        }
     </script>
 </body>
 </html>
