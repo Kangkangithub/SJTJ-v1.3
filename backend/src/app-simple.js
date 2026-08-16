@@ -339,6 +339,7 @@ class SimpleApp {
         logger.info(`数据库: SQLite + Neo4j AuraDB`);
         logger.info(`健康检查: http://localhost:${port}/health`);
         logger.info(`API文档: http://localhost:${port}/api`);
+        logger.info(`前端入口: http://127.0.0.1:${port}/index.html`);
         this.warmupKnowledgeGraphCache();
       });
 

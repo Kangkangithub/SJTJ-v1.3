@@ -187,6 +187,8 @@ npm start
 http://localhost:3001
 ```
 
+> 前端无需 Live Server：后端已通过 Express 静态托管项目根目录。`npm run dev` 启动成功后，终端会打印 `前端入口: http://127.0.0.1:3001/index.html`，直接点击即可打开。
+
 ### 4. 打开页面
 
 | 页面 | 地址 |
