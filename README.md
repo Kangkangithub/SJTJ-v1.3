@@ -18,7 +18,8 @@
 
 - 药材管理系统（增删查改）
 - 药材详情与关联图谱展示
-- GraphRAG 智能问答
+- GraphRAG 智能问答（含向量语义检索）
+- 向量语义检索：`text-embedding-v3` 语义匹配「证型 ↔ 功效」
 - 配伍冲突检测
 - 古籍知识自动抽取
 - 对话历史记录
@@ -50,10 +51,10 @@
 ### 3. GraphRAG 智能问答
 
 - 页面：`qa.html`
-- 技术链：Neo4j → LangChain.js → GraphCypherQAChain/手动图检索 → DeepSeek-V3
+- 技术链：Neo4j → 向量检索（text-embedding-v3）→ LangChain.js → 手动图检索 → DeepSeek-V3
 - 支持药材功效、产地、用法、注意事项、方剂组成等问题
 - 答案附带引用来源、可点击药材节点、D3 迷你知识图谱
-- 展示完整 GraphRAG 检索过程
+- 展示完整 GraphRAG 检索过程（含向量检索环节）
 
 ### 4. AI 引擎模块
 
@@ -88,40 +89,46 @@
 Node.js + Express 后端
    │
    ├── ragServiceV2.js（GraphRAG 核心）
-   │     ├── DeepSeek 关键词提取
+   │     ├── 本地 n-gram 关键词提取
    │     ├── Neo4j Cypher 图检索
+   │     ├── 向量语义检索（text-embedding-v3）
    │     ├── 1-2 跳图遍历
-   │     ├── LLM 知识增强
+   │     ├── LLM 知识增强（受控并发）
    │     ├── 上下文构建
    │     └── DeepSeek 答案生成
    │
+   ├── embeddingService.js（向量检索 + SQLite 持久化）
    ├── neo4j-simple.js（Neo4j 单例连接）
    │
    ▼
 Neo4j AuraDB 云图数据库
 ```
 
-### GraphRAG 六步管线
+### GraphRAG 七步管线
 
 ```
 用户问题
    ↓
-① 关键词提取：LLM 分析问题，提取药材名、功效、症状、方剂等
+① 关键词提取：本地 n-gram 切词（不调 LLM），提取药材名、功效、症状等字面词
    ↓
 ② Neo4j 图检索：Cypher 精确名称匹配，必要时扩展功效/描述/拼音
    ↓
-③ 1-2 跳图遍历：沿关系边获取性味归经、功效、方剂、配伍禁忌
+③ 向量语义检索：text-embedding-v3 语义匹配「证型 ↔ 功效」，弥补字面匹配缺口
    ↓
-④ LLM 知识增强：DeepSeek 补全现代药理、临床应用等深度知识
+④ 1-2 跳图遍历：沿关系边获取性味归经、功效、方剂、配伍禁忌
    ↓
-⑤ 上下文构建：将图谱数据与增强知识格式化为结构化提示
+⑤ LLM 知识增强：DeepSeek 补全前 N 味药材（受控并发，默认 5 味 / 3 并发）
    ↓
-⑥ DeepSeek-V3 生成：基于增强上下文生成带引用来源的答案
+⑥ 上下文构建：将图谱数据与增强知识格式化为结构化提示
+   ↓
+⑦ DeepSeek-V3 生成：基于增强上下文生成带引用来源的答案
 ```
 
 详细教学请阅读：
 
 - `docs/AI_ENGINE_RAG_TEACHING.md`
+- `docs/EMBEDDING_VECTOR_SEARCH.md`（向量检索专项）
+- `docs/RAG_PERFORMANCE_OPTIMIZATION.md`（性能优化专项）
 
 ### GraphCypherQAChain 的角色
 
@@ -187,6 +194,8 @@ npm start
 http://localhost:3001
 ```
 
+> 前端无需 Live Server：后端已通过 Express 静态托管项目根目录。`npm run dev` 启动成功后，终端会打印 `前端入口: http://127.0.0.1:3001/index.html`，直接点击即可打开。
+
 ### 4. 打开页面
 
 | 页面 | 地址 |
@@ -248,6 +257,8 @@ http://localhost:3001
 | `NEO4J_USERNAME` | Neo4j 用户名 |
 | `NEO4J_PASSWORD` | Neo4j 密码 |
 | `DEEPSEEK_API_KEY` | DeepSeek API Key |
+| `DASHSCOPE_API_KEY` | 阿里云百炼 API Key（向量检索） |
+| `EMBEDDING_MODEL` | 向量模型，默认 `text-embedding-v3` |
 | `PORT` | 后端端口，默认 3001 |
 | `NODE_ENV` | 运行环境，`development` 或 `production` |
 | `SQLITE_PATH` | SQLite 数据库路径 |
@@ -431,12 +442,13 @@ quality        品质
 
 ### 后端处理
 
-1. DeepSeek 提取关键词：`["人参", "补气", "气虚"]`
+1. 本地 n-gram 提取关键词：`["人参", "功效", ...]`
 2. Neo4j 精确匹配到 `人参` 节点
-3. 图遍历获取性味、归经、功效、相关方剂
-4. DeepSeek 对人参进行知识增强
-5. 构建上下文
-6. DeepSeek 生成带参考来源的答案
+3. 向量检索语义补充（如「补气」语义命中「黄芪」等）
+4. 图遍历获取性味、归经、功效、相关方剂
+5. DeepSeek 对前 N 味药材做受控并发知识增强
+6. 构建上下文
+7. DeepSeek 生成带参考来源的答案
 
 ### 返回结构
 
@@ -473,6 +485,8 @@ quality        品质
 | --- | --- |
 | `README.md` | 项目总览 |
 | `docs/AI_ENGINE_RAG_TEACHING.md` | GraphRAG 智能问答改造教学 |
+| `docs/EMBEDDING_VECTOR_SEARCH.md` | 向量检索（Embedding 语义检索）实现详解 |
+| `docs/RAG_PERFORMANCE_OPTIMIZATION.md` | 问答性能优化详解 |
 | `backend/API.md` | 后端 API 详细说明 |
 | `NEO4J_MIGRATION.md` | Neo4j AuraDB 迁移说明 |
 | `NEO4J_AURADB_MIGRATION.md` | AuraDB 迁移补充说明 |
@@ -491,7 +505,8 @@ quality        品质
 | 图驱动 | `neo4j-driver` |
 | AI 框架 | LangChain.js |
 | LLM | DeepSeek-V3（`deepseek-chat`） |
-| 关系型数据库 | SQLite（用户、认证、对话历史） |
+| 向量模型 | 阿里云百炼 `text-embedding-v3`（1024 维） |
+| 关系型数据库 | SQLite（用户、认证、对话历史、向量存储） |
 
 ---
 
@@ -507,11 +522,15 @@ GraphRAG 会先从 Neo4j 检索真实图数据，再交给 DeepSeek 生成答案
 
 ### 3. 问症状类问题能查图吗？
 
-可以。系统会先用 DeepSeek 提取关键词，再执行 Cypher 精确/模糊匹配；如果图中无匹配，则降级为 DeepSeek 直接回答。
+可以。系统会先用本地 n-gram 提取字面关键词、再用向量检索做「证型 ↔ 功效」语义匹配，然后执行 Cypher 精确/模糊匹配；如果图中无匹配，则降级为 DeepSeek 直接回答。
 
 ### 4. 为什么重复提问返回很快？
 
 系统有 5 分钟答案缓存。修改检索逻辑后需要更新 `CACHE_VERSION` 或清除缓存。
+
+### 5. 为什么问答比之前更快了？
+
+做了 P0/P1 性能优化：① 关键词提取改为本地 n-gram（省一次 LLM 调用）；② 知识增强只补全最相关的前 5 味药材，并把串行改成 3 并发。详情见 `docs/RAG_PERFORMANCE_OPTIMIZATION.md`。
 
 ---
 

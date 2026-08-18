@@ -15,6 +15,7 @@
 const express = require("express");
 const router = express.Router();
 const ragServiceV2 = require("../services/ragServiceV2");
+const embeddingService = require("../services/embeddingService");
 const neo4jManager = require("../config/neo4j-simple");
 const path = require("path");
 const fs = require("fs");
@@ -207,6 +208,23 @@ router.post("/rag-stream", async (req, res) => {
     // 步骤2：搜索 Neo4j
     const trimmedQuestion = question.trim();
     const searchResults = await ragServiceV2.searchNeo4j(trimmedQuestion);
+
+    // 步骤2.5：向量检索补充（与非流式 /rag 一致，弥补 CONTAINS 字面匹配的语义缺口）
+    if (embeddingService.isReady()) {
+      try {
+        const semHits = await embeddingService.search(trimmedQuestion, 10);
+        const existingNames = new Set(searchResults.herbs.map(h => h.name));
+        const newNames = semHits.map(s => s.name).filter(n => n && !existingNames.has(n));
+        if (newNames.length > 0) {
+          const semanticHerbs = await ragServiceV2.searchNeo4jByNames(newNames);
+          const semNames = new Set(semanticHerbs.map(h => h.name));
+          searchResults.herbs = semanticHerbs.concat(searchResults.herbs.filter(h => !semNames.has(h.name)));
+        }
+      } catch (e) {
+        console.warn("[AI-Engine] 流式向量检索补充失败:", e.message);
+      }
+    }
+
     const enriched = await ragServiceV2.enrichWithGraphTraversal(searchResults);
     const context = ragServiceV2.buildContextText(enriched);
 
