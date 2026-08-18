@@ -13,20 +13,22 @@
 - [templates/footer.html](file://templates/footer.html)
 - [styles/herb-app.css](file://styles/herb-app.css)
 - [styles/quiz.css](file://styles/quiz.css)
+- [styles/qa.css](file://styles/qa.css)
 - [scripts/herb-data.js](file://scripts/herb-data.js)
 - [scripts/herb-pages.js](file://scripts/herb-pages.js)
 - [scripts/quiz.js](file://scripts/quiz.js)
 - [scripts/auth.js](file://scripts/auth.js)
 - [scripts/common.js](file://scripts/common.js)
+- [scripts/qa.js](file://scripts/qa.js)
+- [docs/EMBEDDING_VECTOR_SEARCH.md](file://docs/EMBEDDING_VECTOR_SEARCH.md)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 新增草药搜索页面（herb-search.html）和草药详情页面（herb-detail.html）
-- 全新知识测评功能页面（quiz.html），包含测验、排行榜等功能
-- 增强的问答界面（qa.html），集成GraphRAG技术栈展示
-- 重构的知识图谱页面，采用标签式导航
-- 统一的设计系统和响应式布局
+- 问答页技术栈可视化新增向量检索能力展示，明确显示语义搜索在回答生成中的作用
+- 增强GraphRAG技术栈的可视化呈现，突出Neo4j与向量检索的协同工作
+- 优化问答界面的技术栈指示器，使用户能够理解语义搜索对答案的贡献度
+- 完善知识图谱页面的技术栈说明，体现向量检索在中医药知识检索中的重要性
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -210,15 +212,20 @@ Distribution --> Analysis[数据分析]
 
 #### 增强的对话界面
 
+**已更新** 问答页现在展示了完整的GraphRAG技术栈，包括向量检索能力的可视化展示：
+
 ```mermaid
 sequenceDiagram
 participant User as 用户
 participant UI as 对话界面
 participant TechStack as 技术栈展示
+participant VectorSearch as 向量检索
 participant API as GraphRAG API
 participant LLM as DeepSeek-V3
 User->>UI : 输入问题
 UI->>TechStack : 显示技术栈信息
+UI->>VectorSearch : 语义检索证型与功效
+VectorSearch->>API : 返回相似药材
 UI->>API : 发送请求
 API->>LLM : 图检索增强
 LLM->>API : 生成回答
@@ -227,18 +234,21 @@ UI->>User : 实时更新回复
 ```
 
 **图表来源**
-- [qa.html:54-95](file://qa.html#L54-L95)
+- [qa.html:54-104](file://qa.html#L54-L104)
 - [qa.html:97-130](file://qa.html#L97-L130)
+- [scripts/qa.js:721-729](file://scripts/qa.js#L721-L729)
 
 #### 功能特性
 
-- **GraphRAG技术栈**：展示Neo4j、LangChain.js、GraphCypherQAChain等技术组件
+- **GraphRAG技术栈可视化**：展示Neo4j、向量检索、LangChain.js、GraphCypherQAChain等技术组件
+- **向量检索能力展示**：明确显示语义搜索在回答生成中的作用
 - **流式响应**：模拟真实的对话体验
 - **历史对话**：支持对话历史记录和管理
 - **侧边面板**：集成药材详情查看功能
 
 **节来源**
-- [qa.html:1-157](file://qa.html#L1-L157)
+- [qa.html:1-166](file://qa.html#L1-L166)
+- [scripts/qa.js:706-793](file://scripts/qa.js#L706-L793)
 
 ### 知识测评页（quiz.html）
 
@@ -534,9 +544,12 @@ Network --> Cache
 3. **国际化支持**：添加多语言切换功能
 4. **离线功能**：考虑添加PWA特性
 
-该前端架构为中药药材知识图谱平台提供了坚实的基础，既满足了当前的功能需求，也为未来的扩展预留了充足的空间。通过统一的設計系統和模塊化的架構，系統能夠輕鬆地適應未來的業務需求和技術發展。
+该前端架构为中药药材知识图谱平台提供了坚实的基础，既满足了当前的功能需求，也为未来的扩展预留了充足的空间。通过统一的设计系统和模块化的架构，系统能够轻松地适应未来的业务需求和技术发展。
 
 **节来源**
 - [scripts/herb-pages.js:1-1852](file://scripts/herb-pages.js#L1-L1852)
 - [styles/herb-app.css:1-1473](file://styles/herb-app.css#L1-L1473)
+- [styles/qa.css:1-800](file://styles/qa.css#L1-L800)
 - [scripts/quiz.js:1-387](file://scripts/quiz.js#L1-L387)
+- [scripts/qa.js:1-1017](file://scripts/qa.js#L1-L1017)
+- [docs/EMBEDDING_VECTOR_SEARCH.md:1-406](file://docs/EMBEDDING_VECTOR_SEARCH.md#L1-L406)

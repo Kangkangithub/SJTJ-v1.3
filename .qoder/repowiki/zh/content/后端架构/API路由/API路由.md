@@ -3,10 +3,12 @@
 <cite>
 **本文档中引用的文件**
 - [app.js](file://backend/src/app.js)
+- [ai-engine.js](file://backend/src/routes/ai-engine.js)
+- [ragServiceV2.js](file://backend/src/services/ragServiceV2.js)
+- [embeddingService.js](file://backend/src/services/embeddingService.js)
 - [herbs.js](file://backend/src/routes/herbs.js)
 - [formulas.js](file://backend/src/routes/formulas.js)
 - [quiz.js](file://backend/src/routes/quiz.js)
-- [ai-engine.js](file://backend/src/routes/ai-engine.js)
 - [knowledge-graph.js](file://backend/src/routes/knowledge-graph.js)
 - [herb-categories.js](file://backend/src/routes/herb-categories.js)
 - [herb-regions.js](file://backend/src/routes/herb-regions.js)
@@ -22,10 +24,10 @@
 
 ## 更新摘要
 **变更内容**
-- 将武器管理API完全重构为草药知识管理API
-- 新增药材、方剂、测评、AI引擎等核心功能模块
-- 移除所有武器相关端点，替换为中医药知识管理接口
-- 增强知识图谱和AI智能问答能力
+- AI引擎RAG管道集成向量搜索，增强语义匹配能力
+- 流式问答端点新增步骤2.5：语义药材匹配补充
+- 优化知识检索流程，支持证型与功效的语义关联
+- 增强AI智能问答的准确性和完整性
 
 ## 目录
 1. [引言](#引言)
@@ -47,6 +49,8 @@
 ## 引言
 本文档全面记录了兵智世界系统的API路由定义和实现。系统已从武器管理完全重构为中医药知识管理系统，提供完整的草药信息、方剂管理、知识图谱查询、AI智能问答等功能。API设计遵循现代Web服务最佳实践，采用分层架构，基于Express.js框架实现，支持JWT身份验证和细粒度权限控制。系统通过SQLite存储结构化数据，Neo4j管理知识图谱关系，并集成DeepSeek AI提供智能问答服务。
 
+**最新更新**：AI引擎现已集成向量搜索功能，在RAG管道中实现了语义级别的药材匹配，显著提升了知识检索的准确性和完整性。
+
 ## 项目结构
 系统采用模块化设计，包含多个独立的功能模块：用户认证、药材管理、方剂管理、知识图谱、AI引擎、多媒体处理等。主要技术栈包括Express.js、SQLite、Neo4j、DeepSeek AI等。
 
@@ -65,10 +69,11 @@ subgraph "数据存储"
 SQLite[(SQLite)]
 Neo4j[(Neo4j)]
 FileSys[文件系统]
+Embeddings[(向量索引)]
 end
 subgraph "外部服务"
 DeepSeek[DeepSeek AI]
-DashScope[DashScope视觉识别]
+DashScope[百炼向量服务]
 end
 App --> Auth
 App --> Herbs
@@ -80,7 +85,8 @@ Herbs --> SQLite
 Formulas --> SQLite
 Knowledge --> Neo4j
 AI --> DeepSeek
-Media --> FileSys
+AI --> Embeddings
+Embeddings --> DashScope
 ```
 
 **图源**
@@ -378,7 +384,7 @@ Service-->>Client : 返回药材详情
 
 ## AI引擎API
 
-AI引擎API提供集成的AI功能，包括RAG智能问答、配伍冲突检测、古籍知识抽取等。系统支持流式响应和缓存优化。
+AI引擎API提供集成的AI功能，包括RAG智能问答、配伍冲突检测、古籍知识抽取等。**最新更新**：已集成向量搜索功能，在RAG管道中实现了语义级别的药材匹配，显著提升知识检索的准确性。
 
 ### RAG智能问答
 
@@ -397,6 +403,17 @@ AI引擎API提供集成的AI功能，包括RAG智能问答、配伍冲突检测�
 - **请求体**:
   - `question`: 问题内容
 - **响应**: SSE流式响应
+
+**新增功能**：流式问答现在包含增强的向量搜索步骤：
+
+1. **步骤1**：发送搜索状态
+2. **步骤2**：Neo4j图检索（关键词匹配）
+3. **步骤2.5**：**新增** 向量检索补充（语义匹配）
+   - 调用百炼text-embedding-v3进行语义相似度计算
+   - 弥补CONTAINS字面匹配对"证型↔功效"的失效问题
+   - 将语义命中的药材与图检索结果合并去重
+4. **步骤3**：构建上下文信息
+5. **步骤4**：流式调用DeepSeek生成回答
 
 ### 配伍冲突检测
 
@@ -427,6 +444,30 @@ AI引擎API提供集成的AI功能，包括RAG智能问答、配伍冲突检测�
 - **URL**: `GET /api/ai-engine/status`
 - **权限**: 无
 - **响应**: 引擎详细状态信息
+
+```mermaid
+sequenceDiagram
+participant Client as "客户端"
+participant Stream as "SSE流"
+participant AI as "AI引擎"
+participant Vector as "向量服务"
+participant Neo4j as "Neo4j"
+participant LLM as "DeepSeek"
+Client->>AI : POST /api/ai-engine/rag-stream
+AI->>Stream : 步骤1 : 搜索状态
+AI->>Neo4j : 步骤2 : 关键词检索
+Neo4j-->>AI : 返回匹配结果
+AI->>Vector : 步骤2.5 : 语义检索
+Vector-->>AI : 返回语义匹配
+AI->>LLM : 步骤4 : 流式生成
+LLM-->>Stream : 实时输出
+Stream-->>Client : 流式响应
+```
+
+**图源**
+- [ai-engine.js:178-333](file://backend/src/routes/ai-engine.js#L178-L333)
+- [ragServiceV2.js:152-189](file://backend/src/services/ragServiceV2.js#L152-L189)
+- [embeddingService.js:256-270](file://backend/src/services/embeddingService.js#L256-L270)
 
 **节源**
 - [ai-engine.js:136-174](file://backend/src/routes/ai-engine.js#L136-L174)
@@ -630,6 +671,8 @@ HerbRoutes --> DatabaseManager[数据库管理器]
 FormulaRoutes --> DatabaseManager
 KnowledgeRoutes --> Neo4jManager[Neo4j管理器]
 AIRoutes --> DeepSeek[DeepSeek AI]
+AIRoutes --> EmbeddingService[向量服务]
+EmbeddingService --> DashScope[百炼服务]
 MediaRoutes --> FileSystem[文件系统]
 DatabaseManager --> SQLite[(SQLite)]
 Neo4jManager --> Neo4j[(Neo4j)]
@@ -657,6 +700,8 @@ Neo4jManager --> Neo4j[(Neo4j)]
 8. **日志级别控制**: 根据环境调整日志详细程度，减少I/O开销
 9. **AI服务降级**: 当AI服务不可用时自动降级到数据库查询
 10. **流式响应**: 支持SSE流式响应，提升用户体验
+11. **向量缓存**: 嵌入向量持久化存储，避免重复计算
+12. **增量同步**: 仅对变化的药材重新向量化，提高效率
 
 ## 故障排除指南
 
@@ -695,6 +740,17 @@ Neo4jManager --> Neo4j[(Neo4j)]
   - 验证网络连接
   - 等待限流恢复后重试
 
+#### 向量检索失败
+- **症状**: 语义检索功能不可用
+- **可能原因**:
+  - DASHSCOPE_API_KEY未配置
+  - 向量索引未初始化
+  - 百炼服务不可用
+- **解决方案**:
+  - 检查DASHSCOPE_API_KEY环境变量
+  - 确保向量服务已正确初始化
+  - 验证百炼服务连接状态
+
 #### 文件上传失败
 - **症状**: 返回400状态码，提示文件相关错误
 - **可能原因**:
@@ -725,6 +781,8 @@ Neo4jManager --> Neo4j[(Neo4j)]
 
 兵智世界系统的API设计已从武器管理完全重构为中医药知识管理系统，提供了全面的草药信息管理、方剂管理、知识图谱查询、AI智能问答等功能。系统采用现代化的技术栈，实现了高内聚、低耦合的模块化架构。通过JWT认证和细粒度权限控制，确保了系统的安全性。多数据库策略充分发挥了不同数据库的优势，满足了复杂的数据管理需求。系统的错误处理机制完善，提供了清晰的错误信息，便于开发和维护。整体设计考虑了性能和可扩展性，为未来的功能扩展奠定了良好基础。
 
-新增的AI引擎功能集成了DeepSeek AI，提供了智能问答、配伍冲突检测、古籍知识抽取等高级功能。知识图谱API基于Neo4j提供了强大的图谱查询和分析能力。多媒体管理API支持药材图片和视频的管理。测评系统API为中医药知识学习提供了互动功能。对话历史API支持用户对话记录的持久化存储。
+**最新改进**：AI引擎现已集成向量搜索功能，通过在RAG管道中添加步骤2.5的语义药材匹配，显著提升了知识检索的准确性和完整性。这一改进解决了传统CONTAINS字面匹配无法处理"证型↔功效"语义关联的问题，使系统能够更好地理解中医药专业知识。
 
-这些改进使系统能够更好地服务于中医药知识的学习、研究和应用，为用户提供更加智能化和便捷的服务体验。
+新增的AI引擎功能集成了DeepSeek AI和百炼向量服务，提供了智能问答、配伍冲突检测、古籍知识抽取等高级功能。知识图谱API基于Neo4j提供了强大的图谱查询和分析能力。多媒体管理API支持药材图片和视频的管理。测评系统API为中医药知识学习提供了互动功能。对话历史API支持用户对话记录的持久化存储。
+
+这些改进使系统能够更好地服务于中医药知识的学习、研究和应用，为用户提供更加智能化和便捷的服务体验。向量搜索的集成特别增强了系统在复杂中医概念检索方面的能力，为用户提供了更精准的知识获取体验。

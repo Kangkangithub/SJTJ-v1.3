@@ -3,6 +3,8 @@
 <cite>
 **本文档中引用的文件**
 - [database-simple.js](file://backend/src/config/database-simple.js)
+- [embeddingService.js](file://backend/src/services/embeddingService.js)
+- [EMBEDDING_VECTOR_SEARCH.md](file://docs/EMBEDDING_VECTOR_SEARCH.md)
 - [init-db.js](file://backend/init-db.js)
 - [init-database.js](file://backend/scripts/init-database.js)
 - [weapons-simple.js](file://backend/src/routes/weapons-simple.js)
@@ -15,23 +17,32 @@
 - [index.js](file://backend/src/config/index.js)
 </cite>
 
+## 更新摘要
+**变更内容**
+- 新增herb_embeddings表结构和向量存储功能说明
+- 添加语义检索系统的完整实现细节
+- 更新数据库表结构设计章节
+- 新增向量检索优化策略章节
+- 补充Neo4j与SQLite混合架构说明
+
 ## 目录
 1. [简介](#简介)
 2. [项目结构概览](#项目结构概览)
 3. [核心表结构设计](#核心表结构设计)
 4. [外键约束与数据完整性](#外键约束与数据完整性)
 5. [辅助表与关系设计](#辅助表与关系设计)
-6. [数据库初始化流程](#数据库初始化流程)
-7. [内存缓存机制](#内存缓存机制)
-8. [SQL查询优化](#sql查询优化)
-9. [事务处理模式](#事务处理模式)
-10. [SQLite与Neo4j对比](#sqlite与neo4j对比)
-11. [故障排除指南](#故障排除指南)
-12. [总结](#总结)
+6. [向量存储与语义检索系统](#向量存储与语义检索系统)
+7. [数据库初始化流程](#数据库初始化流程)
+8. [内存缓存机制](#内存缓存机制)
+9. [SQL查询优化](#sql查询优化)
+10. [事务处理模式](#事务处理模式)
+11. [SQLite与Neo4j对比](#sqlite与neo4j对比)
+12. [故障排除指南](#故障排除指南)
+13. [总结](#总结)
 
 ## 简介
 
-兵智世界v1.3项目采用SQLite作为核心关系型数据库，配合内存缓存机制，构建了一个高效的知识管理体系。该数据库设计专注于武器知识的结构化存储，支持复杂的查询和关系管理，同时通过外键约束确保数据完整性。
+兵智世界v1.3项目采用SQLite作为核心关系型数据库，配合内存缓存机制和向量存储能力，构建了一个高效的知识管理体系。该数据库设计专注于武器知识和中药知识的结构化存储，支持复杂的查询、关系管理和语义检索，同时通过外键约束确保数据完整性。
 
 ## 项目结构概览
 
@@ -47,6 +58,7 @@ Users[users<br/>用户表]
 Manufacturers[manufacturers<br/>制造商表]
 Categories[categories<br/>武器类别表]
 Countries[countries<br/>国家表]
+HerbEmbeddings[herb_embeddings<br/>药材向量表]
 end
 subgraph "关系表"
 WeaponManu[weapon_manufacturers<br/>武器-制造商关系]
@@ -54,23 +66,31 @@ UserInterests[user_interests<br/>用户兴趣表]
 WeaponSim[weapon_similarities<br/>武器相似关系]
 QaRecords[qa_records<br/>问答记录表]
 end
+subgraph "外部服务"
+Neo4j[(Neo4j图数据库)]
+DashScope[(百炼API)]
+end
 Config --> DB
 DB --> Weapons
 DB --> Users
 DB --> Manufacturers
 DB --> Categories
 DB --> Countries
+DB --> HerbEmbeddings
 DB --> WeaponManu
 DB --> UserInterests
 DB --> WeaponSim
 DB --> QaRecords
+Neo4j -.-> HerbEmbeddings
+DashScope -.-> HerbEmbeddings
 ```
 
 **图表来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L48-L157)
+- [database-simple.js:48-157](file://backend/src/config/database-simple.js#L48-L157)
+- [embeddingService.js:1-50](file://backend/src/services/embeddingService.js#L1-L50)
 
 **章节来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L1-L323)
+- [database-simple.js:1-323](file://backend/src/config/database-simple.js#L1-L323)
 
 ## 核心表结构设计
 
@@ -128,7 +148,7 @@ DB --> QaRecords
 | updated_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
 **章节来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L48-L157)
+- [database-simple.js:48-157](file://backend/src/config/database-simple.js#L48-L157)
 
 ## 外键约束与数据完整性
 
@@ -189,11 +209,11 @@ ReportResults --> End([结束])
 ```
 
 **图表来源**
-- [fix-database-integrity.js](file://backend/scripts/fix-database-integrity.js#L40-L129)
+- [fix-database-integrity.js:40-129](file://backend/scripts/fix-database-integrity.js#L40-L129)
 
 **章节来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L48-L60)
-- [fix-database-integrity.js](file://backend/scripts/fix-database-integrity.js#L40-L129)
+- [database-simple.js:48-60](file://backend/src/config/database-simple.js#L48-L60)
+- [fix-database-integrity.js:40-129](file://backend/scripts/fix-database-integrity.js#L40-L129)
 
 ## 辅助表与关系设计
 
@@ -275,7 +295,79 @@ CREATE TABLE IF NOT EXISTS qa_records (
 ```
 
 **章节来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L84-L157)
+- [database-simple.js:84-157](file://backend/src/config/database-simple.js#L84-L157)
+
+## 向量存储与语义检索系统
+
+### herb_embeddings表结构
+
+新增的herb_embeddings表为中药知识提供了向量存储能力，支持语义检索功能：
+
+| 字段名 | 数据类型 | 约束 | 说明 |
+|--------|----------|------|------|
+| name | TEXT | PRIMARY KEY | 药材名，天然唯一，直接当主键 |
+| vector | TEXT | NOT NULL | JSON序列化的1024维浮点数组 |
+| source_text | TEXT | - | 生成该向量时的源文本（用于增量diff） |
+| model | TEXT | - | 向量模型名（如text-embedding-v3） |
+| updated_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
+
+### 向量存储设计要点
+
+1. **主键设计**：使用`name`作为主键而不是自增id，因为业务上「一味药 → 一个向量」是天然的一对一关系
+2. **向量存储**：`vector`用TEXT存JSON，省去二进制BLOB的处理复杂度（1024个浮点≈21KB，SQLite完全没压力）
+3. **增量同步**：`source_text`是增量diff的判据，缺了它就无法判断「字段有没有变」
+4. **模型追踪**：`model`字段记录使用的向量模型版本，便于后续模型升级管理
+
+### 语义检索架构
+
+```mermaid
+sequenceDiagram
+participant User as 用户
+participant RAG as RAG服务
+participant Embedding as Embedding服务
+participant Neo4j as Neo4j数据库
+participant SQLite as SQLite数据库
+participant DashScope as 百炼API
+User->>RAG : 发送查询请求
+RAG->>Neo4j : 关键词检索
+Neo4j-->>RAG : 返回相关药材
+RAG->>Embedding : 语义检索请求
+Embedding->>SQLite : 加载向量数据
+SQLite-->>Embedding : 返回向量数据
+Embedding->>DashScope : 计算查询向量
+DashScope-->>Embedding : 返回查询向量
+Embedding->>Embedding : 余弦相似度计算
+Embedding-->>RAG : 返回语义匹配结果
+RAG->>RAG : 合并去重结果
+RAG-->>User : 返回最终结果
+```
+
+**图表来源**
+- [embeddingService.js:1-50](file://backend/src/services/embeddingService.js#L1-L50)
+- [EMBEDDING_VECTOR_SEARCH.md:91-111](file://docs/EMBEDDING_VECTOR_SEARCH.md#L91-L111)
+
+### 向量同步机制
+
+系统实现了智能的增量同步机制：
+
+1. **启动预热**：服务器启动后延迟2秒执行全量同步
+2. **增量Diff**：对比Neo4j药材清单，只为新增或字段变化的药材重新向量化
+3. **单条更新**：CRUD操作时异步调用updateOne/deleteOne，实时同步向量数据
+4. **内存缓存**：向量数据加载到内存Map中，避免重复计算
+
+### 性能优化策略
+
+| 优化策略 | 实现方式 | 效果 |
+|----------|----------|------|
+| 批量处理 | BATCH_SIZE=10，符合百炼API限制 | 减少API调用次数 |
+| 增量同步 | 基于source_text对比变化 | 避免全量重算 |
+| 内存缓存 | Map存储向量数据 | 零网络开销检索 |
+| 异步处理 | CRUD操作不阻塞接口响应 | 提升用户体验 |
+
+**章节来源**
+- [database-simple.js:307-315](file://backend/src/config/database-simple.js#L307-L315)
+- [embeddingService.js:1-200](file://backend/src/services/embeddingService.js#L1-L200)
+- [EMBEDDING_VECTOR_SEARCH.md:353-373](file://docs/EMBEDDING_VECTOR_SEARCH.md#L353-L373)
 
 ## 数据库初始化流程
 
@@ -304,7 +396,7 @@ Tables-->>App : 初始化完成
 ```
 
 **图表来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L15-L47)
+- [database-simple.js:15-47](file://backend/src/config/database-simple.js#L15-L47)
 
 ### 基础数据插入
 
@@ -332,7 +424,7 @@ const manufacturers = [
 ```
 
 **章节来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L159-L230)
+- [database-simple.js:159-230](file://backend/src/config/database-simple.js#L159-L230)
 
 ## 内存缓存机制
 
@@ -376,6 +468,7 @@ class SimpleDatabaseManager {
 | 默认缓存 | 3600秒 | 一般查询结果 |
 | 知识图谱缓存 | 7200秒 | 复杂关系查询 |
 | 用户数据缓存 | 1800秒 | 用户信息和偏好 |
+| 向量缓存 | 永久 | 药材向量数据 |
 
 ### 缓存清理机制
 
@@ -394,7 +487,7 @@ clearCache(pattern) {
 ```
 
 **章节来源**
-- [database-simple.js](file://backend/src/config/database-simple.js#L245-L295)
+- [database-simple.js:245-295](file://backend/src/config/database-simple.js#L245-L295)
 
 ## SQL查询优化
 
@@ -471,7 +564,7 @@ router.get('/', optionalAuth, async (req, res) => {
 ```
 
 **章节来源**
-- [weapons-simple.js](file://backend/src/routes/weapons-simple.js#L15-L50)
+- [weapons-simple.js:15-50](file://backend/src/routes/weapons-simple.js#L15-L50)
 
 ## 事务处理模式
 
@@ -597,6 +690,7 @@ SQLiteDB[(SQLite数据库)]
 RelationalTables[关系表结构]
 ForeignKey[外键约束]
 ACID[ACID事务]
+VectorStorage[向量存储]
 end
 subgraph "Neo4j图数据库"
 Neo4jDB[(Neo4j数据库)]
@@ -611,13 +705,16 @@ BatchOperations[批量操作]
 GraphQueries[图查询]
 Recommendation[推荐系统]
 NetworkAnalysis[网络分析]
+SemanticSearch[语义检索]
 end
 SQLiteDB --> SimpleQueries
 SQLiteDB --> DataIntegrity
 SQLiteDB --> BatchOperations
+SQLiteDB --> VectorStorage
 Neo4jDB --> GraphQueries
 Neo4jDB --> Recommendation
 Neo4jDB --> NetworkAnalysis
+VectorStorage --> SemanticSearch
 RelationalTables --> SimpleQueries
 ForeignKey --> DataIntegrity
 ACID --> BatchOperations
@@ -636,23 +733,25 @@ GraphAlgorithms --> NetworkAnalysis
 | 学习成本 | 低 | 中等 |
 | 维护成本 | 低 | 中等 |
 | 扩展性 | 有限 | 高 |
-| 适用场景 | 结构化数据、简单关系 | 复杂关系、推荐系统 |
+| 向量存储 | ✅ 原生支持 | ❌ 需额外插件 |
+| 适用场景 | 结构化数据、简单关系、向量检索 | 复杂关系、推荐系统、网络分析 |
 
-### 设计决策分析
+### 混合架构优势
 
-**选择SQLite的原因：**
-1. **简化部署**：单文件数据库，无需额外服务
-2. **数据完整性**：外键约束确保数据一致性
-3. **性能优势**：对于结构化查询性能优异
-4. **维护成本**：较低的运维复杂度
+项目采用SQLite与Neo4j的混合架构，充分发挥各自优势：
 
-**选择Neo4j的原因（在其他模块中使用）：**
-1. **复杂关系处理**：图数据库天然适合复杂关系
-2. **推荐算法**：高效的路径查找和推荐
-3. **网络分析**：强大的图算法支持
+1. **SQLite负责**：
+   - 结构化数据存储（武器、用户、制造商等）
+   - 向量数据存储（herb_embeddings表）
+   - 事务处理和数据完整性保证
+
+2. **Neo4j负责**：
+   - 复杂关系查询（药材知识图谱）
+   - 推荐算法和网络分析
+   - 语义关系挖掘
 
 **章节来源**
-- [weaponService.js](file://backend/src/services/weaponService.js#L1-L50)
+- [weaponService.js:1-50](file://backend/src/services/weaponService.js#L1-L50)
 
 ## 故障排除指南
 
@@ -707,7 +806,42 @@ class DatabaseHealthChecker {
 }
 ```
 
-#### 3. 性能问题诊断
+#### 3. 向量检索问题
+
+**问题症状：**
+- 语义检索不生效
+- 向量数据不同步
+- 内存溢出
+
+**解决方案：**
+```javascript
+// 检查向量服务状态
+async function checkEmbeddingService() {
+  const status = embeddingService.getStatus();
+  console.log('向量服务状态:', status);
+  
+  if (!status.ready) {
+    console.log('向量服务未就绪，检查API密钥配置');
+  }
+  
+  if (status.count === 0) {
+    console.log('向量数据为空，需要重新同步');
+    await embeddingService.syncAll();
+  }
+}
+
+// 清理损坏的向量数据
+async function cleanCorruptedVectors() {
+  try {
+    await databaseManager.getDatabase().run('DELETE FROM herb_embeddings WHERE vector IS NULL');
+    console.log('已清理损坏的向量数据');
+  } catch (e) {
+    console.error('清理失败:', e.message);
+  }
+}
+```
+
+### 性能问题诊断
 
 **慢查询识别：**
 ```sql
@@ -766,12 +900,12 @@ class DatabaseRepairTool {
 ```
 
 **章节来源**
-- [database-health-check.js](file://backend/scripts/database-health-check.js#L40-L132)
-- [fix-database-integrity.js](file://backend/scripts/fix-database-integrity.js#L40-L266)
+- [database-health-check.js:40-132](file://backend/scripts/database-health-check.js#L40-L132)
+- [fix-database-integrity.js:40-266](file://backend/scripts/fix-database-integrity.js#L40-L266)
 
 ## 总结
 
-兵智世界v1.3项目的SQLite数据库设计体现了关系型数据库在知识管理领域的优势：
+兵智世界v1.3项目的SQLite数据库设计体现了关系型数据库在知识管理领域的优势，并成功集成了现代向量检索技术：
 
 ### 核心优势
 
@@ -779,6 +913,7 @@ class DatabaseRepairTool {
 2. **性能优化**：合理的设计和索引策略支持高效查询
 3. **维护简便**：单文件数据库降低运维复杂度
 4. **扩展性强**：支持未来功能扩展和性能优化
+5. **语义检索**：集成向量存储，支持智能语义搜索
 
 ### 技术亮点
 
@@ -786,9 +921,19 @@ class DatabaseRepairTool {
 2. **事务处理**：完整的ACID事务支持
 3. **自动化初始化**：完整的数据库初始化流程
 4. **完整性检查**：全面的数据完整性验证机制
+5. **向量存储**：herb_embeddings表支持语义检索
+6. **混合架构**：SQLite与Neo4j协同工作
 
 ### 应用价值
 
-该数据库设计为兵智世界提供了稳定可靠的知识管理基础设施，支持复杂的武器知识查询、用户交互记录和推荐系统等功能，为军事知识的学习和研究提供了强有力的技术支撑。
+该数据库设计为兵智世界提供了稳定可靠的知识管理基础设施，支持复杂的武器知识查询、用户交互记录、推荐系统和语义检索等功能，为军事知识和中药知识的学习和研究提供了强有力的技术支撑。
 
-通过SQLite的简洁性和可靠性，结合精心设计的表结构和关系模型，该项目成功实现了从传统关系型数据库到现代知识管理系统的演进，为类似项目提供了优秀的参考范例。
+通过SQLite的简洁性和可靠性，结合精心设计的表结构和关系模型，以及创新的向量存储方案，该项目成功实现了从传统关系型数据库到现代知识管理系统的演进，为类似项目提供了优秀的参考范例。
+
+**更新后的主要改进：**
+- 新增herb_embeddings表的详细设计和实现说明
+- 添加了语义检索系统的完整架构图和工作流程
+- 更新了数据库表结构，包含向量存储能力
+- 增强了性能优化策略，包括向量检索优化
+- 完善了故障排除指南，涵盖向量检索相关问题
+- 改进了SQLite与Neo4j的对比分析，突出混合架构优势
