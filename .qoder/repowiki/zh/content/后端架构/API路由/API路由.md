@@ -1,187 +1,95 @@
 # API路由
 
 <cite>
-**本文档中引用的文件**   
-- [weapon.py](file://backend/routes/weapon.py)
-- [auth.py](file://backend/routes/auth.py)
-- [knowledge.py](file://backend/routes/knowledge.py)
-- [weapons.js](file://backend/src/routes/weapons.js)
-- [auth.js](file://backend/src/routes/auth.js)
-- [weapon-images.js](file://backend/src/routes/weapon-images.js)
-- [weapon-videos.js](file://backend/src/routes/weapon-videos.js)
-- [knowledge.js](file://backend/src/routes/knowledge.js)
-- [app.py](file://backend/app.py)
+**本文档中引用的文件**
 - [app.js](file://backend/src/app.js)
-- [config.js](file://backend/src/config/index.js)
-- [weaponService.js](file://backend/src/services/weaponService.js)
-- [userService.js](file://backend/src/services/userService.js)
-- [auth.js](file://backend/src/middleware/auth.js)
+- [herbs.js](file://backend/src/routes/herbs.js)
+- [formulas.js](file://backend/src/routes/formulas.js)
+- [quiz.js](file://backend/src/routes/quiz.js)
+- [ai-engine.js](file://backend/src/routes/ai-engine.js)
+- [knowledge-graph.js](file://backend/src/routes/knowledge-graph.js)
+- [herb-categories.js](file://backend/src/routes/herb-categories.js)
+- [herb-regions.js](file://backend/src/routes/herb-regions.js)
+- [herb-sources.js](file://backend/src/routes/herb-sources.js)
+- [herb-images.js](file://backend/src/routes/herb-images.js)
+- [herb-recognition.js](file://backend/src/routes/herb-recognition.js)
+- [conversations.js](file://backend/src/routes/conversations.js)
+- [recommendations.js](file://backend/src/routes/recommendations.js)
+- [auth.js](file://backend/src/routes/auth.js)
+- [middleware/auth.js](file://backend/src/middleware/auth.js)
 - [validation.js](file://backend/src/middleware/validation.js)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 将武器管理API完全重构为草药知识管理API
+- 新增药材、方剂、测评、AI引擎等核心功能模块
+- 移除所有武器相关端点，替换为中医药知识管理接口
+- 增强知识图谱和AI智能问答能力
 
 ## 目录
 1. [引言](#引言)
 2. [项目结构](#项目结构)
-3. [武器管理API](#武器管理api)
-4. [用户认证API](#用户认证api)
-5. [知识图谱API](#知识图谱api)
-6. [多媒体管理API](#多媒体管理api)
-7. [依赖分析](#依赖分析)
-8. [性能考虑](#性能考虑)
-9. [故障排除指南](#故障排除指南)
-10. [结论](#结论)
+3. [用户认证API](#用户认证api)
+4. [药材管理API](#药材管理api)
+5. [方剂管理API](#方剂管理api)
+6. [知识图谱API](#知识图谱api)
+7. [AI引擎API](#ai引擎api)
+8. [多媒体管理API](#多媒体管理api)
+9. [测评系统API](#测评系统api)
+10. [对话历史API](#对话历史api)
+11. [推荐系统API](#推荐系统api)
+12. [依赖分析](#依赖分析)
+13. [性能考虑](#性能考虑)
+14. [故障排除指南](#故障排除指南)
+15. [结论](#结论)
 
 ## 引言
-本文档全面记录了兵智世界系统的API路由定义和实现。系统提供了一套完整的RESTful接口，用于管理武器信息、用户认证、知识图谱数据和多媒体内容。API设计遵循现代Web服务最佳实践，采用分层架构，结合Flask和Express.js框架实现，支持JWT身份验证和细粒度权限控制。系统通过MongoDB存储详细数据，Neo4j管理知识图谱关系，并提供全面的错误处理和输入验证机制。
+本文档全面记录了兵智世界系统的API路由定义和实现。系统已从武器管理完全重构为中医药知识管理系统，提供完整的草药信息、方剂管理、知识图谱查询、AI智能问答等功能。API设计遵循现代Web服务最佳实践，采用分层架构，基于Express.js框架实现，支持JWT身份验证和细粒度权限控制。系统通过SQLite存储结构化数据，Neo4j管理知识图谱关系，并集成DeepSeek AI提供智能问答服务。
 
 ## 项目结构
-兵智世界后端系统采用混合架构，包含Python Flask和Node.js Express两个服务层。主要功能模块包括武器管理、用户认证、知识图谱和多媒体处理。系统使用环境变量进行配置管理，支持开发和生产环境的灵活切换。数据库方面，系统采用多数据库策略，使用MongoDB存储文档数据，Neo4j管理图谱关系，SQLite3处理简单数据存储。
+系统采用模块化设计，包含多个独立的功能模块：用户认证、药材管理、方剂管理、知识图谱、AI引擎、多媒体处理等。主要技术栈包括Express.js、SQLite、Neo4j、DeepSeek AI等。
 
 ```mermaid
 graph TD
 subgraph "后端服务"
-Flask[Flask服务]
-Express[Express服务]
+App[Express应用]
+Auth[认证模块]
+Herbs[药材管理]
+Formulas[方剂管理]
+Knowledge[知识图谱]
+AI[AI引擎]
+Media[多媒体处理]
 end
 subgraph "数据存储"
-MongoDB[(MongoDB)]
+SQLite[(SQLite)]
 Neo4j[(Neo4j)]
-SQLite3[(SQLite3)]
+FileSys[文件系统]
 end
-subgraph "配置"
-Env[.env文件]
-Config[配置模块]
+subgraph "外部服务"
+DeepSeek[DeepSeek AI]
+DashScope[DashScope视觉识别]
 end
-Flask --> MongoDB
-Flask --> Neo4j
-Express --> MongoDB
-Express --> Neo4j
-Express --> SQLite3
-Config --> Flask
-Config --> Express
-Env --> Config
+App --> Auth
+App --> Herbs
+App --> Formulas
+App --> Knowledge
+App --> AI
+App --> Media
+Herbs --> SQLite
+Formulas --> SQLite
+Knowledge --> Neo4j
+AI --> DeepSeek
+Media --> FileSys
 ```
 
 **图源**
-- [app.py](file://backend/app.py#L1-L43)
-- [app.js](file://backend/src/app.js#L1-L248)
-- [config.js](file://backend/src/config/index.js#L1-L73)
+- [app.js:14-27](file://backend/src/app.js#L14-L27)
+- [app.js:131-144](file://backend/src/app.js#L131-L144)
 
 **节源**
-- [app.py](file://backend/app.py#L1-L43)
-- [app.js](file://backend/src/app.js#L1-L248)
-
-## 武器管理API
-
-武器管理API提供完整的CRUD操作，支持武器信息的创建、读取、更新和删除。系统还提供搜索、统计和相似武器推荐功能。所有管理操作都需要管理员权限，而查询操作对所有用户开放。
-
-### 武器列表与详情
-
-#### 获取武器列表
-- **URL**: `GET /api/weapons`
-- **权限**: 无（可选认证）
-- **参数**:
-  - `category`: 武器类型过滤
-  - `country`: 制造国家过滤
-  - `page`: 页码（默认1）
-  - `limit`: 每页数量（默认20）
-- **响应**: 分页的武器列表
-
-#### 搜索武器
-- **URL**: `GET /api/weapons/search`
-- **权限**: 无（可选认证）
-- **参数**:
-  - `q`: 搜索关键词（必填）
-  - `category`: 类型过滤
-  - `country`: 国家过滤
-- **响应**: 匹配的武器列表
-
-#### 获取武器详情
-- **URL**: `GET /api/weapons/:id`
-- **权限**: 无（可选认证）
-- **参数**: 武器ID
-- **响应**: 武器详细信息，包括技术规格和关系数据
-
-#### 获取相似武器
-- **URL**: `GET /api/weapons/:id/similar`
-- **权限**: 无
-- **参数**:
-  - `id`: 参考武器ID
-  - `limit`: 返回数量（默认5）
-- **响应**: 相似武器列表
-
-### 武器管理操作
-
-#### 创建武器
-- **URL**: `POST /api/weapons`
-- **权限**: 管理员
-- **请求体**: 武器数据对象
-- **验证**: 使用Joi进行数据验证
-- **响应**: 创建的武器信息
-
-#### 更新武器
-- **URL**: `PUT /api/weapons/:id`
-- **权限**: 管理员
-- **参数**: 武器ID
-- **请求体**: 更新的武器数据
-- **响应**: 更新后的武器信息
-
-#### 删除武器
-- **URL**: `DELETE /api/weapons/:id`
-- **权限**: 管理员
-- **参数**: 武器ID
-- **响应**: 删除确认信息
-
-### 武器统计与推荐
-
-#### 获取武器统计
-- **URL**: `GET /api/weapons/statistics`
-- **权限**: 无
-- **响应**: 按类型和国家的武器统计信息
-
-#### 用户收藏武器
-- **URL**: `POST /api/weapons/:id/favorite`
-- **权限**: 认证用户
-- **参数**: 武器ID
-- **响应**: 收藏成功确认
-
-#### 取消收藏武器
-- **URL**: `DELETE /api/weapons/:id/favorite`
-- **权限**: 认证用户
-- **参数**: 武器ID
-- **响应**: 取消收藏确认
-
-```mermaid
-sequenceDiagram
-participant Client as "客户端"
-participant Auth as "认证中间件"
-participant Service as "WeaponService"
-participant DB as "数据库"
-Client->>Auth : GET /api/weapons
-Auth->>Auth : optionalAuth()
-Auth->>Service : getWeapons()
-Service->>DB : 查询武器数据
-DB-->>Service : 返回武器列表
-Service-->>Auth : 返回结果
-Auth-->>Client : 返回武器列表
-Client->>Auth : POST /api/weapons
-Auth->>Auth : authenticateToken()
-Auth->>Auth : requireAdmin()
-Auth->>Auth : validate()
-Auth->>Service : createWeapon()
-Service->>DB : 插入新武器
-DB-->>Service : 返回结果
-Service-->>Auth : 返回创建信息
-Auth-->>Client : 返回成功响应
-```
-
-**图源**
-- [weapons.js](file://backend/src/routes/weapons.js#L1-L218)
-- [weaponService.js](file://backend/src/services/weaponService.js#L1-L486)
-
-**节源**
-- [weapons.js](file://backend/src/routes/weapons.js#L1-L218)
-- [weaponService.js](file://backend/src/services/weaponService.js#L1-L486)
+- [app.js:14-27](file://backend/src/app.js#L14-L27)
+- [app.js:131-144](file://backend/src/app.js#L131-L144)
 
 ## 用户认证API
 
@@ -270,128 +178,278 @@ Auth-->>Client : 返回用户资料
 ```
 
 **图源**
-- [auth.js](file://backend/src/routes/auth.js#L1-L144)
-- [userService.js](file://backend/src/services/userService.js#L1-L318)
-- [auth.js](file://backend/src/middleware/auth.js#L1-L106)
-- [validation.js](file://backend/src/middleware/validation.js#L1-L178)
+- [auth.js](file://backend/src/routes/auth.js)
+- [middleware/auth.js](file://backend/src/middleware/auth.js)
 
 **节源**
-- [auth.js](file://backend/src/routes/auth.js#L1-L144)
-- [userService.js](file://backend/src/services/userService.js#L1-L318)
+- [auth.js](file://backend/src/routes/auth.js)
+- [middleware/auth.js](file://backend/src/middleware/auth.js)
+
+## 药材管理API
+
+药材管理API提供完整的CRUD操作，支持药材信息的创建、读取、更新和删除。系统还提供搜索、统计、相似药材推荐等功能。
+
+### 药材列表与详情
+
+#### 获取药材列表
+- **URL**: `GET /api/herbs`
+- **权限**: 无（可选认证）
+- **参数**:
+  - `category_id`: 分类ID过滤
+  - `region_id`: 产地ID过滤
+  - `page`: 页码（默认1）
+  - `limit`: 每页数量（默认20）
+- **响应**: 分页的药材列表
+
+#### 搜索药材
+- **URL**: `GET /api/herbs/search`
+- **权限**: 无
+- **参数**:
+  - `q`: 搜索关键词（必填）
+- **响应**: 匹配的药材列表，包含详细信息
+
+#### 获取药材详情
+- **URL**: `GET /api/herbs/:id`
+- **权限**: 无（可选认证）
+- **参数**: 药材ID
+- **响应**: 药材详细信息，包括性味归经功效和相关方剂
+
+#### 获取相似药材
+- **URL**: `GET /api/herbs/:id/similar`
+- **权限**: 无
+- **参数**:
+  - `id`: 参考药材ID
+  - `limit`: 返回数量（默认5）
+- **响应**: 相似药材列表
+
+### 药材管理操作
+
+#### 创建药材
+- **URL**: `POST /api/herbs`
+- **权限**: 管理员
+- **请求体**: 药材数据对象
+- **验证**: 使用Joi进行数据验证
+- **响应**: 创建的药材信息
+
+#### 更新药材
+- **URL**: `PUT /api/herbs/:id`
+- **权限**: 管理员
+- **参数**: 药材ID
+- **请求体**: 更新的药材数据
+- **响应**: 更新后的药材信息
+
+#### 删除药材
+- **URL**: `DELETE /api/herbs/:id`
+- **权限**: 管理员
+- **参数**: 药材ID
+- **响应**: 删除确认信息
+
+### 药材统计
+
+#### 获取药材统计
+- **URL**: `GET /api/herbs/statistics`
+- **权限**: 无
+- **响应**: 按分类、产地、功效的统计信息
+
+```mermaid
+sequenceDiagram
+participant Client as "客户端"
+participant Auth as "认证中间件"
+participant Service as "HerbService"
+participant DB as "SQLite数据库"
+Client->>Auth : GET /api/herbs
+Auth->>Auth : optionalAuth()
+Auth->>Service : getHerbs()
+Service->>DB : 查询药材数据
+DB-->>Service : 返回药材列表
+Service-->>Auth : 返回结果
+Auth-->>Client : 返回药材列表
+Client->>Auth : POST /api/herbs
+Auth->>Auth : authenticateToken()
+Auth->>Auth : requireAdmin()
+Auth->>Auth : validate()
+Auth->>Service : createHerb()
+Service->>DB : 插入新药材
+DB-->>Service : 返回结果
+Service-->>Auth : 返回创建信息
+Auth-->>Client : 返回成功响应
+```
+
+**图源**
+- [herbs.js:170-250](file://backend/src/routes/herbs.js#L170-L250)
+- [herbs.js:600-689](file://backend/src/routes/herbs.js#L600-L689)
+
+**节源**
+- [herbs.js:170-250](file://backend/src/routes/herbs.js#L170-L250)
+- [herbs.js:600-689](file://backend/src/routes/herbs.js#L600-L689)
+
+## 方剂管理API
+
+方剂管理API提供方剂的完整CRUD操作，支持方剂信息的创建、读取、更新和删除，以及与药材的关联管理。
+
+### 方剂列表与详情
+
+#### 获取方剂列表
+- **URL**: `GET /api/formulas`
+- **权限**: 无（可选认证）
+- **参数**:
+  - `page`: 页码（默认1）
+  - `limit`: 每页数量（默认20）
+- **响应**: 分页的方剂列表
+
+#### 获取方剂详情
+- **URL**: `GET /api/formulas/:id`
+- **权限**: 无（可选认证）
+- **参数**: 方剂ID
+- **响应**: 方剂详细信息，包括组成药材
+
+### 方剂管理操作
+
+#### 创建方剂
+- **URL**: `POST /api/formulas`
+- **权限**: 管理员
+- **请求体**: 方剂数据对象，包含组成药材
+- **响应**: 创建的方剂信息
+
+#### 更新方剂
+- **URL**: `PUT /api/formulas/:id`
+- **权限**: 管理员
+- **参数**: 方剂ID
+- **请求体**: 更新的方剂数据
+- **响应**: 更新后的方剂信息
+
+#### 删除方剂
+- **URL**: `DELETE /api/formulas/:id`
+- **权限**: 管理员
+- **参数**: 方剂ID
+- **响应**: 删除确认信息
+
+**节源**
+- [formulas.js:8-49](file://backend/src/routes/formulas.js#L8-L49)
+- [formulas.js:52-86](file://backend/src/routes/formulas.js#L52-L86)
+- [formulas.js:89-134](file://backend/src/routes/formulas.js#L89-L134)
 
 ## 知识图谱API
 
-知识图谱API提供基于Neo4j图数据库的高级查询功能，支持武器知识的深度探索和分析。系统实现图谱数据的查询、搜索、路径查找和推荐功能。
+知识图谱API提供基于Neo4j图数据库的高级查询功能，支持中医药知识的深度探索和分析。系统实现图谱数据的查询、搜索、路径查找和推荐功能。
 
 ### 图谱查询功能
 
 #### 获取知识图谱概览
-- **URL**: `GET /api/knowledge/overview`
-- **权限**: 无
-- **响应**: 图谱统计信息
-
-#### 获取武器知识图谱
-- **URL**: `GET /api/knowledge/weapon/:id`
-- **权限**: 无（可选认证）
-- **参数**:
-  - `id`: 武器ID
-  - `depth`: 查询深度（默认2，最大5）
-- **响应**: 武器及其关联实体的图谱数据
-
-#### 搜索知识图谱
-- **URL**: `GET /api/knowledge/search`
+- **URL**: `GET /api/knowledge/graph-data`
 - **权限**: 无
 - **参数**:
-  - `q`: 搜索关键词（必填）
-  - `types`: 节点类型过滤
-  - `limit`: 返回数量（默认20）
-- **响应**: 匹配的节点列表
+  - `common`: 是否仅获取常用药材（可选）
+- **响应**: 图谱节点和关系数据
 
-#### 获取节点邻居
-- **URL**: `GET /api/knowledge/node/:id/neighbors`
+#### 获取药材详情（Neo4j版）
+- **URL**: `GET /api/knowledge/herb-details/:name`
 - **权限**: 无
-- **参数**:
-  - `id`: 节点ID
-  - `types`: 关系类型过滤
-  - `limit`: 返回数量（默认10）
-- **响应**: 邻居节点列表
+- **参数**: 药材名称
+- **响应**: 药材详细信息，包括性味归经功效和相关方剂
 
-#### 查找路径
-- **URL**: `GET /api/knowledge/path`
+#### 获取产地分布
+- **URL**: `GET /api/knowledge/region-distribution`
 - **权限**: 无
-- **参数**:
-  - `start`: 起始节点ID
-  - `end`: 结束节点ID
-  - `maxDepth`: 最大深度（默认5，最大10）
-- **响应**: 两个节点间的路径信息
-
-#### 执行Cypher查询
-- **URL**: `POST /api/knowledge/query`
-- **权限**: 无
-- **请求体**:
-  - `query`: Cypher查询语句
-  - `parameters`: 查询参数
-- **安全**: 禁止DELETE、REMOVE等危险操作
-- **响应**: 查询结果
-
-#### 获取推荐武器
-- **URL**: `GET /api/knowledge/recommendations/:userId`
-- **权限**: 无
-- **参数**:
-  - `userId`: 用户ID
-  - `limit`: 推荐数量（默认10）
-- **响应**: 基于用户兴趣的推荐武器列表
-
-#### 获取图谱统计
-- **URL**: `GET /api/knowledge/statistics`
-- **权限**: 无
-- **响应**: 图谱统计信息
+- **响应**: 各产地的药材分布统计
 
 ```mermaid
 sequenceDiagram
 participant Client as "客户端"
 participant Service as "KnowledgeGraphService"
 participant Neo4j as "Neo4j数据库"
-Client->>Service : GET /api/knowledge/weapon/123
-Service->>Neo4j : 查询武器节点
-Neo4j-->>Service : 返回节点数据
-Service->>Neo4j : 查询相关关系
-Neo4j-->>Service : 返回关系数据
-Service-->>Client : 返回完整图谱
-Client->>Service : GET /api/knowledge/search?q=步枪
-Service->>Neo4j : 执行全文搜索
-Neo4j-->>Service : 返回匹配节点
-Service-->>Client : 返回搜索结果
-Client->>Service : POST /api/knowledge/query
-Service->>Service : 验证查询安全性
-Service->>Neo4j : 执行Cypher查询
-Neo4j-->>Service : 返回查询结果
-Service-->>Client : 返回结果
+Client->>Service : GET /api/knowledge/graph-data
+Service->>Neo4j : 查询图谱数据
+Neo4j-->>Service : 返回节点和关系
+Service-->>Client : 返回图谱数据
+Client->>Service : GET /api/knowledge/herb-details/人参
+Service->>Neo4j : 查询药材详情
+Neo4j-->>Service : 返回详细信息
+Service-->>Client : 返回药材详情
 ```
 
 **图源**
-- [knowledge.js](file://backend/src/routes/knowledge.js#L1-L182)
-- [knowledgeGraphService.js](file://backend/src/services/knowledgeGraphService.js)
+- [knowledge-graph.js:246-255](file://backend/src/routes/knowledge-graph.js#L246-L255)
+- [knowledge-graph.js:258-338](file://backend/src/routes/knowledge-graph.js#L258-L338)
 
 **节源**
-- [knowledge.js](file://backend/src/routes/knowledge.js#L1-L182)
+- [knowledge-graph.js:246-255](file://backend/src/routes/knowledge-graph.js#L246-L255)
+- [knowledge-graph.js:258-338](file://backend/src/routes/knowledge-graph.js#L258-L338)
+
+## AI引擎API
+
+AI引擎API提供集成的AI功能，包括RAG智能问答、配伍冲突检测、古籍知识抽取等。系统支持流式响应和缓存优化。
+
+### RAG智能问答
+
+#### 普通问答
+- **URL**: `POST /api/ai-engine/rag`
+- **权限**: 无
+- **请求体**:
+  - `question`: 问题内容
+  - `useChain`: 是否使用链式推理（可选）
+  - `forceRefresh`: 是否强制刷新缓存（可选）
+- **响应**: AI回答及相关来源
+
+#### 流式问答
+- **URL**: `POST /api/ai-engine/rag-stream`
+- **权限**: 无
+- **请求体**:
+  - `question`: 问题内容
+- **响应**: SSE流式响应
+
+### 配伍冲突检测
+
+#### 检测配伍禁忌
+- **URL**: `POST /api/ai-engine/compatibility`
+- **权限**: 无
+- **请求体**:
+  - `herbs`: 药材数组（至少2味）
+- **响应**: 冲突检测结果
+
+### 古籍知识抽取
+
+#### 自动抽取知识
+- **URL**: `POST /api/ai-engine/extract`
+- **权限**: 无
+- **请求体**:
+  - `text`: 古籍文本
+- **响应**: 抽取的知识三元组
+
+### 健康检查和状态
+
+#### 健康检查
+- **URL**: `GET /api/ai-engine/health`
+- **权限**: 无
+- **响应**: 引擎健康状态
+
+#### 详细状态
+- **URL**: `GET /api/ai-engine/status`
+- **权限**: 无
+- **响应**: 引擎详细状态信息
+
+**节源**
+- [ai-engine.js:136-174](file://backend/src/routes/ai-engine.js#L136-L174)
+- [ai-engine.js:179-315](file://backend/src/routes/ai-engine.js#L179-L315)
+- [ai-engine.js:320-444](file://backend/src/routes/ai-engine.js#L320-L444)
+- [ai-engine.js:449-593](file://backend/src/routes/ai-engine.js#L449-L593)
 
 ## 多媒体管理API
 
-多媒体管理API提供武器相关图片和视频的上传、获取和删除功能。系统实现文件上传验证、存储管理和安全访问控制。
+多媒体管理API提供药材相关图片和视频的上传、获取和删除功能。系统实现文件上传验证、存储管理和安全访问控制。
 
-### 武器图片管理
+### 药材图片管理
 
-#### 获取武器图片
-- **URL**: `GET /api/weapon-images/:weaponId`
+#### 获取药材图片
+- **URL**: `GET /api/herb-images/:herbId`
 - **权限**: 无
-- **参数**: 武器ID（支持多种格式）
-- **响应**: 武器的所有图片信息
+- **参数**: 药材ID
+- **响应**: 药材的所有图片信息
 
-#### 上传武器图片
-- **URL**: `POST /api/weapon-images/:weaponId`
+#### 上传药材图片
+- **URL**: `POST /api/herb-images/:herbId`
 - **权限**: 管理员
-- **参数**: 武器ID
+- **参数**: 药材ID
 - **请求体**: 
   - `image`: 图片文件（multipart/form-data）
   - `description`: 图片描述
@@ -400,168 +458,196 @@ Service-->>Client : 返回结果
   - 格式：JPEG、JPG、PNG、GIF、WebP
 - **响应**: 上传的图片信息
 
-#### 删除武器图片
-- **URL**: `DELETE /api/weapon-images/:weaponId/:imageId`
+#### 删除药材图片
+- **URL**: `DELETE /api/herb-images/:herbId/:imageId`
 - **权限**: 管理员
 - **参数**:
-  - `weaponId`: 武器ID
+  - `herbId`: 药材ID
   - `imageId`: 图片ID
 - **响应**: 删除成功确认
 
 #### 更新图片描述
-- **URL**: `PUT /api/weapon-images/:weaponId/:imageId`
+- **URL**: `PUT /api/herb-images/:herbId/:imageId`
 - **权限**: 管理员
 - **参数**:
-  - `weaponId`: 武器ID
+  - `herbId`: 药材ID
   - `imageId`: 图片ID
 - **请求体**: `description`: 新的描述
 - **响应**: 更新后的图片信息
 
-### 武器视频管理
+### 药材识别
 
-#### 获取武器视频
-- **URL**: `GET /api/weapon-videos/weapon/:weaponId`
+#### 图片识别
+- **URL**: `POST /api/herb-recognition`
 - **权限**: 无
-- **参数**: 武器ID
-- **响应**: 武器的所有视频信息
-
-#### 上传视频
-- **URL**: `POST /api/weapon-videos/weapon/:weaponId/upload`
-- **权限**: 管理员
-- **参数**: 武器ID
-- **请求体**:
-  - `video`: 视频文件
-  - `description`: 视频描述
-- **限制**:
-  - 文件大小：100MB
-  - 格式：MP4、AVI、MOV、WMV、FLV、WebM
-- **响应**: 上传的视频信息
-
-#### 获取视频文件流
-- **URL**: `GET /api/weapon-videos/file/:filename`
-- **权限**: 无
-- **参数**: 文件名
-- **功能**: 支持HTTP范围请求，实现视频流播放
-- **响应**: 视频文件流
-
-#### 更新视频信息
-- **URL**: `PUT /api/weapon-videos/:videoId`
-- **权限**: 管理员
-- **参数**: 视频ID
-- **请求体**: `description`: 新的描述
-- **响应**: 更新成功确认
-
-#### 删除视频
-- **URL**: `DELETE /api/weapon-videos/:videoId`
-- **权限**: 管理员
-- **参数**: 视频ID
-- **响应**: 删除成功确认
-
-#### 获取视频统计
-- **URL**: `GET /api/weapon-videos/weapon/:weaponId/stats`
-- **权限**: 无
-- **参数**: 武器ID
-- **响应**: 视频数量和大小统计
-
-```mermaid
-flowchart TD
-Start([开始]) --> UploadImage["上传武器图片"]
-UploadImage --> ValidateImage{"验证图片格式和大小"}
-ValidateImage --> |无效| ReturnError1["返回错误: 格式或大小不符"]
-ValidateImage --> |有效| SaveImage["保存图片文件"]
-SaveImage --> UpdateDB["更新数据库记录"]
-UpdateDB --> ReturnSuccess1["返回成功响应"]
-Start --> GetImage["获取武器图片"]
-GetImage --> CheckWeapon{"检查武器是否存在"}
-CheckWeapon --> |不存在| ReturnError2["返回错误: 武器不存在"]
-CheckWeapon --> |存在| QueryDB["查询数据库"]
-QueryDB --> ReturnImages["返回图片列表"]
-Start --> DeleteImage["删除武器图片"]
-DeleteImage --> AuthCheck{"管理员权限验证"}
-AuthCheck --> |无权限| ReturnError3["返回错误: 权限不足"]
-AuthCheck --> |有权限| FindImage{"查找图片记录"}
-FindImage --> |不存在| ReturnError4["返回错误: 图片不存在"]
-FindImage --> |存在| DeleteFile["删除文件系统中的文件"]
-DeleteFile --> UpdateDB2["更新数据库记录"]
-UpdateDB2 --> ReturnSuccess2["返回成功响应"]
-ReturnError1 --> End([结束])
-ReturnSuccess1 --> End
-ReturnError2 --> End
-ReturnImages --> End
-ReturnError3 --> End
-ReturnError4 --> End
-ReturnSuccess2 --> End
-```
-
-**图源**
-- [weapon-images.js](file://backend/src/routes/weapon-images.js#L1-L370)
-- [weapon-videos.js](file://backend/src/routes/weapon-videos.js#L1-L404)
+- **请求体**: 图片文件
+- **响应**: 识别结果和药材信息
 
 **节源**
-- [weapon-images.js](file://backend/src/routes/weapon-images.js#L1-L370)
-- [weapon-videos.js](file://backend/src/routes/weapon-videos.js#L1-L404)
+- [herb-images.js:58-84](file://backend/src/routes/herb-images.js#L58-L84)
+- [herb-images.js:87-137](file://backend/src/routes/herb-images.js#L87-L137)
+- [herb-recognition.js:286-341](file://backend/src/routes/herb-recognition.js#L286-L341)
+
+## 测评系统API
+
+测评系统API提供中医药知识测评功能，支持不同难度和分类的题目生成，以及成绩记录和排行榜。
+
+### 测评功能
+
+#### 获取测评分类
+- **URL**: `GET /api/quiz/categories`
+- **权限**: 无
+- **响应**: 测评分类列表
+
+#### 生成测评题目
+- **URL**: `GET /api/quiz/questions`
+- **权限**: 无
+- **参数**:
+  - `category`: 测评分类（herbs、regions、properties、formulas）
+  - `difficulty`: 难度等级（easy、medium、hard）
+- **响应**: 生成的测评题目
+
+#### 提交测评成绩
+- **URL**: `POST /api/quiz/attempts`
+- **权限**: 可选认证
+- **请求体**:
+  - `category`: 测评分类
+  - `difficulty`: 难度等级
+  - `score`: 得分
+  - `total`: 总分
+  - `timeUsed`: 用时
+- **响应**: 记录成功确认
+
+#### 获取排行榜
+- **URL**: `GET /api/quiz/leaderboard`
+- **权限**: 无
+- **参数**:
+  - `category`: 测评分类（可选）
+  - `difficulty`: 难度等级（可选）
+- **响应**: 排行榜数据
+
+**节源**
+- [quiz.js:142-147](file://backend/src/routes/quiz.js#L142-L147)
+- [quiz.js:149-178](file://backend/src/routes/quiz.js#L149-L178)
+- [quiz.js:180-203](file://backend/src/routes/quiz.js#L180-L203)
+- [quiz.js:205-234](file://backend/src/routes/quiz.js#L205-L234)
+
+## 对话历史API
+
+对话历史API提供用户对话记录的CRUD操作，支持对话创建、消息添加、历史记录查看等功能。
+
+### 对话管理
+
+#### 获取对话列表
+- **URL**: `GET /api/conversations`
+- **权限**: 必须认证
+- **参数**:
+  - `page`: 页码（默认1）
+  - `limit`: 每页数量（默认20）
+- **响应**: 用户的对话列表
+
+#### 创建对话
+- **URL**: `POST /api/conversations`
+- **权限**: 必须认证
+- **请求体**:
+  - `title`: 对话标题
+- **响应**: 创建的对话信息
+
+#### 获取对话详情
+- **URL**: `GET /api/conversations/:id`
+- **权限**: 必须认证
+- **参数**: 对话ID
+- **响应**: 对话详情和消息列表
+
+#### 添加消息
+- **URL**: `POST /api/conversations/:id/messages`
+- **权限**: 必须认证
+- **参数**: 对话ID
+- **请求体**:
+  - `role`: 角色（user或assistant）
+  - `content`: 消息内容
+  - `sources`: 来源信息（可选）
+  - `mode`: 模式（可选）
+- **响应**: 消息创建确认
+
+#### 删除对话
+- **URL**: `DELETE /api/conversations/:id`
+- **权限**: 必须认证
+- **参数**: 对话ID
+- **响应**: 删除成功确认
+
+#### 更新对话标题
+- **URL**: `PUT /api/conversations/:id`
+- **权限**: 必须认证
+- **参数**: 对话ID
+- **请求体**:
+  - `title`: 新标题
+- **响应**: 更新成功确认
+
+**节源**
+- [conversations.js:41-85](file://backend/src/routes/conversations.js#L41-L85)
+- [conversations.js:90-118](file://backend/src/routes/conversations.js#L90-L118)
+- [conversations.js:123-167](file://backend/src/routes/conversations.js#L123-L167)
+- [conversations.js:172-248](file://backend/src/routes/conversations.js#L172-L248)
+- [conversations.js:253-289](file://backend/src/routes/conversations.js#L253-L289)
+- [conversations.js:294-335](file://backend/src/routes/conversations.js#L294-L335)
+
+## 推荐系统API
+
+推荐系统API提供药材和方剂的智能推荐功能，基于用户兴趣和数据库内容进行个性化推荐。
+
+### 推荐功能
+
+#### 获取推荐内容
+- **URL**: `GET /api/recommendations`
+- **权限**: 无
+- **参数**:
+  - `q`: 搜索关键词（可选）
+  - `category_id`: 分类ID（可选）
+  - `region_id`: 产地ID（可选）
+  - `limit`: 返回数量（默认12）
+- **响应**: 推荐的药材和方剂列表
+
+**节源**
+- [recommendations.js:52-119](file://backend/src/routes/recommendations.js#L52-L119)
 
 ## 依赖分析
 
-兵智世界系统采用模块化设计，各组件之间有清晰的依赖关系。系统主要依赖包括Web框架、数据库驱动、安全库和工具库。
+系统采用模块化设计，各组件之间有清晰的依赖关系。主要依赖包括Express框架、数据库驱动、安全库和AI服务。
 
 ```mermaid
 graph TD
-App[App主类] --> Express
-App --> Middleware
-App --> Routes
-App --> ErrorHandling
-Express[Express框架] --> Cors
-Express --> Helmet
-Express --> Morgan
-Express --> Compression
-Express --> RateLimit
-Middleware --> Auth
-Middleware --> Validation
-Middleware --> Logger
-Routes --> AuthRoutes
-Routes --> WeaponRoutes
-Routes --> KnowledgeRoutes
-Routes --> MediaRoutes
-AuthRoutes --> UserService
-WeaponRoutes --> WeaponService
-KnowledgeRoutes --> KnowledgeGraphService
-MediaRoutes --> DatabaseManager
-UserService --> DatabaseManager
-WeaponService --> DatabaseManager
-KnowledgeGraphService --> DatabaseManager
-DatabaseManager --> MongoDB
-DatabaseManager --> Neo4j
-DatabaseManager --> SQLite3
-Auth --> JWT
-Validation --> Joi
-subgraph "数据库"
-MongoDB[(MongoDB)]
-Neo4j[(Neo4j)]
-SQLite3[(SQLite3)]
-end
-subgraph "安全"
-JWT[jsonwebtoken]
-Bcrypt[bcryptjs]
-end
-subgraph "日志"
-Logger[logger]
-end
+App[Express应用] --> Middleware[中间件]
+App --> Routes[路由模块]
+Middleware --> Auth[认证中间件]
+Middleware --> Validation[验证中间件]
+Routes --> HerbRoutes[药材路由]
+Routes --> FormulaRoutes[方剂路由]
+Routes --> KnowledgeRoutes[知识图谱路由]
+Routes --> AIRoutes[AI路由]
+Routes --> MediaRoutes[多媒体路由]
+HerbRoutes --> DatabaseManager[数据库管理器]
+FormulaRoutes --> DatabaseManager
+KnowledgeRoutes --> Neo4jManager[Neo4j管理器]
+AIRoutes --> DeepSeek[DeepSeek AI]
+MediaRoutes --> FileSystem[文件系统]
+DatabaseManager --> SQLite[(SQLite)]
+Neo4jManager --> Neo4j[(Neo4j)]
 ```
 
 **图源**
-- [app.js](file://backend/src/app.js#L1-L248)
-- [database.js](file://backend/src/config/database.js)
-- [database_Neo4j.js](file://backend/src/config/database_Neo4j.js)
+- [app.js:14-27](file://backend/src/app.js#L14-L27)
+- [app.js:131-144](file://backend/src/app.js#L131-L144)
 
 **节源**
-- [app.js](file://backend/src/app.js#L1-L248)
+- [app.js:14-27](file://backend/src/app.js#L14-L27)
+- [app.js:131-144](file://backend/src/app.js#L131-L144)
 
 ## 性能考虑
 
 系统在设计时考虑了多项性能优化措施：
 
-1. **数据库优化**: 使用MongoDB存储文档数据，Neo4j处理图谱关系，充分发挥各数据库的优势
+1. **数据库优化**: 使用SQLite存储结构化数据，Neo4j处理图谱关系，充分发挥各数据库的优势
 2. **缓存机制**: 配置合理的缓存策略，减少数据库查询压力
 3. **API限流**: 实现请求频率限制，防止滥用
 4. **文件上传限制**: 设置合理的文件大小限制，防止资源耗尽
@@ -569,6 +655,8 @@ end
 6. **异步处理**: 使用异步操作提高响应速度
 7. **数据压缩**: 启用响应压缩，减少网络传输量
 8. **日志级别控制**: 根据环境调整日志详细程度，减少I/O开销
+9. **AI服务降级**: 当AI服务不可用时自动降级到数据库查询
+10. **流式响应**: 支持SSE流式响应，提升用户体验
 
 ## 故障排除指南
 
@@ -596,6 +684,17 @@ end
   - 验证.env文件中的连接字符串
   - 检查网络连接
 
+#### AI服务调用失败
+- **症状**: 返回503状态码，提示AI服务不可用
+- **可能原因**:
+  - DeepSeek API Key未配置
+  - 网络连接问题
+  - API服务限流
+- **解决方案**:
+  - 检查DEEPSEEK_API_KEY环境变量
+  - 验证网络连接
+  - 等待限流恢复后重试
+
 #### 文件上传失败
 - **症状**: 返回400状态码，提示文件相关错误
 - **可能原因**:
@@ -607,22 +706,25 @@ end
   - 确认文件格式在支持列表中
   - 检查uploads目录的读写权限
 
-#### API响应缓慢
-- **症状**: 请求响应时间过长
+#### 知识图谱查询失败
+- **症状**: 返回500状态码，提示Neo4j连接错误
 - **可能原因**:
-  - 数据库查询复杂
-  - 网络延迟
-  - 服务器资源不足
+  - Neo4j服务未启动
+  - 连接配置错误
+  - Cypher查询语法错误
 - **解决方案**:
-  - 优化数据库查询和索引
-  - 检查网络状况
-  - 监控服务器资源使用情况
+  - 检查Neo4j服务状态
+  - 验证连接配置
+  - 检查查询语句语法
 
 **节源**
-- [app.js](file://backend/src/app.js#L1-L248)
-- [middleware/auth.js](file://backend/src/middleware/auth.js#L1-L106)
-- [error-handling.js](file://backend/src/middleware/error-handling.js)
+- [app.js:157-201](file://backend/src/app.js#L157-L201)
+- [middleware/auth.js](file://backend/src/middleware/auth.js)
 
 ## 结论
 
-兵智世界系统的API设计完整且合理，提供了全面的武器信息管理功能。系统采用现代化的技术栈，实现了高内聚、低耦合的模块化架构。通过JWT认证和细粒度权限控制，确保了系统的安全性。多数据库策略充分发挥了不同数据库的优势，满足了复杂的数据管理需求。系统的错误处理机制完善，提供了清晰的错误信息，便于开发和维护。整体设计考虑了性能和可扩展性，为未来的功能扩展奠定了良好基础。
+兵智世界系统的API设计已从武器管理完全重构为中医药知识管理系统，提供了全面的草药信息管理、方剂管理、知识图谱查询、AI智能问答等功能。系统采用现代化的技术栈，实现了高内聚、低耦合的模块化架构。通过JWT认证和细粒度权限控制，确保了系统的安全性。多数据库策略充分发挥了不同数据库的优势，满足了复杂的数据管理需求。系统的错误处理机制完善，提供了清晰的错误信息，便于开发和维护。整体设计考虑了性能和可扩展性，为未来的功能扩展奠定了良好基础。
+
+新增的AI引擎功能集成了DeepSeek AI，提供了智能问答、配伍冲突检测、古籍知识抽取等高级功能。知识图谱API基于Neo4j提供了强大的图谱查询和分析能力。多媒体管理API支持药材图片和视频的管理。测评系统API为中医药知识学习提供了互动功能。对话历史API支持用户对话记录的持久化存储。
+
+这些改进使系统能够更好地服务于中医药知识的学习、研究和应用，为用户提供更加智能化和便捷的服务体验。

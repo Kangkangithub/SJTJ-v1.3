@@ -1,44 +1,58 @@
-# 兵智世界API文档
+# 中医草药系统API文档
 
 <cite>
 **本文档引用的文件**
 - [backend/src/app.js](file://backend/src/app.js)
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js)
-- [backend/src/routes/weapons.js](file://backend/src/routes/weapons.js)
+- [backend/src/routes/herbs-manage.js](file://backend/src/routes/herbs-manage.js)
 - [backend/src/routes/knowledge.js](file://backend/src/routes/knowledge.js)
-- [backend/src/routes/weapon-images.js](file://backend/src/routes/weapon-images.js)
-- [backend/src/routes/weapon-videos.js](file://backend/src/routes/weapon-videos.js)
-- [backend/routes/auth.py](file://backend/routes/auth.py)
-- [backend/routes/knowledge.py](file://backend/routes/knowledge.py)
-- [backend/routes/weapon.py](file://backend/routes/weapon.py)
-- [backend/src/middleware/auth.js](file://backend/src/middleware/auth.js)
-- [backend/src/middleware/validation.js](file://backend/src/middleware/validation.js)
-- [backend/src/config/index.js](file://backend/src/config/index.js)
-- [backend/test-api.js](file://backend/test-api.js)
+- [backend/src/routes/ai-engine.js](file://backend/src/routes/ai-engine.js)
+- [backend/src/routes/conversations.js](file://backend/src/routes/conversations.js)
+- [backend/src/routes/auth.js](file://backend/src/routes/auth.js)
+- [backend/src/routes/herb-categories.js](file://backend/src/routes/herb-categories.js)
+- [backend/src/routes/herb-images.js](file://backend/src/routes/herb-images.js)
+- [backend/src/routes/herb-recognition.js](file://backend/src/routes/herb-recognition.js)
+- [backend/src/routes/herb-regions.js](file://backend/src/routes/herb-regions.js)
+- [backend/src/routes/herb-sources.js](file://backend/src/routes/herb-sources.js)
+- [backend/src/routes/formulas.js](file://backend/src/routes/formulas.js)
+- [backend/src/routes/recommendations.js](file://backend/src/routes/recommendations.js)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 完全重写API文档以适配中医草药系统
+- 新增 /api/herbs-manage/* 端点用于药材管理
+- 新增 /api/knowledge/* 端点用于知识图谱查询
+- 新增 /api/ai-engine/* 端点用于AI智能问答
+- 新增 /api/conversations/* 端点用于对话历史管理
+- 移除了所有武器相关的API端点
+- 更新了认证系统和错误处理机制
 
 ## 目录
 1. [简介](#简介)
 2. [API基础信息](#api基础信息)
 3. [认证系统](#认证系统)
-4. [武器管理API](#武器管理api)
+4. [药材管理API](#药材管理api)
 5. [知识图谱API](#知识图谱api)
-6. [用户认证API](#用户认证api)
-7. [图片管理API](#图片管理api)
-8. [视频管理API](#视频管理api)
-9. [错误处理](#错误处理)
-10. [速率限制](#速率限制)
-11. [API测试示例](#api测试示例)
+6. [AI引擎API](#ai引擎api)
+7. [对话管理API](#对话管理api)
+8. [用户认证API](#用户认证api)
+9. [图片管理API](#图片管理api)
+10. [分类和来源管理API](#分类和来源管理api)
+11. [方剂管理API](#方剂管理api)
+12. [推荐系统API](#推荐系统api)
+13. [错误处理](#错误处理)
+14. [速率限制](#速率限制)
+15. [API测试示例](#api测试示例)
 
 ## 简介
 
-兵智世界是一个军事武器知识管理平台，提供完整的RESTful API接口，支持武器信息管理、知识图谱查询、用户认证、图片上传和视频管理等功能。API采用现代化架构设计，支持多种数据格式和安全认证机制。
+中医草药系统是一个专业的中医药知识管理平台，提供完整的RESTful API接口，支持药材信息管理、知识图谱查询、AI智能问答、对话历史管理等功能。系统采用现代化架构设计，集成Neo4j图数据库和AI大模型能力，为中医药学习和研究提供智能化服务。
 
 ## API基础信息
 
 ### 基础URL
 ```
-https://api.military-world.com/v1
+http://localhost:3001/api
 ```
 
 ### 内容类型
@@ -70,31 +84,58 @@ DB-->>Auth : 返回用户数据
 Auth-->>API : 生成JWT令牌
 API-->>Client : 返回令牌和用户信息
 Note over Client,DB : 后续请求携带令牌
-Client->>API : GET /api/weapons (带Authorization头)
+Client->>API : GET /api/herbs-manage (带Authorization头)
 API->>Auth : 验证JWT令牌
 Auth-->>API : 验证成功
-API-->>Client : 返回武器列表
+API-->>Client : 返回药材列表
 ```
 
 **图表来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L1-L144)
-- [backend/src/middleware/auth.js](file://backend/src/middleware/auth.js#L1-L106)
+- [backend/src/routes/auth.js:17-42](file://backend/src/routes/auth.js#L17-L42)
+- [backend/src/middleware/auth.js](file://backend/src/middleware/auth.js)
 
 **节来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L1-L144)
-- [backend/src/middleware/auth.js](file://backend/src/middleware/auth.js#L1-L106)
+- [backend/src/routes/auth.js:17-42](file://backend/src/routes/auth.js#L17-L42)
 
-## 武器管理API
+## 药材管理API
 
-### 获取武器列表
+### 获取下拉框数据
 
-**端点**: `GET /api/weapons`
+**端点**: `GET /api/herbs-manage/dropdowns`
 
-**认证**: 可选
+**认证**: 无需认证
+
+**功能**: 一次性返回所有下拉框数据（分类、产地、性味、归经、功效）
+
+**响应格式**:
+```json
+{
+  "success": true,
+  "data": {
+    "categories": ["解表药", "清热药", "补虚药"],
+    "regions": ["云南", "四川", "贵州"],
+    "properties_qi": ["寒", "热", "温", "凉", "平"],
+    "properties_flavor": ["辛", "甘", "酸", "苦", "咸"],
+    "meridians": ["肺经", "心经", "肝经"],
+    "efficacies": ["清热解毒", "补气养血"]
+  }
+}
+```
+
+**节来源**
+- [backend/src/routes/herbs-manage.js:46-74](file://backend/src/routes/herbs-manage.js#L46-L74)
+
+### 获取药材列表
+
+**端点**: `GET /api/herbs-manage`
+
+**认证**: 无需认证
 
 **查询参数**:
-- `category` (可选): 武器类型过滤
-- `country` (可选): 制造国家过滤
+- `search` (可选): 搜索关键词
+- `category` (可选): 药材分类过滤
+- `region` (可选): 产地过滤
+- `is_common` (可选): 是否常用药材 (1/0)
 - `page` (可选): 页码，默认1
 - `limit` (可选): 每页数量，默认20
 
@@ -103,256 +144,457 @@ API-->>Client : 返回武器列表
 {
   "success": true,
   "data": {
-    "weapons": [
+    "herbs": [
       {
         "id": "1",
-        "name": "AK-47",
-        "type": "步枪",
-        "country": "苏联",
-        "year": 1947,
-        "description": "卡拉什尼科夫自动步枪...",
-        "images": []
+        "name": "人参",
+        "pinyin": "ren shen",
+        "latin_name": "Panax ginseng",
+        "alias": "棒槌",
+        "description": "大补元气...",
+        "efficacy": "大补元气，复脉固脱",
+        "usage_dosage": "3-9g",
+        "caution": "实热证忌用",
+        "is_common": 1,
+        "quality": "{}",
+        "category_name": "补虚药",
+        "region_name": "吉林"
       }
     ],
     "pagination": {
-      "current_page": 1,
-      "total_pages": 10,
-      "total_items": 200,
-      "items_per_page": 20
+      "page": 1,
+      "limit": 20,
+      "total": 100,
+      "totalPages": 5
     }
   }
 }
 ```
 
 **节来源**
-- [backend/src/routes/weapons.js](file://backend/src/routes/weapons.js#L1-L50)
+- [backend/src/routes/herbs-manage.js:80-153](file://backend/src/routes/herbs-manage.js#L80-L153)
 
-### 搜索武器
+### 获取药材详情
 
-**端点**: `GET /api/weapons/search`
+**端点**: `GET /api/herbs-manage/:name`
 
-**认证**: 可选
-
-**查询参数**:
-- `q` (必需): 搜索关键词
-- `category` (可选): 武器类型
-- `country` (可选): 制造国家
-
-**响应示例**:
-```json
-{
-  "success": true,
-  "data": {
-    "weapons": [
-      {
-        "id": "1",
-        "name": "AK-47",
-        "type": "步枪",
-        "country": "苏联",
-        "similarity_score": 0.95
-      }
-    ]
-  }
-}
-```
-
-**节来源**
-- [backend/src/routes/weapons.js](file://backend/src/routes/weapons.js#L51-L75)
-
-### 获取武器详情
-
-**端点**: `GET /api/weapons/{id}`
-
-**认证**: 可选
+**认证**: 无需认证
 
 **路径参数**:
-- `id` (必需): 武器唯一标识符
+- `name` (必需): 药材名称
 
 **响应包含**:
-- 武器基本信息
-- 技术规格
-- 关联关系
-- 用户兴趣记录
+- 药材基本信息
+- 性味属性
+- 归经信息
+- 功效说明
+- 相关方剂
 
 **节来源**
-- [backend/src/routes/weapons.js](file://backend/src/routes/weapons.js#L76-L100)
+- [backend/src/routes/herbs-manage.js:159-196](file://backend/src/routes/herbs-manage.js#L159-L196)
 
-### 武器管理（管理员）
+### 创建药材
 
-**创建武器**:
-```http
-POST /api/weapons
-Content-Type: application/json
-Authorization: Bearer <token>
+**端点**: `POST /api/herbs-manage`
 
-{
-  "name": "F-22猛禽",
-  "type": "战斗机",
-  "country": "美国",
-  "year": 1997,
-  "description": "第五代隐身战斗机",
-  "specifications": {
-    "max_speed": "2.25马赫",
-    "range": "3700公里",
-    "crew": 1
-  }
-}
-```
+**认证**: 无需认证
 
-**更新武器**:
-```http
-PUT /api/weapons/{id}
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-  "description": "更新后的描述",
-  "specifications": {
-    "range": "4000公里"
-  }
-}
-```
-
-**删除武器**:
-```http
-DELETE /api/weapons/{id}
-Authorization: Bearer <token>
-```
-
-**节来源**
-- [backend/src/routes/weapons.js](file://backend/src/routes/weapons.js#L101-L150)
-
-### 武器识别
-
-**端点**: `POST /api/weapon/recognize`
-
-**认证**: 必需
-
-**请求格式**: multipart/form-data
-- `image` (必需): 武器图片文件
-
-**响应**:
+**请求格式**:
 ```json
 {
-  "code": 200,
-  "message": "识别成功",
-  "result": {
-    "recognized_weapon": "AK-47",
-    "confidence": 0.98,
-    "alternative_matches": [
-      {"weapon": "AK-74", "confidence": 0.02}
-    ]
-  }
-}
-```
-
-**Base64识别**:
-```http
-POST /api/weapon/recognize-base64
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-  "image_data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD..."
+  "name": "黄芪",
+  "pinyin": "huang qi",
+  "latin_name": "Astragalus membranaceus",
+  "alias": "绵黄芪",
+  "description": "补气升阳...",
+  "usage_dosage": "9-30g",
+  "caution": "表实邪盛忌用",
+  "is_common": 1,
+  "category": "补虚药",
+  "region": "内蒙古",
+  "properties_qi": ["微温"],
+  "properties_flavor": ["甘"],
+  "meridians": ["脾经", "肺经"],
+  "efficacies": ["补气升阳", "固表止汗"]
 }
 ```
 
 **节来源**
-- [backend/routes/weapon.py](file://backend/routes/weapon.py#L1-L98)
+- [backend/src/routes/herbs-manage.js:202-309](file://backend/src/routes/herbs-manage.js#L202-L309)
+
+### 更新药材
+
+**端点**: `PUT /api/herbs-manage/:name`
+
+**认证**: 无需认证
+
+**路径参数**:
+- `name` (必需): 原药材名称
+
+**请求格式**: 同创建药材
+
+**节来源**
+- [backend/src/routes/herbs-manage.js:315-432](file://backend/src/routes/herbs-manage.js#L315-L432)
+
+### 删除药材
+
+**端点**: `DELETE /api/herbs-manage/:name`
+
+**认证**: 无需认证
+
+**路径参数**:
+- `name` (必需): 药材名称
+
+**注意**: 如果药材被方剂引用，将无法删除
+
+**节来源**
+- [backend/src/routes/herbs-manage.js:438-484](file://backend/src/routes/herbs-manage.js#L438-L484)
+
+### 获取药材知识图谱
+
+**端点**: `GET /api/herbs-manage/:name/graph`
+
+**认证**: 无需认证
+
+**路径参数**:
+- `name` (必需): 药材名称
+
+**功能**: 获取药材的知识图谱子图数据，用于D3力导向图展示
+
+**节来源**
+- [backend/src/routes/herbs-manage.js:491-606](file://backend/src/routes/herbs-manage.js#L491-L606)
 
 ## 知识图谱API
 
 ### 获取知识图谱概览
 
-**端点**: `GET /api/knowledge/graph`
+**端点**: `GET /api/knowledge/overview`
 
-**认证**: 必需
+**认证**: 无需认证
 
-**响应格式**:
-```json
-{
-  "code": 200,
-  "message": "获取知识图谱成功",
-  "data": {
-    "nodes": [
-      {
-        "id": "weapon1",
-        "label": "步枪",
-        "type": "武器"
-      },
-      {
-        "id": "feature1",
-        "label": "射程远",
-        "type": "特性"
-      }
-    ],
-    "edges": [
-      {
-        "source": "weapon1",
-        "target": "feature1",
-        "label": "具备"
-      }
-    ]
-  }
-}
-```
+**功能**: 获取整个知识图谱的统计信息和概览数据
 
 **节来源**
-- [backend/routes/knowledge.py](file://backend/routes/knowledge.py#L1-L36)
+- [backend/src/routes/knowledge.js:9-20](file://backend/src/routes/knowledge.js#L9-L20)
 
-### 武器知识图谱查询
-
-**端点**: `GET /api/knowledge/weapon/{id}`
-
-**认证**: 可选
-
-**查询参数**:
-- `depth` (可选): 查询深度，默认2，最大5
-
-**响应**: 包含武器及其关联实体的知识图谱数据
-
-### 知识图谱搜索
+### 搜索知识图谱
 
 **端点**: `GET /api/knowledge/search`
+
+**认证**: 无需认证
 
 **查询参数**:
 - `q` (必需): 搜索关键词
 - `types` (可选): 节点类型过滤（逗号分隔）
 - `limit` (可选): 结果数量限制，默认20
 
-### 路径查询
+**节来源**
+- [backend/src/routes/knowledge.js:47-70](file://backend/src/routes/knowledge.js#L47-L70)
+
+### 获取节点邻居
+
+**端点**: `GET /api/knowledge/node/:id/neighbors`
+
+**认证**: 无需认证
+
+**查询参数**:
+- `types` (可选): 关系类型过滤
+- `limit` (可选): 邻居数量限制，默认10
+
+**节来源**
+- [backend/src/routes/knowledge.js:73-88](file://backend/src/routes/knowledge.js#L73-L88)
+
+### 查找路径
 
 **端点**: `GET /api/knowledge/path`
+
+**认证**: 无需认证
 
 **查询参数**:
 - `start` (必需): 起始节点ID
 - `end` (必需): 结束节点ID
 - `maxDepth` (可选): 最大深度，默认5，最大10
 
-### Cypher查询
+**节来源**
+- [backend/src/routes/knowledge.js:91-120](file://backend/src/routes/knowledge.js#L91-L120)
+
+### 执行自定义Cypher查询
 
 **端点**: `POST /api/knowledge/query`
+
+**认证**: 无需认证
+
+**安全限制**: 禁止危险操作（DELETE, REMOVE, DROP等）
 
 **请求格式**:
 ```json
 {
-  "query": "MATCH (w:Weapon) WHERE w.name CONTAINS $name RETURN w",
+  "query": "MATCH (h:Herb) WHERE h.name CONTAINS $name RETURN h",
   "parameters": {
-    "name": "AK"
+    "name": "人"
   }
 }
 ```
 
-**安全限制**: 禁止危险操作（DELETE, REMOVE, DROP等）
+**节来源**
+- [backend/src/routes/knowledge.js:123-149](file://backend/src/routes/knowledge.js#L123-L149)
+
+### 获取统计信息
+
+**端点**: `GET /api/knowledge/statistics`
+
+**认证**: 无需认证
+
+**功能**: 获取知识图谱的统计信息
 
 **节来源**
-- [backend/src/routes/knowledge.js](file://backend/src/routes/knowledge.js#L1-L182)
+- [backend/src/routes/knowledge.js:169-180](file://backend/src/routes/knowledge.js#L169-L180)
+
+## AI引擎API
+
+### RAG智能问答
+
+**端点**: `POST /api/ai-engine/rag`
+
+**认证**: 无需认证
+
+**请求格式**:
+```json
+{
+  "question": "人参的功效是什么？",
+  "useChain": true,
+  "forceRefresh": false
+}
+```
+
+**响应包含**:
+- 问题答案
+- 参考来源
+- 相关方剂
+- 执行的Cypher查询
+- 搜索统计信息
+
+**节来源**
+- [backend/src/routes/ai-engine.js:136-174](file://backend/src/routes/ai-engine.js#L136-L174)
+
+### RAG流式问答
+
+**端点**: `POST /api/ai-engine/rag-stream`
+
+**认证**: 无需认证
+
+**功能**: 使用SSE技术实现流式问答，实时显示AI回答过程
+
+**请求格式**:
+```json
+{
+  "question": "请解释中药配伍禁忌"
+}
+```
+
+**节来源**
+- [backend/src/routes/ai-engine.js:179-315](file://backend/src/routes/ai-engine.js#L179-L315)
+
+### 配伍冲突检测
+
+**端点**: `POST /api/ai-engine/compatibility`
+
+**认证**: 无需认证
+
+**请求格式**:
+```json
+{
+  "herbs": ["人参", "五灵脂", "甘草"]
+}
+```
+
+**功能**: 检测药材配伍禁忌，包括十八反十九畏规则
+
+**节来源**
+- [backend/src/routes/ai-engine.js:320-444](file://backend/src/routes/ai-engine.js#L320-L444)
+
+### 古籍知识抽取
+
+**端点**: `POST /api/ai-engine/extract`
+
+**认证**: 无需认证
+
+**请求格式**:
+```json
+{
+  "text": "人参味甘微苦，性温，归脾肺心经，大补元气，复脉固脱。"
+}
+```
+
+**功能**: 从古籍文本中自动提取知识三元组并写入Neo4j
+
+**节来源**
+- [backend/src/routes/ai-engine.js:449-593](file://backend/src/routes/ai-engine.js#L449-L593)
+
+### 药材详情补全
+
+**端点**: `POST /api/ai-engine/herb-enrich`
+
+**认证**: 无需认证
+
+**请求格式**:
+```json
+{
+  "herbName": "人参",
+  "herbContext": {
+    "category_name": "补虚药",
+    "properties": [{"name": "甘", "type": "flavor"}]
+  }
+}
+```
+
+**功能**: 使用AI补全药材详细信息，包含缓存机制
+
+**节来源**
+- [backend/src/routes/ai-engine.js:662-785](file://backend/src/routes/ai-engine.js#L662-L785)
+
+### 获取药材详情
+
+**端点**: `GET /api/ai-engine/herb-detail/:name`
+
+**认证**: 无需认证
+
+**功能**: 获取药材详情和图谱数据
+
+**节来源**
+- [backend/src/routes/ai-engine.js:792-881](file://backend/src/routes/ai-engine.js#L792-L881)
+
+### 引擎健康检查
+
+**端点**: `GET /api/ai-engine/health`
+
+**认证**: 无需认证
+
+**功能**: 检查AI引擎状态和依赖服务连接情况
+
+**节来源**
+- [backend/src/routes/ai-engine.js:598-622](file://backend/src/routes/ai-engine.js#L598-L622)
+
+### 引擎状态
+
+**端点**: `GET /api/ai-engine/status`
+
+**认证**: 无需认证
+
+**功能**: 获取AI引擎的详细状态信息
+
+**节来源**
+- [backend/src/routes/ai-engine.js:627-650](file://backend/src/routes/ai-engine.js#L627-L650)
+
+## 对话管理API
+
+### 获取对话列表
+
+**端点**: `GET /api/conversations`
+
+**认证**: 必需（JWT）
+
+**查询参数**:
+- `page` (可选): 页码，默认1
+- `limit` (可选): 每页数量，默认20
+
+**功能**: 获取当前用户的对话历史列表
+
+**节来源**
+- [backend/src/routes/conversations.js:41-85](file://backend/src/routes/conversations.js#L41-L85)
+
+### 创建对话
+
+**端点**: `POST /api/conversations`
+
+**认证**: 必需（JWT）
+
+**请求格式**:
+```json
+{
+  "title": "人参功效咨询"
+}
+```
+
+**功能**: 创建新的对话会话
+
+**节来源**
+- [backend/src/routes/conversations.js:90-118](file://backend/src/routes/conversations.js#L90-L118)
+
+### 获取对话详情
+
+**端点**: `GET /api/conversations/:id`
+
+**认证**: 必需（JWT）
+
+**路径参数**:
+- `id` (必需): 对话ID
+
+**功能**: 获取指定对话的所有消息记录
+
+**节来源**
+- [backend/src/routes/conversations.js:123-167](file://backend/src/routes/conversations.js#L123-L167)
+
+### 添加消息
+
+**端点**: `POST /api/conversations/:id/messages`
+
+**认证**: 必需（JWT）
+
+**请求格式**:
+```json
+{
+  "role": "user",
+  "content": "请问人参有哪些功效？",
+  "sources": [],
+  "mode": "rag"
+}
+```
+
+**功能**: 在对话中添加新消息
+
+**节来源**
+- [backend/src/routes/conversations.js:172-248](file://backend/src/routes/conversations.js#L172-L248)
+
+### 删除对话
+
+**端点**: `DELETE /api/conversations/:id`
+
+**认证**: 必需（JWT）
+
+**路径参数**:
+- `id` (必需): 对话ID
+
+**功能**: 删除指定对话及其所有消息
+
+**节来源**
+- [backend/src/routes/conversations.js:253-289](file://backend/src/routes/conversations.js#L253-L289)
+
+### 更新对话标题
+
+**端点**: `PUT /api/conversations/:id`
+
+**认证**: 必需（JWT）
+
+**请求格式**:
+```json
+{
+  "title": "新的对话标题"
+}
+```
+
+**功能**: 更新对话标题
+
+**节来源**
+- [backend/src/routes/conversations.js:294-335](file://backend/src/routes/conversations.js#L294-L335)
 
 ## 用户认证API
 
 ### 用户注册
 
 **端点**: `POST /api/auth/register`
+
+**认证**: 无需认证
 
 **请求格式**:
 ```json
@@ -370,29 +612,14 @@ Authorization: Bearer <token>
 - `password`: 6-128字符
 - `name`: 2-50字符（可选）
 
-**响应**:
-```json
-{
-  "success": true,
-  "message": "注册成功",
-  "data": {
-    "user": {
-      "id": 1,
-      "username": "testuser",
-      "email": "test@example.com",
-      "created_at": "2024-01-01T00:00:00Z"
-    },
-    "token": "jwt_token_here"
-  }
-}
-```
-
 **节来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L1-L30)
+- [backend/src/routes/auth.js:17-28](file://backend/src/routes/auth.js#L17-L28)
 
 ### 用户登录
 
 **端点**: `POST /api/auth/login`
+
+**认证**: 无需认证
 
 **请求格式**:
 ```json
@@ -402,73 +629,45 @@ Authorization: Bearer <token>
 }
 ```
 
-**响应**:
-```json
-{
-  "success": true,
-  "message": "登录成功",
-  "data": {
-    "user": {
-      "id": 1,
-      "username": "testuser",
-      "email": "test@example.com",
-      "role": "user"
-    },
-    "token": "jwt_token_here"
-  }
-}
-```
-
 **节来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L31-L50)
+- [backend/src/routes/auth.js:31-42](file://backend/src/routes/auth.js#L31-L42)
 
 ### 获取用户信息
 
 **端点**: `GET /api/auth/profile`
 
-**认证**: 必需
+**认证**: 必需（JWT）
 
-**响应**:
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "username": "testuser",
-    "email": "test@example.com",
-    "name": "测试用户",
-    "preferences": {},
-    "avatar": "https://example.com/avatar.jpg",
-    "created_at": "2024-01-01T00:00:00Z"
-  }
-}
-```
+**功能**: 获取当前登录用户的详细信息
 
 **节来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L51-L70)
+- [backend/src/routes/auth.js:45-56](file://backend/src/routes/auth.js#L45-L56)
 
 ### 更新用户资料
 
 **端点**: `PUT /api/auth/profile`
 
+**认证**: 必需（JWT）
+
 **请求格式**:
 ```json
 {
   "name": "新名字",
-  "preferences": {
-    "language": "zh-CN",
-    "theme": "dark"
-  },
-  "avatar": "https://example.com/new-avatar.jpg"
+  "phone": "13800138000",
+  "bio": "个人简介",
+  "preferences": {"language": "zh-CN"},
+  "avatar": "data:image/png;base64,..."
 }
 ```
 
 **节来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L71-L85)
+- [backend/src/routes/auth.js:59-78](file://backend/src/routes/auth.js#L59-L78)
 
 ### 修改密码
 
 **端点**: `PUT /api/auth/change-password`
+
+**认证**: 必需（JWT）
 
 **请求格式**:
 ```json
@@ -478,74 +677,52 @@ Authorization: Bearer <token>
 }
 ```
 
-**验证规则**:
-- 新密码至少6个字符
-- 需提供正确的原密码
-
 **节来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L86-L110)
+- [backend/src/routes/auth.js:81-108](file://backend/src/routes/auth.js#L81-L108)
 
-### 令牌刷新
+### 刷新令牌
 
 **端点**: `POST /api/auth/refresh`
 
-**认证**: 必需
+**认证**: 必需（JWT）
 
-**响应**:
-```json
-{
-  "success": true,
-  "message": "令牌刷新成功",
-  "data": {
-    "token": "new_jwt_token_here"
-  }
-}
-```
+**功能**: 刷新JWT令牌
 
 **节来源**
-- [backend/src/routes/auth.js](file://backend/src/routes/auth.js#L111-L130)
+- [backend/src/routes/auth.js:111-135](file://backend/src/routes/auth.js#L111-L135)
+
+### 退出登录
+
+**端点**: `POST /api/auth/logout`
+
+**认证**: 必需（JWT）
+
+**功能**: 退出当前用户登录
+
+**节来源**
+- [backend/src/routes/auth.js:138-153](file://backend/src/routes/auth.js#L138-L153)
 
 ## 图片管理API
 
-### 获取武器图片
+### 获取药材图片
 
-**端点**: `GET /api/weapon-images/{weaponId}`
+**端点**: `GET /api/herb-images/:herbId`
 
-**认证**: 可选
+**认证**: 无需认证
 
 **路径参数**:
-- `weaponId` (必需): 武器ID
+- `herbId` (必需): 药材ID
 
-**响应格式**:
-```json
-{
-  "success": true,
-  "data": {
-    "weaponId": 1,
-    "weaponName": "AK-47",
-    "images": [
-      {
-        "id": 1640995200000,
-        "filename": "weapon-1640995200000-123456789.jpg",
-        "originalName": "ak47.jpg",
-        "path": "/uploads/weapons/weapon-1640995200000-123456789.jpg",
-        "size": 102400,
-        "description": "AK-47正面图",
-        "uploadedAt": "2024-01-01T00:00:00.000Z"
-      }
-    ]
-  }
-}
-```
+**功能**: 获取指定药材的所有图片
 
 **节来源**
-- [backend/src/routes/weapon-images.js](file://backend/src/routes/weapon-images.js#L40-L120)
+- [backend/src/routes/herb-images.js:58-84](file://backend/src/routes/herb-images.js#L58-L84)
 
-### 上传武器图片
+### 上传药材图片
 
-**端点**: `POST /api/weapon-images/{weaponId}`
+**端点**: `POST /api/herb-images/:herbId`
 
-**认证**: 管理员必需
+**认证**: 必需（JWT + 管理员权限）
 
 **请求格式**: multipart/form-data
 - `image` (必需): 图片文件
@@ -555,54 +732,27 @@ Authorization: Bearer <token>
 - 类型: jpeg, jpg, png, gif, webp
 - 大小: 最大5MB
 
-**响应**:
-```json
-{
-  "success": true,
-  "message": "图片上传成功",
-  "data": {
-    "image": {
-      "id": 1640995200001,
-      "filename": "weapon-1640995200001-987654321.jpg",
-      "originalName": "ak47_side.jpg",
-      "path": "/uploads/weapons/weapon-1640995200001-987654321.jpg",
-      "size": 153600,
-      "description": "AK-47侧面图",
-      "uploadedAt": "2024-01-01T00:00:01.000Z"
-    }
-  }
-}
-```
-
 **节来源**
-- [backend/src/routes/weapon-images.js](file://backend/src/routes/weapon-images.js#L121-L200)
+- [backend/src/routes/herb-images.js:87-137](file://backend/src/routes/herb-images.js#L87-L137)
 
-### 删除武器图片
+### 删除药材图片
 
-**端点**: `DELETE /api/weapon-images/{weaponId}/{imageId}`
+**端点**: `DELETE /api/herb-images/:herbId/:imageId`
 
-**认证**: 管理员必需
+**认证**: 必需（JWT + 管理员权限）
 
 **路径参数**:
-- `weaponId`: 武器ID
+- `herbId`: 药材ID
 - `imageId`: 图片ID
 
-**响应**:
-```json
-{
-  "success": true,
-  "message": "图片删除成功"
-}
-```
-
 **节来源**
-- [backend/src/routes/weapon-images.js](file://backend/src/routes/weapon-images.js#L201-L250)
+- [backend/src/routes/herb-images.js:140-180](file://backend/src/routes/herb-images.js#L140-L180)
 
 ### 更新图片描述
 
-**端点**: `PUT /api/weapon-images/{weaponId}/{imageId}`
+**端点**: `PUT /api/herb-images/:herbId/:imageId`
 
-**认证**: 管理员必需
+**认证**: 必需（JWT + 管理员权限）
 
 **请求格式**:
 ```json
@@ -611,171 +761,152 @@ Authorization: Bearer <token>
 }
 ```
 
-**响应**:
-```json
-{
-  "success": true,
-  "message": "图片描述更新成功",
-  "data": {
-    "image": {
-      "id": 1640995200001,
-      "description": "更新后的图片描述"
-    }
-  }
-}
-```
+**节来源**
+- [backend/src/routes/herb-images.js:183-220](file://backend/src/routes/herb-images.js#L183-L220)
+
+## 分类和来源管理API
+
+### 药材分类管理
+
+**端点**: `/api/herb-categories/*`
+
+**功能**: 管理药材的分类体系
+
+**主要接口**:
+- `GET /api/herb-categories` - 获取分类列表
+- `POST /api/herb-categories` - 创建分类
+- `PUT /api/herb-categories/:id` - 更新分类
+- `DELETE /api/herb-categories/:id` - 删除分类
 
 **节来源**
-- [backend/src/routes/weapon-images.js](file://backend/src/routes/weapon-images.js#L251-L300)
+- [backend/src/routes/herb-categories.js:8-160](file://backend/src/routes/herb-categories.js#L8-L160)
 
-## 视频管理API
+### 药材产地管理
 
-### 获取武器视频列表
+**端点**: `/api/herb-regions/*`
 
-**端点**: `GET /api/weapon-videos/weapon/{weaponId}`
+**功能**: 管理药材的产地信息
 
-**认证**: 可选
+**主要接口**:
+- `GET /api/herb-regions` - 获取产地列表
+- `POST /api/herb-regions` - 创建产地
+- `PUT /api/herb-regions/:id` - 更新产地
+- `DELETE /api/herb-regions/:id` - 删除产地
+
+**节来源**
+- [backend/src/routes/herb-regions.js:8-160](file://backend/src/routes/herb-regions.js#L8-L160)
+
+### 药材来源管理
+
+**端点**: `/api/herb-sources/*`
+
+**功能**: 管理药材的来源信息
+
+**主要接口**:
+- `GET /api/herb-sources` - 获取来源列表
+- `POST /api/herb-sources` - 创建来源
+- `PUT /api/herb-sources/:id` - 更新来源（管理员）
+- `DELETE /api/herb-sources/:id` - 删除来源（管理员）
+
+**节来源**
+- [backend/src/routes/herb-sources.js:8-160](file://backend/src/routes/herb-sources.js#L8-L160)
+
+## 方剂管理API
+
+### 获取方剂列表
+
+**端点**: `GET /api/formulas`
+
+**认证**: 无需认证
+
+**查询参数**:
+- `page` (可选): 页码，默认1
+- `limit` (可选): 每页数量，默认20
+
+**节来源**
+- [backend/src/routes/formulas.js:8-49](file://backend/src/routes/formulas.js#L8-L49)
+
+### 获取方剂详情
+
+**端点**: `GET /api/formulas/:id`
+
+**认证**: 无需认证
 
 **路径参数**:
-- `weaponId` (必需): 武器ID
+- `id` (必需): 方剂ID
 
-**响应格式**:
+**功能**: 获取方剂详情及组成药材
+
+**节来源**
+- [backend/src/routes/formulas.js:52-86](file://backend/src/routes/formulas.js#L52-L86)
+
+### 创建方剂
+
+**端点**: `POST /api/formulas`
+
+**认证**: 必需（JWT + 管理员权限）
+
+**请求格式**:
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "weapon_id": 1,
-      "filename": "weapon-video-1640995200000-123456789.mp4",
-      "original_name": "ak47_demo.mp4",
-      "file_path": "uploads/weapons/videos/weapon-video-1640995200000-123456789.mp4",
-      "file_size": 52428800,
-      "mime_type": "video/mp4",
-      "duration": 120,
-      "description": "AK-47射击演示",
-      "upload_time": "2024-01-01T00:00:00.000Z"
-    }
+  "name": "四君子汤",
+  "pinyin": "si jun zi tang",
+  "category": "补益剂",
+  "description": "益气健脾",
+  "usage": "水煎服",
+  "caution": "阴虚火旺者慎用",
+  "source": "《太平惠民和剂局方》",
+  "herbs": [
+    {"herb_id": 1, "dosage": "9g", "role": "君药"},
+    {"herb_id": 2, "dosage": "9g", "role": "臣药"}
   ]
 }
 ```
 
 **节来源**
-- [backend/src/routes/weapon-videos.js](file://backend/src/routes/weapon-videos.js#L60-L90)
+- [backend/src/routes/formulas.js:89-134](file://backend/src/routes/formulas.js#L89-L134)
 
-### 上传视频
+### 更新方剂
 
-**端点**: `POST /api/weapon-videos/weapon/{weaponId}/upload`
+**端点**: `PUT /api/formulas/:id`
 
-**认证**: 必需（管理员）
+**认证**: 必需（JWT + 管理员权限）
 
-**请求格式**: multipart/form-data
-- `video` (必需): 视频文件
-- `description` (可选): 视频描述
-
-**文件限制**:
-- 类型: mp4, avi, mov, wmv, flv, webm
-- 大小: 最大100MB
-
-**响应**:
-```json
-{
-  "success": true,
-  "message": "视频上传成功",
-  "data": {
-    "id": 1,
-    "filename": "weapon-video-1640995200001-987654321.mp4",
-    "originalName": "f22_demo.mp4",
-    "fileSize": 104857600,
-    "mimeType": "video/mp4",
-    "description": "F-22战斗机演示"
-  }
-}
-```
+**请求格式**: 同创建方剂
 
 **节来源**
-- [backend/src/routes/weapon-videos.js](file://backend/src/routes/weapon-videos.js#L91-L150)
+- [backend/src/routes/formulas.js:137-190](file://backend/src/routes/formulas.js#L137-L190)
 
-### 获取视频文件
+### 删除方剂
 
-**端点**: `GET /api/weapon-videos/file/{filename}`
+**端点**: `DELETE /api/formulas/:id`
 
-**认证**: 可选
+**认证**: 必需（JWT + 管理员权限）
 
 **路径参数**:
-- `filename` (必需): 视频文件名
-
-**支持范围请求**: 支持视频流播放
-
-**响应**: 视频文件流
-
-### 更新视频信息
-
-**端点**: `PUT /api/weapon-videos/{videoId}`
-
-**认证**: 必需（管理员）
-
-**请求格式**:
-```json
-{
-  "description": "更新后的视频描述"
-}
-```
-
-**响应**:
-```json
-{
-  "success": true,
-  "message": "视频信息更新成功"
-}
-```
+- `id` (必需): 方剂ID
 
 **节来源**
-- [backend/src/routes/weapon-videos.js](file://backend/src/routes/weapon-videos.js#L250-L290)
+- [backend/src/routes/formulas.js:193-210](file://backend/src/routes/formulas.js#L193-L210)
 
-### 删除视频
+## 推荐系统API
 
-**端点**: `DELETE /api/weapon-videos/{videoId}`
+### 获取推荐内容
 
-**认证**: 必需（管理员）
+**端点**: `GET /api/recommendations`
 
-**路径参数**:
-- `videoId` (必需): 视频ID
+**认证**: 无需认证
 
-**响应**:
-```json
-{
-  "success": true,
-  "message": "视频删除成功"
-}
-```
+**查询参数**:
+- `q` (可选): 搜索关键词
+- `category_id` (可选): 分类ID
+- `region_id` (可选): 产地ID
+- `limit` (可选): 结果数量，默认12，最大50
 
-**节来源**
-- [backend/src/routes/weapon-videos.js](file://backend/src/routes/weapon-videos.js#L291-L340)
-
-### 视频统计
-
-**端点**: `GET /api/weapon-videos/weapon/{weaponId}/stats`
-
-**认证**: 可选
-
-**路径参数**:
-- `weaponId` (必需): 武器ID
-
-**响应格式**:
-```json
-{
-  "success": true,
-  "data": {
-    "total_videos": 5,
-    "total_size": 262144000,
-    "avg_size": 52428800
-  }
-}
-```
+**功能**: 基于多种因素推荐药材和方剂
 
 **节来源**
-- [backend/src/routes/weapon-videos.js](file://backend/src/routes/weapon-videos.js#L341-L370)
+- [backend/src/routes/recommendations.js:52-119](file://backend/src/routes/recommendations.js#L52-L119)
 
 ## 错误处理
 
@@ -802,8 +933,10 @@ Authorization: Bearer <token>
 | 401 | 未授权 | 令牌缺失或无效 |
 | 403 | 权限不足 | 需要管理员权限 |
 | 404 | 资源不存在 | 请求的资源不存在 |
+| 409 | 冲突 | 重复资源或关联冲突 |
 | 429 | 请求过于频繁 | 超出速率限制 |
 | 500 | 服务器内部错误 | 服务器处理错误 |
+| 503 | 服务不可用 | 依赖服务不可用 |
 
 ### 常见错误类型
 
@@ -811,10 +944,7 @@ Authorization: Bearer <token>
 ```json
 {
   "success": false,
-  "message": "访问令牌缺失",
-  "error": {
-    "code": "AUTH_TOKEN_MISSING"
-  }
+  "message": "请先登录后再保存对话记录"
 }
 ```
 
@@ -833,7 +963,7 @@ Authorization: Bearer <token>
 ```
 
 **节来源**
-- [backend/src/app.js](file://backend/src/app.js#L120-L180)
+- [backend/src/app.js:157-201](file://backend/src/app.js#L157-L201)
 
 ## 速率限制
 
@@ -846,45 +976,15 @@ Authorization: Bearer <token>
 - **最大请求数**: 1000个请求
 - **响应头**: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
 
-### 限制策略
-
-```mermaid
-flowchart TD
-Request["API请求"] --> CheckRate["检查速率限制"]
-CheckRate --> WithinLimit{"请求次数 < 最大限制?"}
-WithinLimit --> |是| ProcessRequest["处理请求"]
-WithinLimit --> |否| RateLimitError["返回429错误"]
-ProcessRequest --> UpdateCounter["更新计数器"]
-RateLimitError --> ErrorResponse["返回错误响应"]
-UpdateCounter --> SuccessResponse["返回成功响应"]
-```
-
-**图表来源**
-- [backend/src/app.js](file://backend/src/app.js#L70-L85)
-
-### 自定义限制
-
-对于高频API，系统提供更宽松的限制：
-
-```javascript
-// 高频API使用更高限制
-const highFrequencyLimiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests * 2, // 两倍限制
-  message: { success: false, message: '请求过于频繁，请稍后再试' }
-});
-```
-
 **节来源**
-- [backend/src/config/index.js](file://backend/src/config/index.js#L40-L50)
-- [backend/src/app.js](file://backend/src/app.js#L70-L85)
+- [backend/src/app.js:91-101](file://backend/src/app.js#L91-L101)
 
 ## API测试示例
 
 ### 健康检查
 
 ```bash
-curl -X GET "https://api.military-world.com/health"
+curl -X GET "http://localhost:3001/health"
 ```
 
 **响应**:
@@ -897,16 +997,16 @@ curl -X GET "https://api.military-world.com/health"
 }
 ```
 
-### 获取武器列表
+### 获取药材列表
 
 ```bash
-curl -X GET "https://api.military-world.com/api/weapons?page=1&limit=10"
+curl -X GET "http://localhost:3001/api/herbs-manage?page=1&limit=10"
 ```
 
 ### 用户注册
 
 ```bash
-curl -X POST "https://api.military-world.com/api/auth/register" \
+curl -X POST "http://localhost:3001/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
@@ -915,48 +1015,45 @@ curl -X POST "https://api.military-world.com/api/auth/register" \
   }'
 ```
 
-### 上传武器图片
+### AI问答
 
 ```bash
-curl -X POST "https://api.military-world.com/api/weapon-images/1" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -F "image=@weapon.jpg" \
-  -F "description=AK-47正面图"
-```
-
-### 知识图谱查询
-
-```bash
-curl -X POST "https://api.military-world.com/api/knowledge/query" \
+curl -X POST "http://localhost:3001/api/ai-engine/rag" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "query": "MATCH (w:Weapon) WHERE w.name CONTAINS $name RETURN w",
-    "parameters": {"name": "AK"}
+    "question": "人参的主要功效是什么？"
   }'
 ```
 
+### 药材识别
+
+```bash
+curl -X POST "http://localhost:3001/api/herb-recognition" \
+  -F "file=@herb.jpg"
+```
+
 **节来源**
-- [backend/test-api.js](file://backend/test-api.js#L1-L129)
+- [backend/src/app.js:104-111](file://backend/src/app.js#L104-L111)
 
 ## 批量操作
 
-### 批量创建武器
+### 批量创建药材
 
 ```bash
-curl -X POST "https://api.military-world.com/api/weapons/batch" \
+curl -X POST "http://localhost:3001/api/herbs-manage" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '[{}, {}, {}]'
+  -d '{
+    "name": "黄芪",
+    "pinyin": "huang qi",
+    "category": "补虚药",
+    "efficacies": ["补气升阳"]
+  }'
 ```
 
 ### 批量删除图片
 
 ```bash
-curl -X DELETE "https://api.military-world.com/api/weapon-images/batch" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '[1, 2, 3]'
+curl -X DELETE "http://localhost:3001/api/herb-images/1/123"
 ```
 
 ## 文件上传处理
@@ -966,18 +1063,18 @@ curl -X DELETE "https://api.military-world.com/api/weapon-images/batch" \
 系统使用Multer中间件处理文件上传，支持：
 
 **图片上传**:
-- 存储路径: `./uploads/weapons/`
+- 存储路径: `./uploads/herbs/`
 - 文件大小限制: 5MB
 - 允许格式: jpeg, jpg, png, gif, webp
 
-**视频上传**:
-- 存储路径: `./uploads/weapons/videos/`
-- 文件大小限制: 100MB
-- 允许格式: mp4, avi, mov, wmv, flv, webm
+**药材识别**:
+- 内存存储模式
+- 文件大小限制: 10MB（可配置）
+- 仅支持图片文件
 
-### 文件清理
-
-系统自动清理上传的临时文件，确保磁盘空间的有效利用。
+**节来源**
+- [backend/src/routes/herb-images.js:31-55](file://backend/src/routes/herb-images.js#L31-L55)
+- [backend/src/routes/herb-recognition.js:14-32](file://backend/src/routes/herb-recognition.js#L14-L32)
 
 ## 分页查询
 
@@ -986,7 +1083,7 @@ curl -X DELETE "https://api.military-world.com/api/weapon-images/batch" \
 ```javascript
 const pagination = {
   page: parseInt(req.query.page) || 1,
-  limit: parseInt(req.query.limit) || 20
+  limit: Math.min(parseInt(req.query.limit) || 20, 100)
 };
 ```
 
@@ -1011,15 +1108,16 @@ const pagination = {
 
 ### 缓存策略
 
+- **AI问答**: 使用Redis缓存搜索结果
+- **药材详情**: 24小时缓存
 - **知识图谱**: TTL 2小时
 - **用户数据**: TTL 30分钟
-- **武器列表**: TTL 1小时
 
 ### 数据库优化
 
 - **Neo4j**: 使用索引和查询优化
-- **MongoDB**: 文档查询优化
 - **SQLite**: 事务管理和连接池
+- **连接复用**: 数据库连接池管理
 
 ## 安全措施
 
@@ -1028,13 +1126,10 @@ const pagination = {
 所有API请求都经过严格的数据验证：
 
 ```javascript
-const weaponSchema = Joi.object({
+const herbSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
-  type: Joi.string().valid(...weaponTypes).required(),
-  country: Joi.string().min(2).max(50).required(),
-  year: Joi.number().integer().min(1800).max(2030),
-  description: Joi.string().max(1000),
-  specifications: Joi.object()
+  category: Joi.string().valid(...herbCategories).required(),
+  efficacy: Joi.array().items(Joi.string()).required()
 });
 ```
 
@@ -1051,16 +1146,18 @@ const weaponSchema = Joi.object({
 - 内容安全策略(CSP)
 
 **节来源**
-- [backend/src/middleware/validation.js](file://backend/src/middleware/validation.js#L1-L178)
+- [backend/src/middleware/validation.js](file://backend/src/middleware/validation.js)
 
 ## 总结
 
-兵智世界API提供了完整的军事武器知识管理解决方案，支持：
+中医草药系统API提供了完整的中医药知识管理解决方案，支持：
 
-- **全面的武器信息管理**：增删改查、批量操作
+- **全面的药材信息管理**：增删改查、批量操作、知识图谱
 - **智能知识图谱**：关系查询、路径发现、推荐系统
-- **媒体资源管理**：图片上传、视频管理、文件存储
+- **AI智能问答**：RAG检索增强生成、流式响应、配伍检测
+- **多媒体资源管理**：图片上传、药材识别、文件存储
 - **用户认证体系**：JWT令牌、权限控制、会话管理
+- **对话历史管理**：多轮对话、消息持久化、历史记录
 - **高性能架构**：速率限制、缓存策略、数据库优化
 
-API设计遵循RESTful原则，提供清晰的错误处理和详细的文档说明，便于开发者集成和使用。
+API设计遵循RESTful原则，提供清晰的错误处理和详细的文档说明，便于开发者集成和使用。系统集成了现代AI技术和传统中医药知识，为中医药学习和研究提供了强大的技术支持。
