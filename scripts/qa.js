@@ -281,6 +281,8 @@ function buildRagModeBadge(mode) {
 
 function buildGraphRagPipelineHtml(r) {
   var steps = Array.isArray(r.pipelineSteps) ? r.pipelineSteps : [];
+  // 无任何检索过程数据（历史消息 / 流式占位）时不渲染该栏，避免空壳展示
+  if (steps.length === 0 && !r.cypher && !r.mode) return "";
   var html = '<div class="rag-pipeline-toggle" onclick="togglePL(this)">';
   html += '<i class="fas fa-chevron-right"></i><span class="rag-toggle-title">点击展开：后端真实检索过程</span><span class="rag-toggle-subtitle">来自 /api/ai-engine/rag 的 pipelineSteps、Cypher 与 mode</span></div>'; 
   html += '<div class="rag-pipeline-detail" style="display:none;">';
@@ -315,10 +317,11 @@ function buildAnswerHtml(result) {
   var r = result || {};
   var cleanAnswer = normalizeAnswerText(r.answer || "");
   var finalAnswer = normalizeAnswerEmphasis(cleanAnswer);
-  var html = '<div class="rag-answer-body">' + renderMarkdown(finalAnswer) + '</div>';
+  // 检索过程栏放在回答最前面，先展示后端真实检索链路
+  var html = buildGraphRagPipelineHtml(r);
+  html += '<div class="rag-answer-body">' + renderMarkdown(finalAnswer) + '</div>';
   html += formatSources(r.sources || []);
   html += formatFormulas(r.formulas || []);
-  html += buildGraphRagPipelineHtml(r);
   return html;
 }
 
@@ -718,6 +721,7 @@ async function doSend() {
   var loadingSteps = [
     "关键词提取：分析用户问题...",
     "Neo4j 图检索：查询图谱相关节点...",
+    "向量检索：语义匹配证型与功效...",
     "关联知识扩展：补充性味、归经、功效、配伍...",
     "LLM 知识增强：融合图谱上下文...",
     "上下文构建：整理证据与候选知识...",

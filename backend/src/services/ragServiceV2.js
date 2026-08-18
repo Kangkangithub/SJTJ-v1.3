@@ -12,6 +12,7 @@ const { ChatOpenAI } = require("@langchain/openai");
 const { Neo4jGraph } = require("@langchain/community/graphs/neo4j_graph");
 const { GraphCypherQAChain } = require("@langchain/community/chains/graph_qa/cypher");
 const neo4jManager = require("../config/neo4j-simple");
+const embeddingService = require("./embeddingService");
 const path = require("path");
 const fs = require("fs");
 
@@ -20,9 +21,11 @@ const fs = require("fs");
 // =============================================
 const answerCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;           // 答案缓存 5 分钟
-const CACHE_VERSION = 4;                    // 每次修改搜索逻辑时递增，强制刷新旧缓存
+const CACHE_VERSION = 5;                    // 每次修改搜索逻辑时递增，强制刷新旧缓存
 const herbEnrichCache = new Map();
 const ENRICH_CACHE_TTL = 24 * 60 * 60 * 1000; // LLM 知识增强缓存 24 小时
+const ENRICH_HERB_LIMIT = 5;                // 每次最多对前 N 味药材做 LLM 补全（避免逐味串行 LLM 拖慢响应）
+const ENRICH_CONCURRENCY = 3;               // LLM 补全并发度
 
 // =============================================
 // 中文停用词：这些词即使出现在问题中也不作为搜索关键词
@@ -119,7 +122,7 @@ class RAGServiceV2 {
     pipelineSteps.push({
       name: "关键词提取",
       status: keywords.length > 0 ? "done" : "fallback",
-      detail: keywords.length > 0 ? "提取到关键词：" + keywords.join("、") : "未提取到明确关键词，改用问题原文检索"
+      detail: keywords.length > 0 ? "提取到关键词：" + keywords.slice(0, 8).join("、") + (keywords.length > 8 ? " 等共" + keywords.length + "个" : "") : "未提取到明确关键词，改用问题原文检索"
     });
 
     // 步骤1：在 Neo4j 中搜索（使用 LLM 关键词 + 问题原文双路匹配）
@@ -143,6 +146,45 @@ class RAGServiceV2 {
         detail: finalResults.searchError
           ? "问题原文检索失败"
           : "使用问题原文重新检索，命中药材 " + finalResults.herbs.length + " 个、方剂 " + finalResults.formulas.length + " 个"
+      });
+    }
+
+    // 步骤1.5：向量检索补充（百炼 text-embedding-v3 语义相似度，弥补 CONTAINS 字面匹配对"证型↔功效"的失效）
+    if (finalResults && embeddingService.isReady()) {
+      try {
+        const semHits = await embeddingService.search(question, 10);
+        const existingNames = new Set(finalResults.herbs.map(h => h.name));
+        const newNames = semHits.map(s => s.name).filter(n => n && !existingNames.has(n));
+        if (newNames.length > 0) {
+          const semanticHerbs = await this.searchNeo4jByNames(newNames);
+          const semNames = new Set(semanticHerbs.map(h => h.name));
+          // 语义命中优先（按相关度排序），CONTAINS 命中去重后追加
+          finalResults.herbs = semanticHerbs.concat(finalResults.herbs.filter(h => !semNames.has(h.name)));
+          pipelineSteps.push({
+            name: "向量检索",
+            status: "done",
+            detail: "百炼 text-embedding-v3 语义命中 " + semHits.length + " 个，补充 " + semanticHerbs.length + " 个（" + newNames.slice(0, 6).join("、") + " 等）"
+          });
+        } else {
+          pipelineSteps.push({
+            name: "向量检索",
+            status: "done",
+            detail: "语义检索完成，命中药材均已被图检索覆盖，未新增"
+          });
+        }
+      } catch (e) {
+        console.warn("[RAG-V2] 向量检索补充失败:", e.message);
+        pipelineSteps.push({
+          name: "向量检索",
+          status: "fallback",
+          detail: "向量检索失败：" + e.message
+        });
+      }
+    } else if (finalResults) {
+      pipelineSteps.push({
+        name: "向量检索",
+        status: "fallback",
+        detail: "向量索引未就绪，跳过语义检索（需配置 DASHSCOPE_API_KEY 并完成向量化）"
       });
     }
 
@@ -241,74 +283,22 @@ class RAGServiceV2 {
   }
 
   async extractKeywords(question) {
-    if (!this.llm) return [];
-
-    try {
-      const prompt = "你是中医药专家。从以下用户问题中提取中医药关键词（药材名、方剂名、症状、证型、功效术语等）。" +
-        '只返回 JSON 数组格式，如 ["人参","补气","气虚"]。不要返回任何解释。' +
-        "\n\n问题：" + question;
-
-      const response = await this.llm.invoke([
-        { role: "system", content: "你是中医药专家。只返回 JSON 数组，不要任何解释。" },
-        { role: "user", content: prompt }
-      ]);
-
-      const text = typeof response === "string" ? response : (response.content || response.text || "");
-      console.log("[RAG-V2] LLM关键词原始返回:", text.substring(0, 200));
-      const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      console.log("[RAG-V2] LLM关键词清洗后:", cleaned.substring(0, 200));
-
-      let keywords = [];
-      try {
-        keywords = JSON.parse(cleaned);
-      } catch (e) {
-        // JSON 解析失败，尝试从文本中匹配数组
-        const match = cleaned.match(/\[([^\]]+)\]/);
-        if (match) {
-          keywords = match[1].split(",").map(k => k.trim().replace(/^["']|["']$/g, ""));
+    // 本地 n-gram 提取（不再调用 LLM，省一次网络往返）：
+    // 向量检索已承担「证型↔功效」的语义匹配，这里只负责捞出药材名/方剂名等字面词，
+    // 供 searchNeo4j 做 CONTAINS 精确匹配；2 字词用于覆盖「人参/黄芪/当归」等常见药名。
+    if (!question) return [];
+    const keywords = new Set();
+    for (let i = 0; i < question.length; i++) {
+      for (let len = 2; len <= Math.min(6, question.length - i); len++) {
+        const frag = question.substring(i, i + len);
+        // 只保留纯中文且非停用词的片段
+        if (/^[\u4e00-\u9fff]+$/.test(frag) && !STOP_WORDS.has(frag)) {
+          keywords.add(frag);
         }
       }
-
-      // 不过滤 LLM 关键词（LLM 足够智能，返回的都是相关中医药术语）
-      // 停用词过滤仅用于 n-gram 回退
-      keywords = Array.isArray(keywords)
-        ? keywords.filter(k => k && k.length >= 2)
-        : [];
-
-      // 如果 LLM 提取的关键词太少（<2个），用问题原文做 n-gram 补充
-      // n-gram 只取 3-6 字片段，且必须包含中文、非停用词
-      if (keywords.length < 2 && question && question.length >= 2) {
-        const ngramSet = new Set(keywords);
-        for (let i = 0; i <= question.length - 2; i++) {
-          for (let len = 3; len <= Math.min(6, question.length - i); len++) {
-            const frag = question.substring(i, i + len);
-            if (/[\u4e00-\u9fff]/.test(frag) && !STOP_WORDS.has(frag) && frag.length >= 2) {
-              ngramSet.add(frag);
-            }
-          }
-        }
-        keywords = [...ngramSet];
-      }
-
-      return keywords.filter(k => k && k.length >= 2);
-    } catch (error) {
-      console.warn("[RAG-V2] 关键词提取失败:", error.message);
-      // 回退：从问题中取 3-6 字 n-gram，过滤停用词
-      const fallback = [];
-      if (question) {
-        const seen = new Set();
-        for (let i = 0; i <= question.length - 2; i++) {
-          for (let len = 3; len <= Math.min(6, question.length - i); len++) {
-            const frag = question.substring(i, i + len);
-            if (!seen.has(frag) && /[\u4e00-\u9fff]/.test(frag) && !STOP_WORDS.has(frag)) {
-              seen.add(frag);
-              fallback.push(frag);
-            }
-          }
-        }
-      }
-      return fallback;
     }
+    // 限制数量，避免超长问题生成过多搜索词
+    return [...keywords].slice(0, 40);
   }
 
   // =============================================
@@ -459,6 +449,49 @@ class RAGServiceV2 {
   }
 
   // =============================================
+  // 按名查询药材详情（供语义检索命中后取字段，形状与 searchNeo4j 一致）
+  // =============================================
+  async searchNeo4jByNames(names) {
+    if (!names || names.length === 0) return [];
+    const session = neo4jManager.getSession();
+    try {
+      const cypher = [
+        "MATCH (h:Herb)",
+        "WHERE h.name IN $names",
+        "OPTIONAL MATCH (h)-[:BELONGS_TO_CATEGORY]->(c:Category)",
+        "OPTIONAL MATCH (h)-[:FROM_REGION]->(r:Region)",
+        "RETURN h, c.name AS category, r.name AS region",
+        "LIMIT 50"
+      ].join("\n");
+
+      const result = await session.run(cypher, { names });
+      const herbs = [];
+      for (const record of result.records) {
+        const h = record.get("h");
+        herbs.push({
+          id: h.identity.toString(),
+          name: h.properties.name,
+          pinyin: h.properties.pinyin || "",
+          latin_name: h.properties.latin_name || "",
+          description: h.properties.description || "",
+          efficacy: h.properties.efficacy || "",
+          usage_dosage: h.properties.usage_dosage || "",
+          caution: h.properties.caution || "",
+          is_common: h.properties.is_common || 0,
+          category: record.get("category") || "",
+          region: record.get("region") || ""
+        });
+      }
+      return herbs;
+    } catch (error) {
+      console.warn("[RAG-V2] 按名查询药材失败:", error.message);
+      return [];
+    } finally {
+      if (session) await session.close();
+    }
+  }
+
+  // =============================================
   // 图遍历：获取药材的性味、归经、功效、方剂关联、配伍冲突
   // =============================================
   async enrichWithGraphTraversal(searchResults) {
@@ -556,67 +589,84 @@ class RAGServiceV2 {
   // =============================================
   // LLM 知识增强：调用 DeepSeek 补全药材详细信息
   // =============================================
+  // 单味药材补全（供并发池调用）
+  async _enrichOneHerb(herb) {
+    // 检查缓存
+    const cacheKey = "enrich_" + herb.name;
+    const cached = herbEnrichCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < ENRICH_CACHE_TTL) {
+      Object.assign(herb, cached.data);
+      return;
+    }
+
+    try {
+      const knownInfo = [];
+      if (herb.category) knownInfo.push("分类：" + herb.category);
+      if (herb.region) knownInfo.push("产地：" + herb.region);
+      if (herb.properties && herb.properties.length) knownInfo.push("性味：" + herb.properties.join("、"));
+      if (herb.meridians && herb.meridians.length) knownInfo.push("归经：" + herb.meridians.join("、"));
+      if (herb.efficacy) knownInfo.push("功效：" + herb.efficacy);
+      if (herb.description) knownInfo.push("描述：" + herb.description);
+      const knownStr = knownInfo.length > 0 ? knownInfo.join("；") : "暂无数据库信息";
+
+      const prompt = "你是资深中医药专家。请根据中医药经典和现代药典，为药材【" + herb.name + "】撰写详细专业信息。" +
+        "已知数据：" + knownStr + "。" +
+        "请以严格 JSON 格式返回（不要任何解释、不要 Markdown 标记）：" +
+        '{"indications":"主治病症（50-150字）",' +
+        '"usage_dosage":"用法用量（20-80字）",' +
+        '"caution":"使用注意与禁忌（20-80字）",' +
+        '"pharmacology":"现代药理研究摘要（50-150字）",' +
+        '"clinical_application":"临床应用要点（30-100字）"}';
+
+      const response = await this.llm.invoke([
+        { role: "system", content: "你是中医药专家。只返回 JSON，不要任何解释或 Markdown。" },
+        { role: "user", content: prompt }
+      ]);
+
+      const text = typeof response === "string" ? response : (response.content || response.text || "");
+
+      let enrichedData = null;
+      try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          enrichedData = JSON.parse(jsonMatch[0]);
+        }
+      } catch (e) {
+        console.warn("[RAG-V2] 药材 " + herb.name + " 补全 JSON 解析失败");
+      }
+
+      if (enrichedData) {
+        Object.assign(herb, enrichedData);
+        herbEnrichCache.set(cacheKey, { data: enrichedData, timestamp: Date.now() });
+        console.log("[RAG-V2] 药材补全成功: " + herb.name);
+      }
+    } catch (error) {
+      console.warn("[RAG-V2] 药材 " + herb.name + " 补全失败:", error.message);
+    }
+  }
+
   async enrichHerbDetails(enriched) {
     if (!this.llm || !enriched.herbs || enriched.herbs.length === 0) return;
 
-    console.log("[RAG-V2] 开始LLM知识增强，共 " + enriched.herbs.length + " 味药材...");
+    // 只补全最相关的前 N 味，其余直接用 Neo4j 已有字段（避免逐味串行 LLM 拖慢响应）
+    const targets = enriched.herbs.slice(0, ENRICH_HERB_LIMIT);
+    console.log("[RAG-V2] 开始LLM知识增强，补全 " + targets.length + " / " + enriched.herbs.length + " 味（并发 " + ENRICH_CONCURRENCY + "）...");
 
-    for (const herb of enriched.herbs) {
-      // 检查缓存
-      const cacheKey = "enrich_" + herb.name;
-      const cached = herbEnrichCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < ENRICH_CACHE_TTL) {
-        Object.assign(herb, cached.data);
-        continue;
-      }
-
-      try {
-        const knownInfo = [];
-        if (herb.category) knownInfo.push("分类：" + herb.category);
-        if (herb.region) knownInfo.push("产地：" + herb.region);
-        if (herb.properties && herb.properties.length) knownInfo.push("性味：" + herb.properties.join("、"));
-        if (herb.meridians && herb.meridians.length) knownInfo.push("归经：" + herb.meridians.join("、"));
-        if (herb.efficacy) knownInfo.push("功效：" + herb.efficacy);
-        if (herb.description) knownInfo.push("描述：" + herb.description);
-        const knownStr = knownInfo.length > 0 ? knownInfo.join("；") : "暂无数据库信息";
-
-        const prompt = "你是资深中医药专家。请根据中医药经典和现代药典，为药材【" + herb.name + "】撰写详细专业信息。" +
-          "已知数据：" + knownStr + "。" +
-          "请以严格 JSON 格式返回（不要任何解释、不要 Markdown 标记）：" +
-          '{"indications":"主治病症（50-150字）",' +
-          '"usage_dosage":"用法用量（20-80字）",' +
-          '"caution":"使用注意与禁忌（20-80字）",' +
-          '"pharmacology":"现代药理研究摘要（50-150字）",' +
-          '"clinical_application":"临床应用要点（30-100字）"}';
-
-        const response = await this.llm.invoke([
-          { role: "system", content: "你是中医药专家。只返回 JSON，不要任何解释或 Markdown。" },
-          { role: "user", content: prompt }
-        ]);
-
-        const text = typeof response === "string" ? response : (response.content || response.text || "");
-
-        let enrichedData = null;
-        try {
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            enrichedData = JSON.parse(jsonMatch[0]);
-          }
-        } catch (e) {
-          console.warn("[RAG-V2] 药材 " + herb.name + " 补全 JSON 解析失败");
+    // 受控并发补全
+    let next = 0;
+    const workerCount = Math.min(ENRICH_CONCURRENCY, targets.length);
+    const workers = [];
+    for (let w = 0; w < workerCount; w++) {
+      workers.push((async () => {
+        while (next < targets.length) {
+          const herb = targets[next++];
+          await this._enrichOneHerb(herb);
         }
-
-        if (enrichedData) {
-          Object.assign(herb, enrichedData);
-          herbEnrichCache.set(cacheKey, { data: enrichedData, timestamp: Date.now() });
-          console.log("[RAG-V2] 药材补全成功: " + herb.name);
-        }
-      } catch (error) {
-        console.warn("[RAG-V2] 药材 " + herb.name + " 补全失败:", error.message);
-      }
+      })());
     }
+    await Promise.all(workers);
 
-    console.log("[RAG-V2] LLM知识增强完成: " + enriched.herbs.length + " / " + enriched.herbs.length);
+    console.log("[RAG-V2] LLM知识增强完成");
   }
 
   // =============================================

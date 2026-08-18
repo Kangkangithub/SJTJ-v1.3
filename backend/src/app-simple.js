@@ -14,6 +14,7 @@ const logger = require('./utils/logger');
 
 // 导入简化版服务
 const userService = require('./services/userService-simple');
+const embeddingService = require('./services/embeddingService');
 
 // 通用 API 缓存（参考数据几乎不改，缓存 1 小时）
 const apiCache = new Map();
@@ -341,6 +342,7 @@ class SimpleApp {
         logger.info(`API文档: http://localhost:${port}/api`);
         logger.info(`前端入口: http://127.0.0.1:${port}/index.html`);
         this.warmupKnowledgeGraphCache();
+        this.warmupEmbeddings();
       });
 
       return this.server;
@@ -361,6 +363,19 @@ class SimpleApp {
         logger.warn('知识图谱缓存预热失败:', error.message);
       }
     }, 1000);
+  }
+
+  // 预热语义检索向量（增量 diff：只算缺失/变化的药材，重启不重算）
+  warmupEmbeddings() {
+    setTimeout(async () => {
+      try {
+        const startedAt = Date.now();
+        await embeddingService.syncAll();
+        logger.info(`语义检索向量同步完成，用时 ${Date.now() - startedAt}ms`);
+      } catch (error) {
+        logger.warn('语义检索向量同步失败:', error.message);
+      }
+    }, 2000);
   }
 
   // 获取Express应用实例

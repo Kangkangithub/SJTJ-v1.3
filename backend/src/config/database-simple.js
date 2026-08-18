@@ -302,6 +302,16 @@ class SimpleDatabaseManager {
           mode TEXT DEFAULT '',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+        )`,
+
+        // ===== 药材向量表（embedding 持久化，供语义检索使用） =====
+        // vector 存 JSON 序列化的浮点数组（text-embedding-v3 = 1024 维）
+        `CREATE TABLE IF NOT EXISTS herb_embeddings (
+          name TEXT PRIMARY KEY,
+          vector TEXT NOT NULL,
+          source_text TEXT,
+          model TEXT,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`
       ];
 

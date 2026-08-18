@@ -7,6 +7,7 @@
 const express = require("express");
 const neo4jManager = require("../config/neo4j-simple");
 const neo4j = require("neo4j-driver");
+const embeddingService = require("../services/embeddingService");
 const router = express.Router();
 
 // ==================== 辅助函数 ====================
@@ -298,6 +299,8 @@ router.post("/", async (req, res) => {
     }
 
     await tx.commit();
+    // 异步更新语义检索向量（不阻塞响应）
+    embeddingService.updateOne(trimmedName);
     res.status(201).json({ success: true, data: { name: trimmedName }, message: "药材创建成功" });
   } catch (error) {
     await tx.rollback();
@@ -421,6 +424,13 @@ router.put("/:name", async (req, res) => {
     }
 
     await tx.commit();
+    // 异步更新语义检索向量（改名需删旧补新）
+    if (targetName !== oldName) {
+      embeddingService.deleteOne(oldName);
+      embeddingService.updateOne(targetName);
+    } else {
+      embeddingService.updateOne(targetName);
+    }
     res.json({ success: true, data: { name: targetName }, message: "药材更新成功" });
   } catch (error) {
     await tx.rollback();
@@ -473,6 +483,9 @@ router.delete("/:name", async (req, res) => {
       "MATCH (h:Herb {name: $name}) DETACH DELETE h",
       { name: herbName }
     );
+
+    // 异步删除语义检索向量
+    embeddingService.deleteOne(herbName);
 
     res.json({ success: true, message: "药材删除成功" });
   } catch (error) {
