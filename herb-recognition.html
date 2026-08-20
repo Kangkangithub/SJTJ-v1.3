@@ -42,24 +42,23 @@
     <main id="mainContent">
       <section class="intro" aria-labelledby="recognitionTitle">
         <h1 id="recognitionTitle">药材智能识别</h1>
-        <p>上传药材图片，查看识别结果与相关药材信息。</p>
+        <p>上传药材图片或视频，查看识别结果与相关药材信息。</p>
       </section>
 
       <div class="herb-recognition-container">
         <section class="upload-section" aria-labelledby="uploadTitle">
           <h2 id="uploadTitle">上传药材素材</h2>
-          <div class="upload-area" id="uploadArea" tabindex="0" role="button" aria-label="选择或拖放药材图片">
+          <div class="upload-area" id="uploadArea" tabindex="0" role="button" aria-label="选择或拖放药材图片或视频">
             <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
-            <p>点击或拖放图片到此处</p>
-            <p>支持 JPG、PNG 等常见图片格式</p>
-            <input type="file" id="fileInput" accept="image/*" hidden>
+            <p>点击或拖放图片、视频到此处</p>
+            <p>图片直接识别，视频将自动抽取关键帧识别</p>
+            <input type="file" id="fileInput" accept="image/*,video/*" hidden>
             <img id="imagePreview" alt="上传图片预览" hidden>
             <video id="videoPreview" controls preload="metadata" playsinline hidden></video>
           </div>
           <div class="upload-options">
             <button id="uploadButton" class="action-button" type="button"><i class="fas fa-upload"></i> 上传图片</button>
             <button id="videoButton" class="action-button" type="button"><i class="fas fa-video"></i> 上传视频</button>
-            <button id="cameraButton" class="action-button" type="button"><i class="fas fa-camera"></i> 使用摄像头</button>
             <button id="recognizeButton" class="action-button" type="button" disabled><i class="fas fa-search"></i> 开始识别</button>
           </div>
         </section>
@@ -78,7 +77,7 @@
           <div class="result-content" id="resultContent">
             <div class="no-result" id="noResult">
               <i class="fas fa-search" aria-hidden="true"></i>
-              <p>请先上传药材图片。</p>
+              <p>请先上传药材图片或视频。</p>
             </div>
             <div class="herb-info" id="herbInfo" hidden>
               <div class="result-herb-image no-image" id="herbResultImage"><span>暂无药材图片</span></div>
@@ -107,25 +106,6 @@
 
   </div>
     <footer class="footer"><div><strong>神农AI</strong><div>中药药材知识图谱系统</div></div></footer>
-  </div>
-
-  <div id="cameraModal" class="camera-modal" hidden>
-    <div class="camera-dialog">
-      <div class="camera-dialog-header">
-        <h3>使用摄像头</h3>
-        <button id="closeCameraModal" type="button" class="action-button action-button-secondary"><i class="fas fa-times"></i></button>
-      </div>
-      <video id="cameraPreview" autoplay></video>
-      <div class="camera-actions">
-        <button id="captureCameraButton" class="action-button" type="button"><i class="fas fa-camera"></i> 拍摄</button>
-        <button id="realtimeRecognitionButton" class="action-button" type="button"><i class="fas fa-bolt"></i> 实时识别</button>
-        <button id="stopRealtimeRecognitionButton" class="action-button action-button-secondary" type="button" hidden><i class="fas fa-stop"></i> 停止识别</button>
-        <button id="confirmCaptureButton" class="action-button" type="button" hidden><i class="fas fa-check"></i> 使用此图片</button>
-      </div>
-      <div id="realtimeResultsOverlay" hidden></div>
-      <canvas id="captureCanvas" hidden></canvas>
-      <canvas id="realtimeCanvas" hidden></canvas>
-    </div>
   </div>
 
   <script src="scripts/auth.js"></script>

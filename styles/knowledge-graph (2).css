@@ -1,0 +1,294 @@
+/* 知识图谱页面特定样式 */
+.knowledge-graph-container {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 2rem;
+    min-height: 600px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(52, 152, 219, 0.1);
+    display: grid;
+    grid-template-columns: 200px 1fr 250px;
+    grid-template-rows: 1fr;
+    gap: 20px;
+}
+
+.graph-container {
+    height: 500px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    position: relative;
+    background-color: var(--card-bg);
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.controls button {
+    padding: 10px 15px;
+    background-color: var(--secondary-color);
+    color: var(--dark-bg);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 10px;
+    transition: background-color 0.3s;
+}
+
+.controls button:hover {
+    background-color: var(--accent-color);
+}
+
+.search-container {
+    margin-bottom: 20px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--dark-bg);
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    color: var(--text-color);
+}
+
+.search-bar {
+    display: flex;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.search-bar button {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-bar button:hover {
+    background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.graph-visualization {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.graph-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.graph-controls button {
+    padding: 0.5rem 1rem;
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.graph-controls button:hover {
+    background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* 图例样式 */
+.graph-legend {
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.graph-legend h3 {
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+    font-size: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.legend-label {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+/* 过滤器样式 */
+.graph-filters {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.filter-group select {
+    padding: 0.4rem 0.8rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    border-radius: 4px;
+    color: var(--text-color);
+}
+
+/* 节点详情样式 */
+.node-details {
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.node-details h3 {
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+    font-size: 1rem;
+}
+
+.detail-group {
+    margin-bottom: 1rem;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 2px;
+}
+
+.detail-value {
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+/* D3.js节点和连线样式 */
+.node {
+    cursor: pointer;
+    stroke: #fff;
+    stroke-width: 1.5px;
+}
+
+.node:hover {
+    stroke: var(--secondary-color);
+    stroke-width: 2.5px;
+}
+
+.node.selected {
+    stroke: var(--accent-color);
+    stroke-width: 3px;
+}
+
+.link {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1.5px;
+}
+
+.link-label {
+    font-size: 10px;
+    fill: var(--text-color);
+    text-anchor: middle;
+}
+
+.node-label {
+    font-size: 12px;
+    fill: var(--text-color);
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+/* 响应式样式 */
+@media (max-width: 1200px) {
+    .knowledge-graph-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+    
+    .graph-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .graph-legend h3 {
+        width: 100%;
+    }
+    
+    .legend-item {
+        margin-right: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .knowledge-graph-container {
+        padding: 1rem;
+        min-height: 400px;
+    }
+    
+    .search-bar {
+        flex-direction: column;
+    }
+    
+    .graph-controls {
+        flex-wrap: wrap;
+    }
+    
+    .graph-filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+} 

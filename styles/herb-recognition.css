@@ -318,50 +318,6 @@
   overflow-wrap: anywhere;
 }
 
-.video-results {
-  display: block;
-}
-
-.camera-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  background: rgba(22, 36, 29, 0.56);
-}
-
-.camera-dialog {
-  color: var(--text);
-  background: var(--surface) !important;
-  border: 1px solid var(--line);
-  border-radius: var(--radius) !important;
-}
-
-.camera-dialog {
-  width: min(100%, 620px);
-  padding: 20px;
-}
-
-.camera-dialog-header,
-.camera-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-#cameraPreview {
-  width: 100%;
-  height: 300px;
-  margin: 14px 0;
-  background: #000;
-  border-radius: var(--radius);
-}
-
 @media (max-width: 980px) {
   .herb-recognition-container {
     grid-template-columns: 1fr;

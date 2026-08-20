@@ -7,26 +7,13 @@ document.addEventListener('DOMContentLoaded', function() {
   const videoPreview = document.getElementById('videoPreview');
   const uploadButton = document.getElementById('uploadButton');
   const videoButton = document.getElementById('videoButton');
-  const cameraButton = document.getElementById('cameraButton');
   const recognizeButton = document.getElementById('recognizeButton');
   const loadingIndicator = document.getElementById('loadingIndicator');
   const noResult = document.getElementById('noResult');
   const herbInfo = document.getElementById('herbInfo');
   const relatedHerbs = document.getElementById('relatedHerbs');
   const viewKnowledgeButton = document.getElementById('viewKnowledgeButton');
-  const videoResults = document.getElementById('videoResults');
-  const videoResultList = document.getElementById('videoResultList');
   const processingText = document.getElementById('processingText');
-
-  const cameraModal = document.getElementById('cameraModal');
-  const cameraPreview = document.getElementById('cameraPreview');
-  const closeCameraModal = document.getElementById('closeCameraModal');
-  const captureCameraButton = document.getElementById('captureCameraButton');
-  const confirmCaptureButton = document.getElementById('confirmCaptureButton');
-  const captureCanvas = document.getElementById('captureCanvas');
-  const realtimeRecognitionButton = document.getElementById('realtimeRecognitionButton');
-  const stopRealtimeRecognitionButton = document.getElementById('stopRealtimeRecognitionButton');
-  const realtimeResultsOverlay = document.getElementById('realtimeResultsOverlay');
 
   const herbNameText = document.getElementById('herbNameText');
   const confidenceValue = document.getElementById('confidenceValue');
@@ -40,11 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const relatedList = document.getElementById('relatedList');
 
   let selectedFile = null;
-  let mediaStream = null;
   let recognizedHerb = null;
   let previewObjectUrl = '';
 
-  if (fileInput) fileInput.accept = 'image/*';
+  if (fileInput) fileInput.accept = 'image/*,video/*';
 
   uploadArea?.addEventListener('click', function(event) {
     if (event.target.closest('img, video, button, input')) return;
@@ -73,19 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
     fileInput?.click();
   });
   videoButton?.addEventListener('click', function() {
-    showStatus('基础版仅支持图片识别，视频识别暂未开放。');
+    if (fileInput) fileInput.accept = 'video/*';
+    fileInput?.click();
   });
-  cameraButton?.addEventListener('click', openCameraModal);
   recognizeButton?.addEventListener('click', startRecognition);
-  closeCameraModal?.addEventListener('click', closeCameraAndModal);
-  captureCameraButton?.addEventListener('click', captureImage);
-  confirmCaptureButton?.addEventListener('click', useCapturedImage);
-  realtimeRecognitionButton?.addEventListener('click', function() {
-    showStatus('基础版仅支持图片识别，实时识别暂未开放。');
-  });
-  stopRealtimeRecognitionButton?.addEventListener('click', function() {
-    if (realtimeResultsOverlay) realtimeResultsOverlay.hidden = true;
-  });
   viewKnowledgeButton?.addEventListener('click', function() {
     if (recognizedHerb?.name) {
       window.location.href = `knowledge-graph.html?herb=${encodeURIComponent(recognizedHerb.name)}`;
@@ -96,11 +73,13 @@ document.addEventListener('DOMContentLoaded', function() {
     hideResults();
     resetPreviewObjectUrl();
 
-    if (!file.type.startsWith('image/')) {
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo) {
       selectedFile = null;
       if (recognizeButton) recognizeButton.disabled = true;
       clearPreview();
-      showStatus('基础版仅支持图片文件。');
+      showStatus('请上传图片或视频文件。');
       return;
     }
 
@@ -108,17 +87,29 @@ document.addEventListener('DOMContentLoaded', function() {
     recognizedHerb = null;
     if (recognizeButton) recognizeButton.disabled = false;
 
-    if (videoPreview) {
-      videoPreview.hidden = true;
-      videoPreview.pause?.();
-      videoPreview.removeAttribute('src');
-    }
     previewObjectUrl = URL.createObjectURL(file);
-    if (imagePreview) {
-      imagePreview.src = previewObjectUrl;
-      imagePreview.hidden = false;
+    if (isImage) {
+      if (videoPreview) {
+        videoPreview.hidden = true;
+        videoPreview.pause?.();
+        videoPreview.removeAttribute('src');
+      }
+      if (imagePreview) {
+        imagePreview.src = previewObjectUrl;
+        imagePreview.hidden = false;
+      }
+    } else {
+      if (imagePreview) {
+        imagePreview.hidden = true;
+        imagePreview.removeAttribute('src');
+      }
+      if (videoPreview) {
+        videoPreview.src = previewObjectUrl;
+        videoPreview.hidden = false;
+      }
+      showStatus('视频已选择，点击开始识别后将自动抽取关键帧。');
     }
-    if (fileInput) fileInput.accept = 'image/*';
+    if (fileInput) fileInput.accept = 'image/*,video/*';
   }
 
   function clearPreview() {
@@ -128,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (videoPreview) {
       videoPreview.hidden = true;
+      videoPreview.pause?.();
       videoPreview.removeAttribute('src');
     }
   }
@@ -140,32 +132,160 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function startRecognition() {
     if (!selectedFile) return;
-    if (!selectedFile.type.startsWith('image/')) {
-      showStatus('基础版仅支持图片文件。');
+    const isImage = selectedFile.type.startsWith('image/');
+    const isVideo = selectedFile.type.startsWith('video/');
+    if (!isImage && !isVideo) {
+      showStatus('请上传图片或视频文件。');
       return;
     }
 
     if (loadingIndicator) loadingIndicator.style.display = 'flex';
-    if (processingText) processingText.textContent = '正在识别，请稍候...';
+    if (processingText) processingText.textContent = isVideo ? '正在抽取视频关键帧...' : '正在识别，请稍候...';
     hideResults();
 
     try {
-      const form = new FormData();
-      form.append('file', selectedFile);
-      const response = await fetch(`${API_BASE}/herb-recognition`, {
-        method: 'POST',
-        body: form
-      });
-      const json = await response.json().catch(() => ({}));
-      if (!response.ok || json.success === false) {
-        throw new Error(messageForRecognitionError(json));
-      }
-      displayRecognitionResult(json.data?.herb, json.data?.confidence, json.data?.source);
+      const result = isVideo ? await recognizeVideo(selectedFile) : await recognizeImageFile(selectedFile);
+      displayRecognitionResult(result.herb, result.confidence, result.source);
     } catch (error) {
       showStatus(error.message || '未能识别出明确药材，请更换清晰图片后重试');
     } finally {
       if (loadingIndicator) loadingIndicator.style.display = 'none';
     }
+  }
+
+  async function recognizeImageFile(file) {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await fetch(`${API_BASE}/herb-recognition`, {
+      method: 'POST',
+      body: form
+    });
+    const json = await response.json().catch(() => ({}));
+    if (!response.ok || json.success === false) {
+      throw new Error(messageForRecognitionError(json));
+    }
+    return {
+      herb: json.data?.herb,
+      confidence: json.data?.confidence,
+      source: json.data?.source
+    };
+  }
+
+  async function recognizeVideo(file) {
+    const frames = await extractVideoFrames(file, 5);
+    if (!frames.length) throw new Error('未能从视频中提取清晰画面，请更换视频或上传图片。');
+
+    const results = [];
+    for (let index = 0; index < frames.length; index++) {
+      if (processingText) processingText.textContent = `正在识别视频关键帧 ${index + 1}/${frames.length}...`;
+      try {
+        const result = await recognizeImageFile(frames[index]);
+        if (result?.herb?.name) results.push(result);
+      } catch (error) {
+        // 单帧识别失败不影响后续关键帧。
+      }
+    }
+
+    if (!results.length) throw new Error('未能从视频关键帧中识别出明确药材，请更换更清晰的视频。');
+    const best = pickBestVideoRecognitionResult(results);
+    return {
+      herb: best.herb,
+      confidence: best.confidence,
+      source: 'video-keyframes'
+    };
+  }
+
+  function pickBestVideoRecognitionResult(results) {
+    const grouped = new Map();
+    results.forEach((item) => {
+      const name = item.herb?.name || '';
+      if (!name) return;
+      const current = grouped.get(name) || { count: 0, confidence: 0, item };
+      const confidence = Number(item.confidence || 0) || 0;
+      current.count += 1;
+      if (confidence >= current.confidence) {
+        current.confidence = confidence;
+        current.item = item;
+      }
+      grouped.set(name, current);
+    });
+    return Array.from(grouped.values())
+      .sort((a, b) => b.count - a.count || b.confidence - a.confidence)[0].item;
+  }
+
+  async function extractVideoFrames(file, frameCount) {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.playsInline = true;
+    video.src = url;
+
+    try {
+      await waitForVideoEvent(video, 'loadedmetadata');
+      const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 1;
+      const canvas = document.createElement('canvas');
+      const width = video.videoWidth || 640;
+      const height = video.videoHeight || 480;
+      const maxSide = 960;
+      const scale = Math.min(1, maxSide / Math.max(width, height));
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const context = canvas.getContext('2d');
+      const times = buildFrameTimes(duration, frameCount);
+      const frames = [];
+
+      for (const time of times) {
+        video.currentTime = time;
+        await waitForVideoEvent(video, 'seeked');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const blob = await canvasToBlob(canvas, 'image/jpeg', 0.88);
+        if (blob) frames.push(new File([blob], `video-frame-${Math.round(time * 1000)}.jpg`, { type: 'image/jpeg' }));
+      }
+      return frames;
+    } finally {
+      URL.revokeObjectURL(url);
+      video.removeAttribute('src');
+      video.load?.();
+    }
+  }
+
+  function buildFrameTimes(duration, frameCount) {
+    const total = Math.max(1, frameCount || 1);
+    const safeDuration = Math.max(0.2, duration || 1);
+    if (total === 1) return [Math.min(0.2, safeDuration / 2)];
+    return Array.from({ length: total }, (_, index) => {
+      const ratio = (index + 1) / (total + 1);
+      return Math.min(safeDuration - 0.05, Math.max(0.05, safeDuration * ratio));
+    });
+  }
+
+  function waitForVideoEvent(video, eventName) {
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timer);
+        video.removeEventListener(eventName, onEvent);
+        video.removeEventListener('error', onError);
+      };
+      const onEvent = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        reject(new Error('视频读取失败，请更换文件后重试。'));
+      };
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('视频读取超时，请更换更短或更清晰的视频。'));
+      }, 8000);
+      video.addEventListener(eventName, onEvent, { once: true });
+      video.addEventListener('error', onError, { once: true });
+    });
+  }
+
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
   }
 
   function displayRecognitionResult(herb, confidence, source) {
@@ -309,8 +429,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (herbInfo) herbInfo.hidden = true;
     if (relatedHerbs) relatedHerbs.hidden = true;
     if (viewKnowledgeButton) viewKnowledgeButton.hidden = true;
-    if (videoResults) videoResults.hidden = true;
-    if (videoResultList) videoResultList.innerHTML = '';
   }
 
   function showStatus(message) {
@@ -321,50 +439,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (herbInfo) herbInfo.hidden = true;
     if (relatedHerbs) relatedHerbs.hidden = true;
     if (viewKnowledgeButton) viewKnowledgeButton.hidden = true;
-  }
-
-  function openCameraModal() {
-    if (!cameraModal) return;
-    cameraModal.hidden = false;
-    navigator.mediaDevices?.getUserMedia({ video: true })
-      .then(stream => {
-        mediaStream = stream;
-        if (cameraPreview) cameraPreview.srcObject = stream;
-      })
-      .catch(() => {
-        showStatus('无法访问摄像头，请检查浏览器权限或改用文件上传。');
-        closeCameraAndModal();
-      });
-  }
-
-  function closeCameraAndModal() {
-    if (mediaStream) {
-      mediaStream.getTracks().forEach(track => track.stop());
-      mediaStream = null;
-    }
-    if (cameraModal) cameraModal.hidden = true;
-    if (confirmCaptureButton) confirmCaptureButton.hidden = true;
-    if (captureCameraButton) captureCameraButton.hidden = false;
-    if (realtimeResultsOverlay) realtimeResultsOverlay.hidden = true;
-  }
-
-  function captureImage() {
-    if (!captureCanvas || !cameraPreview) return;
-    const context = captureCanvas.getContext('2d');
-    captureCanvas.width = cameraPreview.videoWidth;
-    captureCanvas.height = cameraPreview.videoHeight;
-    context.drawImage(cameraPreview, 0, 0, captureCanvas.width, captureCanvas.height);
-    if (confirmCaptureButton) confirmCaptureButton.hidden = false;
-    if (captureCameraButton) captureCameraButton.hidden = true;
-  }
-
-  function useCapturedImage() {
-    if (!captureCanvas) return;
-    captureCanvas.toBlob(blob => {
-      if (!blob) return;
-      handleFile(new File([blob], 'camera-capture.png', { type: 'image/png' }));
-      closeCameraAndModal();
-    }, 'image/png');
   }
 
   function escapeHtml(value) {
