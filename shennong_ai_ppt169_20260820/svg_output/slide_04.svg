@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-page-role="content"><rect id="bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F3F6F4"/><g id="header" data-pptx-bounds="60 36 1160 86"><rect x="60" y="40" width="10" height="44" rx="5" fill="#0F5E53"/><text x="88" y="76" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="34" font-weight="bold" fill="#17302C">中医药知识数字化三大痛点</text></g>
+<g id="pain-1" data-pptx-bounds="60 150 370 250">
+  <rect x="60" y="150" width="370" height="250" rx="16" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <rect x="60" y="150" width="370" height="56" rx="16" fill="#0F5E53"/>
+  <rect x="60" y="190" width="370" height="16" fill="#0F5E53"/>
+  <text x="80" y="186" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF">知识体系复杂</text>
+  <text x="84" y="250" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">一味药材涉及性味、归经、</text>
+  <text x="84" y="278" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">功效、主治、配伍禁忌、产地、</text>
+  <text x="84" y="306" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">方剂组成等多维关系</text>
+  <text x="84" y="352" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">关系密集，难以结构化表达</text>
+</g>
+<g id="pain-2" data-pptx-bounds="455 150 370 250">
+  <rect x="455" y="150" width="370" height="250" rx="16" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <rect x="455" y="150" width="370" height="56" rx="16" fill="#14806F"/>
+  <rect x="455" y="190" width="370" height="16" fill="#14806F"/>
+  <text x="475" y="186" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF">传统检索无法表达关系</text>
+  <text x="479" y="250" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">关系型数据库以「表」存储，</text>
+  <text x="479" y="278" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">只能关键词/字段匹配</text>
+  <text x="479" y="306" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">无法表达「人参—补气—</text>
+  <text x="479" y="334" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">四君子汤—白术」多跳关系</text>
+  <text x="479" y="380" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">也无法回答症状驱动的问题</text>
+</g>
+<g id="pain-3" data-pptx-bounds="850 150 370 250">
+  <rect x="850" y="150" width="370" height="250" rx="16" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <rect x="850" y="150" width="370" height="56" rx="16" fill="#D8A642"/>
+  <rect x="850" y="190" width="370" height="16" fill="#D8A642"/>
+  <text x="870" y="186" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF">大模型问答不可溯源</text>
+  <text x="874" y="250" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">通用大模型表达流畅，</text>
+  <text x="874" y="278" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">但缺乏领域知识约束</text>
+  <text x="874" y="306" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">存在知识幻觉、</text>
+  <text x="874" y="334" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#17302C">来源不可追溯等风险</text>
+  <text x="874" y="380" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">看似合理却难以采信</text>
+</g>
+<g id="pain-policy" data-pptx-bounds="60 430 1160 120">
+  <rect x="60" y="430" width="1160" height="110" rx="14" fill="#0F5E53"/>
+  <text x="90" y="470" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="22" font-weight="bold" fill="#D8A642">政策驱动</text>
+  <text x="90" y="510" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="19" fill="#FFFFFF">《健康中国2030》 · 《“十四五”中医药发展规划》 · 中医药振兴发展重大工程 · “人工智能+”行动</text>
+</g>
+<g id="footer" data-pptx-bounds="1000 686 220 26"><text x="1220" y="700" text-anchor="end" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="13" fill="#5F716C">神农AI · 中药知识图谱系统 · 04</text></g></svg>

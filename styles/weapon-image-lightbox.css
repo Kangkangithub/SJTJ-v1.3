@@ -1,0 +1,342 @@
+/* 武器图片灯箱样式 */
+.weapon-image-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    animation: lightboxFadeIn 0.3s ease-out;
+}
+
+.weapon-image-lightbox.show {
+    display: flex;
+}
+
+@keyframes lightboxFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(5px);
+    }
+}
+
+.lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: lightboxZoomIn 0.3s ease-out;
+}
+
+@keyframes lightboxZoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.lightbox-image {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+}
+
+.lightbox-image:hover {
+    transform: scale(1.02);
+}
+
+.lightbox-info {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px 25px;
+    border-radius: 25px;
+    margin-top: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+}
+
+.lightbox-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.lightbox-title i {
+    color: #3498db;
+}
+
+.lightbox-description {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.lightbox-meta {
+    font-size: 12px;
+    color: #95a5a6;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.lightbox-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -50px;
+    right: -10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.lightbox-close:hover {
+    background: #e74c3c;
+    color: white;
+    transform: scale(1.1);
+}
+
+.lightbox-controls {
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.lightbox-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.lightbox-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+.lightbox-btn.danger {
+    background: #e74c3c;
+}
+
+.lightbox-btn.danger:hover {
+    background: #c0392b;
+}
+
+.lightbox-btn.warning {
+    background: #f39c12;
+}
+
+.lightbox-btn.warning:hover {
+    background: #e67e22;
+}
+
+/* 图片卡片增强样式 */
+.weapon-image-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.weapon-image-card .image-container {
+    position: relative;
+    cursor: pointer;
+}
+
+.weapon-image-card .image-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.weapon-image-card .image-container:hover::after {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.weapon-image-card .image-container:hover::before {
+    content: '\f00e';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    z-index: 2;
+    opacity: 0;
+    animation: zoomIconShow 0.3s ease forwards;
+}
+
+@keyframes zoomIconShow {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* 缩略图增强样式 */
+.weapon-thumbnails .thumbnail-item {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.weapon-thumbnails .thumbnail-item:hover {
+    transform: scale(1.1);
+}
+
+.weapon-thumbnails .thumbnail-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.weapon-thumbnails .thumbnail-item:hover::after {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.weapon-thumbnails .thumbnail-item:hover::before {
+    content: '\f00e';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    z-index: 2;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .lightbox-content {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+    
+    .lightbox-image {
+        max-height: 70vh;
+    }
+    
+    .lightbox-info {
+        padding: 12px 20px;
+        margin-top: 15px;
+    }
+    
+    .lightbox-title {
+        font-size: 16px;
+    }
+    
+    .lightbox-close {
+        top: -40px;
+        right: -5px;
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+    
+    .lightbox-controls {
+        bottom: -50px;
+        padding: 8px 15px;
+    }
+    
+    .lightbox-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+    
+    .lightbox-meta {
+        font-size: 11px;
+        gap: 10px;
+    }
+}
+
+/* 加载动画 */
+.lightbox-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+}
+
+.lightbox-loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

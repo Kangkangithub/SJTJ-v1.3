@@ -1,0 +1,30 @@
+{
+  "selectedLLM": "CUSTOM",
+  "singleMessageEndpoint": {
+    "url": "http://localhost:5000",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "model": "gpt-4o-mini",
+      "messages": [
+        {
+          "role": "user",
+          "content": "$MESSAGE"
+        }
+      ],
+      "temperature": 0.7
+    },
+    "responseTemplate": {
+      "choices": [
+        {
+          "message": {
+            "content": "$RESPONSE"
+          }
+        }
+      ]
+    }
+  },
+  "chatEndpoint": null,
+  "structuredOutputEndpoint": null
+}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>药材智能识别 - 神农AI</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="styles/herb-app.css">
+  <link rel="stylesheet" href="styles/common.css">
+  <link rel="stylesheet" href="styles/herb-recognition.css">
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">跳到主内容</a>
+  <div class="page-shell">
+    <header class="topbar" role="banner">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html">
+          <div class="brand-mark"><img src="assets/herb-ornament.svg" alt="神农AI图标"></div>
+          <div class="brand-copy">
+            <p class="brand-name">神农AI</p>
+            <p class="brand-subtitle">中药药材知识图谱系统</p>
+          </div>
+        </a>
+        <div class="user-entry user-status"><a href="login.html" class="btn btn-primary">登录</a></div>
+      </div>
+      <nav class="nav" aria-label="主导航">
+      <div class="nav-inner">
+        <a class="nav-link" href="index.html"><i class="fa-solid fa-house"></i>首页</a>
+        <a class="nav-link" href="herb-search.html"><i class="fa-solid fa-magnifying-glass"></i>药材查询</a>
+        <a class="nav-link" href="knowledge-graph.html"><i class="fa-solid fa-diagram-project"></i>知识图谱</a>
+        <a class="nav-link" href="qa.html"><i class="fa-solid fa-comments"></i>AI 问答</a>
+        <a class="nav-link" href="formula-library.html"><i class="fa-solid fa-book-medical"></i>方剂库</a>
+        <a class="nav-link" href="recommendation.html"><i class="fa-solid fa-thumbs-up"></i>方剂推荐</a>
+        <a class="nav-link" href="quiz.html"><i class="fa-solid fa-bullseye"></i>知识测评</a>
+        <a class="nav-link active" href="herb-recognition.html"><i class="fa-solid fa-camera"></i>药材识别</a>
+      </div>
+      </nav>
+    </header>
+
+    <div class="container">
+    <main id="mainContent">
+      <section class="intro" aria-labelledby="recognitionTitle">
+        <h1 id="recognitionTitle">药材智能识别</h1>
+        <p>上传药材图片，查看识别结果与相关药材信息。</p>
+      </section>
+
+      <div class="herb-recognition-container">
+        <section class="upload-section" aria-labelledby="uploadTitle">
+          <h2 id="uploadTitle">上传药材素材</h2>
+          <div class="upload-area" id="uploadArea" tabindex="0" role="button" aria-label="选择或拖放药材图片">
+            <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
+            <p>点击或拖放图片到此处</p>
+            <p>支持 JPG、PNG 等常见图片格式</p>
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <img id="imagePreview" alt="上传图片预览" hidden>
+            <video id="videoPreview" controls preload="metadata" playsinline hidden></video>
+          </div>
+          <div class="upload-options">
+            <button id="uploadButton" class="action-button" type="button"><i class="fas fa-upload"></i> 上传图片</button>
+            <button id="videoButton" class="action-button" type="button"><i class="fas fa-video"></i> 上传视频</button>
+            <button id="cameraButton" class="action-button" type="button"><i class="fas fa-camera"></i> 使用摄像头</button>
+            <button id="recognizeButton" class="action-button" type="button" disabled><i class="fas fa-search"></i> 开始识别</button>
+          </div>
+        </section>
+
+        <section class="result-section" aria-labelledby="resultTitle" aria-live="polite">
+          <div class="result-header">
+            <h2 id="resultTitle">识别结果</h2>
+            <div class="result-actions">
+              <button id="viewKnowledgeButton" class="action-button" type="button" hidden><i class="fas fa-project-diagram"></i> 查看知识图谱</button>
+            </div>
+          </div>
+          <div class="loading-indicator" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p id="processingText">处理中...</p>
+          </div>
+          <div class="result-content" id="resultContent">
+            <div class="no-result" id="noResult">
+              <i class="fas fa-search" aria-hidden="true"></i>
+              <p>请先上传药材图片。</p>
+            </div>
+            <div class="herb-info" id="herbInfo" hidden>
+              <div class="result-herb-image no-image" id="herbResultImage"><span>暂无药材图片</span></div>
+              <div class="herb-result-name">
+                <span id="herbNameText">药材名称</span>
+              </div>
+              <div class="herb-result-details">
+                <div class="detail-group"><div class="detail-label">分类</div><div class="detail-value" id="herbCategoryValue">暂无</div></div>
+                <div class="detail-group"><div class="detail-label">产地</div><div class="detail-value" id="herbRegionValue">暂无</div></div>
+                <div class="detail-group"><div class="detail-label">性味</div><div class="detail-value" id="herbPropertyValue">暂无</div></div>
+                <div class="detail-group"><div class="detail-label">归经</div><div class="detail-value" id="herbMeridianValue">暂无</div></div>
+              </div>
+              <div class="herb-result-description" id="herbDescriptionValue">暂无详情。</div>
+              <div class="confidence-section"><div class="confidence-label-row"><div class="detail-label">识别置信度</div><span class="similarity-badge" id="confidenceValue">已识别</span></div><div class="confidence-bar"><div class="confidence-fill" id="confidenceFill"></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="related-herbs" id="relatedHerbs" hidden>
+          <h3>相关药材</h3>
+          <p class="related-note">根据相同分类或产地关联展示。</p>
+          <div class="related-list" id="relatedList"></div>
+        </section>
+      </div>
+    </main>
+
+  </div>
+    <footer class="footer"><div><strong>神农AI</strong><div>中药药材知识图谱系统</div></div></footer>
+  </div>
+
+  <div id="cameraModal" class="camera-modal" hidden>
+    <div class="camera-dialog">
+      <div class="camera-dialog-header">
+        <h3>使用摄像头</h3>
+        <button id="closeCameraModal" type="button" class="action-button action-button-secondary"><i class="fas fa-times"></i></button>
+      </div>
+      <video id="cameraPreview" autoplay></video>
+      <div class="camera-actions">
+        <button id="captureCameraButton" class="action-button" type="button"><i class="fas fa-camera"></i> 拍摄</button>
+        <button id="realtimeRecognitionButton" class="action-button" type="button"><i class="fas fa-bolt"></i> 实时识别</button>
+        <button id="stopRealtimeRecognitionButton" class="action-button action-button-secondary" type="button" hidden><i class="fas fa-stop"></i> 停止识别</button>
+        <button id="confirmCaptureButton" class="action-button" type="button" hidden><i class="fas fa-check"></i> 使用此图片</button>
+      </div>
+      <div id="realtimeResultsOverlay" hidden></div>
+      <canvas id="captureCanvas" hidden></canvas>
+      <canvas id="realtimeCanvas" hidden></canvas>
+    </div>
+  </div>
+
+  <script src="scripts/auth.js"></script>
+  <script src="scripts/herb-recognition.js"></script>
+</body>
+</html>

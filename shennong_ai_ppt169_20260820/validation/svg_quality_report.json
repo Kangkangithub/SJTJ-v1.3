@@ -1,0 +1,532 @@
+{
+  "schema": "ppt-master.svg-quality-report.v1",
+  "stage": "final",
+  "target": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820",
+  "source_fingerprint": {
+    "algorithm": "sha256",
+    "digest": "5e4def5e91985eea1379ff604e128e3693b573a63af86a3752a8def738d52e59",
+    "file_count": 21,
+    "files": [
+      {
+        "file": "slide_01.svg",
+        "sha256": "53ffb6a230e574a825871140c58addb7752075850a43b44ea89e6f2a9ceb5253"
+      },
+      {
+        "file": "slide_02.svg",
+        "sha256": "3599c432e2e46ae2ce6ffbd26d37069df27521addc657605089e4157ca80350e"
+      },
+      {
+        "file": "slide_03.svg",
+        "sha256": "d0d0a448f845b6521d742ab9081a4247f505478757ad0bcaaabaf41f6d8149ce"
+      },
+      {
+        "file": "slide_04.svg",
+        "sha256": "e062ab18f2bf421587686a22fda62e58702432453f06d133ad78dc07f60f3daf"
+      },
+      {
+        "file": "slide_05.svg",
+        "sha256": "9ac355a0e21123d41870f4d9957bf4f98c99e1cc1bda0f2d7a8473cd18d46111"
+      },
+      {
+        "file": "slide_06.svg",
+        "sha256": "0d3761eced0c75d96c5f117012e31ccf040367882c9e4e108e44b4fcdb3cc9fe"
+      },
+      {
+        "file": "slide_07.svg",
+        "sha256": "765454e56ae85b38d7df93ad11c850176ba520d770b0d6ec4dfb2b32a704795b"
+      },
+      {
+        "file": "slide_08.svg",
+        "sha256": "74893f073b594001acf2e41b2dfcb5700f3cfbf885e89ce8d7fa652897fed5e9"
+      },
+      {
+        "file": "slide_09.svg",
+        "sha256": "dad928804ac76274836279b02b4d66d35c9a66e3aa6a662a95f5fdce5452910e"
+      },
+      {
+        "file": "slide_10.svg",
+        "sha256": "5b355ebeda9eddaf8573f0ad89fa87fb522a37154185f83f98cd564bad4dbb45"
+      },
+      {
+        "file": "slide_11.svg",
+        "sha256": "737704dd9c70bfafeb7961a80ab0966cc97a22491ab1585cbf437557b8aef3f2"
+      },
+      {
+        "file": "slide_12.svg",
+        "sha256": "d4e06a6dfa57ebe3997eb15ab9fdee87c251e54c5655962006e4dd5584dee959"
+      },
+      {
+        "file": "slide_13.svg",
+        "sha256": "401c0b0c22f0853b34306140a316749a4aa3c765f1788fd411b02658dc5201c6"
+      },
+      {
+        "file": "slide_14.svg",
+        "sha256": "afdcd56629f12349e67105cf4f1fdfa8d9a3de7b38119436d6f804f44884807c"
+      },
+      {
+        "file": "slide_15.svg",
+        "sha256": "ed331199ee330dee5db979d12c0bf712bd40ebcba9c25e44417c1af0bb907ac0"
+      },
+      {
+        "file": "slide_16.svg",
+        "sha256": "4690113e7a36f96bdde8677e4c9d73c317e6c41e4ad1dc80947fa9fef9cd3181"
+      },
+      {
+        "file": "slide_17.svg",
+        "sha256": "71bf6b9545fbdd47dc3e045264428e5770dd5331432b1b366b9c9fb7f408e215"
+      },
+      {
+        "file": "slide_18.svg",
+        "sha256": "96d269bb2ab3f08a93b0aa2a20fe47077ad25e9ce794ca6ea1c12903f4239dc0"
+      },
+      {
+        "file": "slide_19.svg",
+        "sha256": "af57fe53a45613dce78df3dae617f5d645e4fdf353d130b8179d2b8f6bf5b46e"
+      },
+      {
+        "file": "slide_20.svg",
+        "sha256": "ff3dbe2b33072ffc0b104088c508dbf1d65eaa5416e2502ff82870ef9e614400"
+      },
+      {
+        "file": "slide_21.svg",
+        "sha256": "ff7284b5d05b9253cad468c0f61c35a96379e020419ea4db0871f4fa6168d34e"
+      }
+    ]
+  },
+  "summary": {
+    "total": 21,
+    "passed": 15,
+    "warnings": 6,
+    "errors": 0
+  },
+  "issue_types": {},
+  "categories": {
+    "blocking": {
+      "count": 0,
+      "issues": []
+    },
+    "introduced": {
+      "count": 6,
+      "issues": [
+        {
+          "file": "slide_04.svg",
+          "message": "Detected 3 paragraph-like line run(s) split across sibling <text> elements (<g id=\"pain-1\"> x=84.0, y=250.0..306.0, 3 lines; <g id=\"pain-2\"> x=479.0, y=250.0..334.0, 4 lines; <g id=\"pain-3\"> x=874.0, y=250.0..334.0, 4 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "slide_05.svg",
+          "message": "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"capabilities\"> x=76.0, y=330.0..354.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "slide_08.svg",
+          "message": "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"db-panel\"> x=80.0, y=496.0..520.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "slide_10.svg",
+          "message": "Detected 4 paragraph-like line run(s) split across sibling <text> elements (<g id=\"vec-problem\"> x=90.0, y=244.0..274.0, 2 lines; <g id=\"vec-problem\"> x=90.0, y=318.0..346.0, 2 lines; <g id=\"vec-solution\"> x=690.0, y=244.0..274.0, 2 lines; +1 more). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "slide_11.svg",
+          "message": "Detected 3 paragraph-like line run(s) split across sibling <text> elements (<g id=\"mm-1\"> x=84.0, y=250.0..340.0, 4 lines; <g id=\"mm-2\"> x=479.0, y=250.0..340.0, 4 lines; <g id=\"mm-3\"> x=874.0, y=250.0..310.0, 3 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "slide_19.svg",
+          "message": "Detected 6 paragraph-like line run(s) split across sibling <text> elements (<g id=\"result-1\"> x=90.0, y=238.0..268.0, 2 lines; <g id=\"result-2\"> x=485.0, y=238.0..268.0, 2 lines; <g id=\"result-3\"> x=880.0, y=238.0..268.0, 2 lines; +3 more). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        }
+      ]
+    },
+    "inherited": {
+      "count": 0,
+      "issues": []
+    },
+    "source-import": {
+      "count": 0,
+      "summary": {
+        "warning_count": 0,
+        "by_code": {}
+      }
+    }
+  },
+  "drift": {
+    "colors": {},
+    "fonts": {},
+    "sizes": {}
+  },
+  "project_issues": {
+    "template": [],
+    "animation": [],
+    "illustration": [],
+    "communication_trace": [],
+    "pptx_structure": []
+  },
+  "files": [
+    {
+      "file": "slide_01.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_01.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 7,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "53ffb6a230e574a825871140c58addb7752075850a43b44ea89e6f2a9ceb5253"
+    },
+    {
+      "file": "slide_02.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_02.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 13,
+        "tspan_elements": 1
+      },
+      "passed": true,
+      "source_sha256": "3599c432e2e46ae2ce6ffbd26d37069df27521addc657605089e4157ca80350e"
+    },
+    {
+      "file": "slide_03.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_03.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 3,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "d0d0a448f845b6521d742ab9081a4247f505478757ad0bcaaabaf41f6d8149ce"
+    },
+    {
+      "file": "slide_04.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_04.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Detected 3 paragraph-like line run(s) split across sibling <text> elements (<g id=\"pain-1\"> x=84.0, y=250.0..306.0, 3 lines; <g id=\"pain-2\"> x=479.0, y=250.0..334.0, 4 lines; <g id=\"pain-3\"> x=874.0, y=250.0..334.0, 4 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 21,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "e062ab18f2bf421587686a22fda62e58702432453f06d133ad78dc07f60f3daf"
+    },
+    {
+      "file": "slide_05.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_05.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"capabilities\"> x=76.0, y=330.0..354.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 40,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "9ac355a0e21123d41870f4d9957bf4f98c99e1cc1bda0f2d7a8473cd18d46111"
+    },
+    {
+      "file": "slide_06.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_06.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 3,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "0d3761eced0c75d96c5f117012e31ccf040367882c9e4e108e44b4fcdb3cc9fe"
+    },
+    {
+      "file": "slide_07.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_07.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 14,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "765454e56ae85b38d7df93ad11c850176ba520d770b0d6ec4dfb2b32a704795b"
+    },
+    {
+      "file": "slide_08.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_08.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"db-panel\"> x=80.0, y=496.0..520.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 48,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "74893f073b594001acf2e41b2dfcb5700f3cfbf885e89ce8d7fa652897fed5e9"
+    },
+    {
+      "file": "slide_09.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_09.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 28,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "dad928804ac76274836279b02b4d66d35c9a66e3aa6a662a95f5fdce5452910e"
+    },
+    {
+      "file": "slide_10.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_10.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Detected 4 paragraph-like line run(s) split across sibling <text> elements (<g id=\"vec-problem\"> x=90.0, y=244.0..274.0, 2 lines; <g id=\"vec-problem\"> x=90.0, y=318.0..346.0, 2 lines; <g id=\"vec-solution\"> x=690.0, y=244.0..274.0, 2 lines; +1 more). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 16,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "5b355ebeda9eddaf8573f0ad89fa87fb522a37154185f83f98cd564bad4dbb45"
+    },
+    {
+      "file": "slide_11.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_11.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Detected 3 paragraph-like line run(s) split across sibling <text> elements (<g id=\"mm-1\"> x=84.0, y=250.0..340.0, 4 lines; <g id=\"mm-2\"> x=479.0, y=250.0..340.0, 4 lines; <g id=\"mm-3\"> x=874.0, y=250.0..310.0, 3 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 23,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "737704dd9c70bfafeb7961a80ab0966cc97a22491ab1585cbf437557b8aef3f2"
+    },
+    {
+      "file": "slide_12.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_12.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 3,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "d4e06a6dfa57ebe3997eb15ab9fdee87c251e54c5655962006e4dd5584dee959"
+    },
+    {
+      "file": "slide_13.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_13.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 6,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "401c0b0c22f0853b34306140a316749a4aa3c765f1788fd411b02658dc5201c6"
+    },
+    {
+      "file": "slide_14.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_14.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 6,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "afdcd56629f12349e67105cf4f1fdfa8d9a3de7b38119436d6f804f44884807c"
+    },
+    {
+      "file": "slide_15.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_15.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 5,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "ed331199ee330dee5db979d12c0bf712bd40ebcba9c25e44417c1af0bb907ac0"
+    },
+    {
+      "file": "slide_16.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_16.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 5,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "4690113e7a36f96bdde8677e4c9d73c317e6c41e4ad1dc80947fa9fef9cd3181"
+    },
+    {
+      "file": "slide_17.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_17.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 6,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "71bf6b9545fbdd47dc3e045264428e5770dd5331432b1b366b9c9fb7f408e215"
+    },
+    {
+      "file": "slide_18.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_18.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 3,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "96d269bb2ab3f08a93b0aa2a20fe47077ad25e9ce794ca6ea1c12903f4239dc0"
+    },
+    {
+      "file": "slide_19.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_19.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Detected 6 paragraph-like line run(s) split across sibling <text> elements (<g id=\"result-1\"> x=90.0, y=238.0..268.0, 2 lines; <g id=\"result-2\"> x=485.0, y=238.0..268.0, 2 lines; <g id=\"result-3\"> x=880.0, y=238.0..268.0, 2 lines; +3 more). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 27,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "af57fe53a45613dce78df3dae617f5d645e4fdf353d130b8179d2b8f6bf5b46e"
+    },
+    {
+      "file": "slide_20.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_20.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 13,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "ff3dbe2b33072ffc0b104088c508dbf1d65eaa5416e2502ff82870ef9e614400"
+    },
+    {
+      "file": "slide_21.svg",
+      "path": "D:\\K5\\Herb-v1.3\\shennong_ai_ppt169_20260820\\svg_output\\slide_21.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "fonts": [
+          "Microsoft YaHei,PingFang SC,sans-serif"
+        ],
+        "text_elements": 3,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "ff7284b5d05b9253cad468c0f61c35a96379e020419ea4db0871f4fa6168d34e"
+    }
+  ]
+}

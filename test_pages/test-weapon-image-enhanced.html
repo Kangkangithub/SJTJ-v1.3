@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武器图片管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .weapon-selector {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .weapon-selector h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .weapon-input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .weapon-input-group input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .weapon-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .weapon-info {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #28a745;
+        }
+
+        .weapon-info h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .upload-section {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ffc107;
+        }
+
+        .upload-section h3 {
+            color: #856404;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-content {
+            pointer-events: none;
+        }
+
+        .file-input-content i {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .description-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .description-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid #f1f3f4;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .image-container:hover img {
+            transform: scale(1.05);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-container:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .image-info {
+            padding: 20px;
+        }
+
+        .image-info h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .image-meta {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .image-description {
+            color: #495057;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .image-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .loading i {
+            font-size: 2em;
+            margin-bottom: 15px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .modal-header h3 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .weapon-input-group {
+                flex-direction: column;
+            }
+
+            .weapon-input-group input {
+                min-width: 100%;
+            }
+
+            .images-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .image-controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-images"></i> 武器图片管理系统</h1>
+            <p>上传、编辑和管理武器图片资料</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 武器选择器 -->
+            <div class="weapon-selector">
+                <h3><i class="fas fa-crosshairs"></i> 选择武器</h3>
+                <div class="weapon-input-group">
+                    <input type="number" id="weaponId" placeholder="请输入武器ID (例如: 1, 2, 3...)" min="1">
+                    <button class="btn btn-primary" onclick="loadWeaponImages()">
+                        <i class="fas fa-search"></i> 查看图片
+                    </button>
+                </div>
+            </div>
+
+            <!-- 武器信息显示 -->
+            <div id="weaponInfo" class="weapon-info" style="display: none;">
+                <h3 id="weaponName"></h3>
+                <p>武器ID: <span id="weaponIdDisplay"></span></p>
+            </div>
+
+            <!-- 图片上传区域 -->
+            <div id="uploadSection" class="upload-section" style="display: none;">
+                <h3><i class="fas fa-cloud-upload-alt"></i> 上传新图片</h3>
+                <div class="upload-form">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="imageFile" accept="image/*">
+                        <div class="file-input-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div>点击选择图片文件</div>
+                            <small>支持 JPG, PNG, GIF, WebP 格式，最大 5MB</small>
+                        </div>
+                    </div>
+                    <textarea id="imageDescription" class="description-input" placeholder="请输入图片描述（可选）"></textarea>
+                    <button class="btn btn-success" onclick="uploadImage()">
+                        <i class="fas fa-upload"></i> 上传图片
+                    </button>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div id="loading" class="loading" style="display: none;">
+                <i class="fas fa-spinner"></i>
+                <div>正在加载图片...</div>
+            </div>
+
+            <!-- 错误信息 -->
+            <div id="errorMessage" class="error" style="display: none;"></div>
+
+            <!-- 成功信息 -->
+            <div id="successMessage" class="success" style="display: none;"></div>
+
+            <!-- 图片网格 -->
+            <div id="imagesGrid" class="images-grid"></div>
+        </div>
+    </div>
+
+    <!-- 编辑图片模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> 编辑图片</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="editDescription">图片描述:</label>
+                <textarea id="editDescription" rows="4" placeholder="请输入图片描述"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="saveImageEdit()">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+                <button class="btn" onclick="closeEditModal()" style="background: #6c757d; color: white;">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWeaponId = null;
+        let currentEditImageId = null;
+
+        // 显示消息
+        function showMessage(message, type = 'success') {
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            messageElement.style.display = 'block';
+            
+            // 隐藏其他类型的消息
+            const otherType = type === 'success' ? 'error' : 'success';
+            document.getElementById(otherType + 'Message').style.display = 'none';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // 显示加载状态
+        function showLoading(show = true) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // 加载武器图片
+        async function loadWeaponImages() {
+            const weaponId = document.getElementById('weaponId').value;
+            
+            if (!weaponId) {
+                showMessage('请输入武器ID', 'error');
+                return;
+            }
+
+            currentWeaponId = weaponId;
+            showLoading(true);
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/weapon-images/${weaponId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayWeaponInfo(data.data);
+                    displayImages(data.data.images);
+                    document.getElementById('uploadSection').style.display = 'block';
+                } else {
+                    showMessage(data.message || '获取武器图片失败', 'error');
+                }
+            } catch (error) {
+                console.error('获取武器图片失败:', error);
+                showMessage('网络错误，请检查服务器连接', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 显示武器信息
+        function displayWeaponInfo(weaponData) {
+            document.getElementById('weaponName').textContent = weaponData.weaponName;
+            document.getElementById('weaponIdDisplay').textContent = weaponData.weaponId;
+            document.getElementById('weaponInfo').style.display = 'block';
+        }
+
+        // 显示图片
+        function displayImages(images) {
+            const grid = document.getElementById('imagesGrid');
+            
+            if (!images || images.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6c757d;">
+                        <i class="fas fa-image" style="font-size: 3em; margin-bottom: 15px; display: block;"></i>
+                        <h3>暂无图片</h3>
+                        <p>请上传第一张图片</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = images.map(image => `
+                <div class="image-card">
+                    <div class="image-container">
+                        <img src="http://localhost:3001${image.path}" alt="${image.description || '武器图片'}" 
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xMjUgNzVIMTc1VjEyNUgxMjVWNzVaIiBmaWxsPSIjREREIi8+CjxwYXRoIGQ9Ik0xNDAgOTBIMTYwVjExMEgxNDBWOTBaIiBmaWxsPSIjQkJCIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiPuWbvueJh+aXoOazleWKoOi9vTwvdGV4dD4KPC9zdmc+'">
+                        <div class="image-overlay">
+                            <div class="image-actions">
+                                <button class="btn btn-warning" onclick="editImage(${image.id}, '${image.description || ''}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteImage(${image.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="image-info">
+                        <h4>${image.originalName || '未命名图片'}</h4>
+                        <div class="image-meta">
+                            <i class="fas fa-calendar"></i> ${new Date(image.uploadedAt).toLocaleString('zh-CN')}
+                            <br>
+                            <i class="fas fa-file"></i> ${formatFileSize(image.size)}
+                        </div>
+                        <div class="image-description">
+                            ${image.description || '暂无描述'}
+                        </div>
+                        <div class="image-controls">
+                            <button class="btn btn-warning" onclick="editImage(${image.id}, '${image.description || ''}')">
+                                <i class="fas fa-edit"></i> 编辑
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteImage(${image.id})">
+                                <i class="fas fa-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 上传图片
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageFile');
+            const description = document.getElementById('imageDescription').value;
+
+            if (!fileInput.files[0]) {
+                showMessage('请选择要上传的图片', 'error');
+                return;
+            }
+
+            if (!currentWeaponId) {
+                showMessage('请先选择武器', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            formData.append('description', description);
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/weapon-images/${currentWeaponId}`, {
+                    method: 'POST',
+                    headers: {
+                        'x-admin-user': 'true' // 使用简化的管理员标识
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('图片上传成功！');
+                    // 清空表单
+                    fileInput.value = '';
+                    document.getElementById('imageDescription').value = '';
+                    // 重新加载图片
+                    loadWeaponImages();
+                } else {
+                    showMessage(data.message || '上传失败', 'error');
+                }
+            } catch (error) {
+                console.error('上传图片失败:', error);
+                showMessage('网络错误，请检查服务器连接', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 编辑图片
+        function editImage(imageId, currentDescription) {
+            currentEditImageId = imageId;
+            document.getElementById('editDescription').value = currentDescription;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // 关闭编辑模态框
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditImageId = null;
+        }
+
+        // 保存图片编辑
+        async function saveImageEdit() {
+            if (!currentEditImageId || !currentWeaponId) {
+                showMessage('编辑信息错误', 'error');
+                return;
+            }
+
+            const description = document.getElementById('editDescription').value;
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/weapon-images/${currentWeaponId}/${currentEditImageId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-user': 'true' // 使用简化的管理员标识
+                    },
+                    body: JSON.stringify({ description })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('图片信息更新成功！');
+                    closeEditModal();
+                    loadWeaponImages();
+                } else {
+                    showMessage(data.message || '更新失败', 'error');
+                }
+            } catch (error) {
+                console.error('更新图片信息失败:', error);
+                showMessage('网络错误，请检查服务器连接', 'error');
+            }
+        }
+
+        // 删除图片
+        async function deleteImage(imageId) {
+            if (!confirm('确定要删除这张图片吗？此操作不可恢复。')) {
+                return;
+            }
+
+            if (!currentWeaponId) {
+                showMessage('武器信息错误', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/weapon-images/${currentWeaponId}/${imageId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'x-admin-user': 'true' // 使用简化的管理员标识
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('图片删除成功！');
+                    loadWeaponImages();
+                } else {
+                    showMessage(data.message || '删除失败', 'error');
+                }
+            } catch (error) {
+                console.error('删除图片失败:', error);
+                showMessage('网络错误，请检查服务器连接', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+
+        // 文件选择提示
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const wrapper = document.querySelector('.file-input-wrapper');
+            const content = document.querySelector('.file-input-content');
+            
+            if (file) {
+                content.innerHTML = `
+                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                    <div>已选择: ${file.name}</div>
+                    <small>${formatFileSize(file.size)}</small>
+                `;
+                wrapper.style.borderColor = '#28a745';
+                wrapper.style.background = '#f8fff8';
+            } else {
+                content.innerHTML = `
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <div>点击选择图片文件</div>
+                    <small>支持 JPG, PNG, GIF, WebP 格式，最大 5MB</small>
+                `;
+                wrapper.style.borderColor = '#ddd';
+                wrapper.style.background = 'white';
+            }
+        });
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以在这里添加初始化代码
+            console.log('武器图片管理系统已加载');
+        });
+    </script>
+</body>
+</html>

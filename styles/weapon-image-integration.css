@@ -1,0 +1,432 @@
+/* 武器图片管理集成样式 */
+.weapon-image-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.image-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.image-section-header h4 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.image-section-header h4 i {
+    margin-right: 8px;
+    color: #667eea;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-primary.btn-small {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary.btn-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-success.btn-small {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    color: white;
+}
+
+.btn-success.btn-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(86, 171, 47, 0.3);
+}
+
+.btn-secondary.btn-small {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary.btn-small:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+.btn-danger.btn-small {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    color: white;
+}
+
+.btn-danger.btn-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(255, 65, 108, 0.3);
+}
+
+/* 图片上传区域 */
+.image-upload-area {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.file-input-wrapper {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    background: white;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.file-input-wrapper:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.file-input-wrapper input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-input-content {
+    pointer-events: none;
+}
+
+.file-input-content i {
+    font-size: 2em;
+    color: #667eea;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.file-input-content div {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.file-input-content small {
+    color: #6c757d;
+    font-size: 0.85em;
+}
+
+.description-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.description-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.upload-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* 图片网格 */
+.weapon-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.loading-images {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+}
+
+.loading-images i {
+    font-size: 1.5em;
+    margin-right: 8px;
+}
+
+.weapon-image-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.weapon-image-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.image-container:hover img {
+    transform: scale(1.05);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-container:hover .image-overlay {
+    opacity: 1;
+}
+
+.image-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.image-info {
+    padding: 12px;
+}
+
+.image-info h5 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.image-meta {
+    color: #6c757d;
+    font-size: 0.8em;
+    margin-bottom: 8px;
+}
+
+.image-description {
+    color: #495057;
+    font-size: 0.85em;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.image-controls {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+/* 状态消息 */
+.image-message {
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.image-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.image-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.image-message.loading {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* 空状态 */
+.no-images {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+    grid-column: 1 / -1;
+}
+
+.no-images i {
+    font-size: 3em;
+    margin-bottom: 15px;
+    display: block;
+    color: #dee2e6;
+}
+
+.no-images h5 {
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .image-section-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .weapon-images-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .upload-actions {
+        justify-content: stretch;
+    }
+    
+    .upload-actions .btn-small {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .image-controls {
+        justify-content: stretch;
+    }
+    
+    .image-controls .btn-small {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+/* 编辑模态框样式 */
+.edit-image-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.edit-image-modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.edit-image-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.edit-image-modal-header h4 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.edit-image-modal-close {
+    color: #aaa;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.edit-image-modal-close:hover {
+    color: #000;
+}
+
+.edit-image-form-group {
+    margin-bottom: 15px;
+}
+
+.edit-image-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.edit-image-form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.edit-image-form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.edit-image-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}

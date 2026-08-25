@@ -1,0 +1,40 @@
+{
+  "_description": "十八反十九畏配伍禁忌规则库",
+  "_source": "《神农本草经》《本草纲目》等经典",
+  "_version": "1.0",
+  "rules": [
+    { "id": 1, "herb_a": "甘草", "herb_b": "甘遂", "relation": "相反", "category": "十八反", "source": "本草明言十八反，半蒌贝蔹及攻乌，藻戟遂芫俱战草，诸参辛芍叛藜芦" },
+    { "id": 2, "herb_a": "甘草", "herb_b": "大戟", "relation": "相反", "category": "十八反" },
+    { "id": 3, "herb_a": "甘草", "herb_b": "芫花", "relation": "相反", "category": "十八反" },
+    { "id": 4, "herb_a": "甘草", "herb_b": "海藻", "relation": "相反", "category": "十八反" },
+    { "id": 5, "herb_a": "乌头", "herb_b": "半夏", "relation": "相反", "category": "十八反" },
+    { "id": 6, "herb_a": "乌头", "herb_b": "瓜蒌", "relation": "相反", "category": "十八反" },
+    { "id": 7, "herb_a": "乌头", "herb_b": "川贝母", "relation": "相反", "category": "十八反" },
+    { "id": 8, "herb_a": "乌头", "herb_b": "浙贝母", "relation": "相反", "category": "十八反" },
+    { "id": 9, "herb_a": "乌头", "herb_b": "白蔹", "relation": "相反", "category": "十八反" },
+    { "id": 10, "herb_a": "乌头", "herb_b": "白及", "relation": "相反", "category": "十八反" },
+    { "id": 11, "herb_a": "藜芦", "herb_b": "人参", "relation": "相反", "category": "十八反" },
+    { "id": 12, "herb_a": "藜芦", "herb_b": "沙参", "relation": "相反", "category": "十八反" },
+    { "id": 13, "herb_a": "藜芦", "herb_b": "丹参", "relation": "相反", "category": "十八反" },
+    { "id": 14, "herb_a": "藜芦", "herb_b": "玄参", "relation": "相反", "category": "十八反" },
+    { "id": 15, "herb_a": "藜芦", "herb_b": "苦参", "relation": "相反", "category": "十八反" },
+    { "id": 16, "herb_a": "藜芦", "herb_b": "细辛", "relation": "相反", "category": "十八反" },
+    { "id": 17, "herb_a": "藜芦", "herb_b": "芍药", "relation": "相反", "category": "十八反" },
+    { "id": 18, "herb_a": "硫磺", "herb_b": "朴硝", "relation": "相畏", "category": "十九畏", "source": "硫磺原是火中精，朴硝一见便相争" },
+    { "id": 19, "herb_a": "水银", "herb_b": "砒霜", "relation": "相畏", "category": "十九畏" },
+    { "id": 20, "herb_a": "狼毒", "herb_b": "密陀僧", "relation": "相畏", "category": "十九畏" },
+    { "id": 21, "herb_a": "巴豆", "herb_b": "牵牛子", "relation": "相畏", "category": "十九畏" },
+    { "id": 22, "herb_a": "丁香", "herb_b": "郁金", "relation": "相畏", "category": "十九畏" },
+    { "id": 23, "herb_a": "牙硝", "herb_b": "三棱", "relation": "相畏", "category": "十九畏" },
+    { "id": 24, "herb_a": "川乌", "herb_b": "犀角", "relation": "相畏", "category": "十九畏" },
+    { "id": 25, "herb_a": "草乌", "herb_b": "犀角", "relation": "相畏", "category": "十九畏" },
+    { "id": 26, "herb_a": "人参", "herb_b": "五灵脂", "relation": "相畏", "category": "十九畏" },
+    { "id": 27, "herb_a": "官桂", "herb_b": "赤石脂", "relation": "相畏", "category": "十九畏" }
+  ],
+  "aliases": {
+    "乌头": ["川乌", "草乌", "附子"],
+    "芍药": ["白芍", "赤芍"],
+    "瓜蒌": ["瓜蒌皮", "瓜蒌仁", "天花粉"],
+    "细辛": ["北细辛", "华细辛"]
+  }
+}

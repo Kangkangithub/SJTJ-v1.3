@@ -1,0 +1,104 @@
+.auth-header {
+  justify-content: center;
+  padding: 24px 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.auth-brand {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.auth-brand:hover {
+  color: var(--muted);
+}
+
+.auth-header .logo {
+  color: var(--primary-dark);
+  font-size: 28px;
+}
+
+.auth-card {
+  width: min(100%, 420px);
+  margin: 26px auto 0;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.auth-card h1 {
+  margin-bottom: 22px;
+  text-align: center;
+  font-size: 28px;
+}
+
+.auth-note {
+  margin: -10px 0 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.auth-message {
+  min-height: 22px;
+  margin: 2px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.auth-message.error {
+  color: var(--red);
+}
+
+.auth-message.success {
+  color: var(--primary-dark);
+}
+
+.form-group {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.remember-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remember-group input[type="checkbox"] {
+  width: 16px;
+  min-height: 16px;
+}
+
+.auth-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.auth-links {
+  margin-top: 18px;
+  padding-top: 18px;
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+
+.auth-links p {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 18px;
+  }
+}

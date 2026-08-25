@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-page-role="ending">
+<defs><linearGradient id="ge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B3D35"/><stop offset="1" stop-color="#0F5E53"/></linearGradient></defs>
+<rect id="bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="url(#ge)"/>
+<g id="end-title" data-pptx-bounds="0 240 1280 180">
+  <text x="640" y="340" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="72" font-weight="bold" fill="#FFFFFF">谢 谢 聆 听</text>
+  <text x="640" y="400" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="28" fill="#D8A642">请各位老师不吝指正</text>
+</g>
+<g id="end-team" data-pptx-bounds="0 500 1280 80">
+  <text x="640" y="540" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="20" fill="#DCE5E0">神农AI · 赫尔本队 · 南京理工大学紫金学院</text>
+</g>
+</svg>

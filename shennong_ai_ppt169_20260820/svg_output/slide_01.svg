@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-page-role="cover">
+<defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B3D35"/><stop offset="1" stop-color="#0F5E53"/></linearGradient></defs>
+<rect id="bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="url(#g1)"/>
+<g id="ornament" data-pptx-bounds="0 0 1280 720">
+  <circle cx="1080" cy="120" r="220" fill="#14806F" opacity="0.25"/>
+  <circle cx="1120" cy="180" r="140" fill="#14806F" opacity="0.2"/>
+  <circle cx="150" cy="620" r="180" fill="#14806F" opacity="0.18"/>
+</g>
+<g id="title" data-pptx-bounds="120 160 1040 250">
+  <text x="640" y="270" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="88" font-weight="bold" fill="#FFFFFF">神农AI</text>
+  <text x="640" y="340" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="40" font-weight="bold" fill="#D8A642">中药知识图谱系统</text>
+  <text x="640" y="392" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="20" fill="#DCE5E0">基于 Neo4j 知识图谱与 GraphRAG 的中医药智能问答平台</text>
+</g>
+<g id="comp" data-pptx-bounds="300 460 680 60">
+  <text x="640" y="480" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="22" fill="#F3F6F4">中国国际大学生创新大赛 · 新医科类作品</text>
+</g>
+<g id="team" data-pptx-bounds="160 520 960 150">
+  <rect x="230" y="540" width="820" height="130" rx="16" fill="#0B3D35" opacity="0.65"/>
+  <text x="640" y="578" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="22" fill="#FFFFFF">团队：赫尔本队　|　负责人：沈俊康</text>
+  <text x="640" y="616" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="20" fill="#DCE5E0">指导教师：任凯、王宇　|　南京理工大学紫金学院</text>
+  <text x="640" y="650" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#9FB8AF">二〇二六年八月</text>
+</g>
+</svg>

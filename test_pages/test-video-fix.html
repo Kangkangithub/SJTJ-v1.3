@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        video {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>武器视频功能测试</h1>
+    
+    <div class="test-section">
+        <h3>1. 测试视频列表API</h3>
+        <button onclick="testVideoList()">测试获取视频列表</button>
+        <div id="listResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. 测试视频文件访问</h3>
+        <button onclick="testVideoFile()">测试视频文件访问</button>
+        <div id="fileResult" class="test-result"></div>
+        <video id="testVideo" controls style="display: none;">
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+
+    <div class="test-section">
+        <h3>3. 测试视频管理界面</h3>
+        <button onclick="testVideoManager()">打开视频管理界面</button>
+        <div id="managerResult" class="test-result"></div>
+    </div>
+
+    <script src="scripts/weapon-video-integration.js"></script>
+    <script>
+        // 测试视频列表API
+        async function testVideoList() {
+            const resultDiv = document.getElementById('listResult');
+            resultDiv.className = 'test-result loading';
+            resultDiv.textContent = '正在测试视频列表API...';
+
+            try {
+                const response = await fetch('http://localhost:3001/api/weapon-videos/weapon/220', {
+                    headers: {
+                        'x-admin-user': 'admin'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 视频列表API正常</strong><br>
+                        找到 ${data.data.length} 个视频<br>
+                        <details>
+                            <summary>详细信息</summary>
+                            <pre>${JSON.stringify(data.data.slice(0, 2), null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.textContent = `❌ API返回错误: ${data.message || '未知错误'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 网络错误: ${error.message}`;
+            }
+        }
+
+        // 测试视频文件访问
+        async function testVideoFile() {
+            const resultDiv = document.getElementById('fileResult');
+            const video = document.getElementById('testVideo');
+            
+            resultDiv.className = 'test-result loading';
+            resultDiv.textContent = '正在测试视频文件访问...';
+
+            try {
+                // 先获取视频列表
+                const listResponse = await fetch('http://localhost:3001/api/weapon-videos/weapon/220', {
+                    headers: {
+                        'x-admin-user': 'admin'
+                    }
+                });
+
+                const listData = await listResponse.json();
+                
+                if (!listData.success || !listData.data || listData.data.length === 0) {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.textContent = '❌ 没有找到视频文件进行测试';
+                    return;
+                }
+
+                const firstVideo = listData.data[0];
+                const videoUrl = `http://localhost:3001/api/weapon-videos/file/${firstVideo.filename}`;
+
+                // 测试视频文件访问
+                const fileResponse = await fetch(videoUrl, {
+                    method: 'HEAD',
+                    headers: {
+                        'x-admin-user': 'admin'
+                    }
+                });
+
+                if (fileResponse.ok) {
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 视频文件访问正常</strong><br>
+                        文件: ${firstVideo.filename}<br>
+                        状态码: ${fileResponse.status}<br>
+                        内容类型: ${fileResponse.headers.get('content-type')}<br>
+                        文件大小: ${fileResponse.headers.get('content-length')} 字节
+                    `;
+
+                    // 显示视频播放器
+                    video.src = videoUrl;
+                    video.style.display = 'block';
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.textContent = `❌ 视频文件访问失败: ${fileResponse.status} ${fileResponse.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 测试失败: ${error.message}`;
+            }
+        }
+
+        // 测试视频管理界面
+        function testVideoManager() {
+            const resultDiv = document.getElementById('managerResult');
+            
+            try {
+                if (window.weaponVideoManager) {
+                    window.weaponVideoManager.showWeaponVideos(220, '测试武器');
+                    resultDiv.className = 'test-result success';
+                    resultDiv.textContent = '✅ 视频管理界面已打开';
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.textContent = '❌ 视频管理器未加载';
+                }
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 打开管理界面失败: ${error.message}`;
+            }
+        }
+
+        // 页面加载完成后自动运行基础测试
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testVideoList();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

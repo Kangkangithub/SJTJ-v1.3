@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武器图片上传测试 - 修复版</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>武器图片上传测试 - 修复版</h1>
+        
+        <div class="form-group">
+            <label for="weaponId">武器ID:</label>
+            <input type="number" id="weaponId" value="364" placeholder="输入武器ID">
+        </div>
+
+        <div class="form-group">
+            <label for="imageFile">选择图片:</label>
+            <input type="file" id="imageFile" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label for="description">图片描述:</label>
+            <textarea id="description" placeholder="输入图片描述（可选）"></textarea>
+        </div>
+
+        <button onclick="uploadImage()">上传图片</button>
+        <button onclick="loadImages()">查看图片</button>
+
+        <div id="message"></div>
+        <div id="imagesList"></div>
+    </div>
+
+    <script>
+        function showMessage(text, type = 'success') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        async function uploadImage() {
+            const weaponId = document.getElementById('weaponId').value;
+            const fileInput = document.getElementById('imageFile');
+            const description = document.getElementById('description').value;
+
+            if (!weaponId) {
+                showMessage('请输入武器ID', 'error');
+                return;
+            }
+
+            if (!fileInput.files[0]) {
+                showMessage('请选择图片文件', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            formData.append('description', description);
+
+            showMessage('正在上传图片...', 'loading');
+
+            try {
+                console.log('开始上传图片，武器ID:', weaponId);
+                console.log('使用认证头部: x-admin-user: true');
+                
+                const response = await fetch(`http://localhost:3001/api/weapon-images/${weaponId}`, {
+                    method: 'POST',
+                    headers: {
+                        'x-admin-user': 'true'  // 使用简化管理员认证
+                    },
+                    body: formData
+                });
+
+                console.log('响应状态:', response.status);
+                const data = await response.json();
+                console.log('响应数据:', data);
+
+                if (data.success) {
+                    showMessage('图片上传成功！', 'success');
+                    // 清空表单
+                    fileInput.value = '';
+                    document.getElementById('description').value = '';
+                    // 重新加载图片列表
+                    loadImages();
+                } else {
+                    showMessage(`上传失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('上传错误:', error);
+                showMessage(`网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadImages() {
+            const weaponId = document.getElementById('weaponId').value;
+            
+            if (!weaponId) {
+                showMessage('请输入武器ID', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/weapon-images/${weaponId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayImages(data.data);
+                } else {
+                    showMessage(`获取图片失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('获取图片错误:', error);
+                showMessage(`网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        function displayImages(weaponData) {
+            const imagesDiv = document.getElementById('imagesList');
+            
+            if (!weaponData.images || weaponData.images.length === 0) {
+                imagesDiv.innerHTML = '<p>暂无图片</p>';
+                return;
+            }
+
+            let html = `<h3>${weaponData.weaponName} 的图片</h3>`;
+            
+            weaponData.images.forEach(image => {
+                html += `
+                    <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                        <h4>${image.originalName}</h4>
+                        <p><strong>描述:</strong> ${image.description || '无描述'}</p>
+                        <p><strong>上传时间:</strong> ${new Date(image.uploadedAt).toLocaleString()}</p>
+                        <p><strong>文件大小:</strong> ${(image.size / 1024).toFixed(2)} KB</p>
+                        <img src="http://localhost:3001${image.path}" alt="${image.description}" 
+                             style="max-width: 200px; max-height: 200px; object-fit: cover;"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04MCA2MEgxMjBWMTQwSDgwVjYwWiIgZmlsbD0iI0RERCIvPgo8cGF0aCBkPSJNOTAgODBIMTEwVjEyMEg5MFY4MFoiIGZpbGw9IiNCQkIiLz4KPHR4dCB4PSIxMDAiIHk9IjE2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIj7lm77niYfml6Dms5XliqDovb08L3R4dD4KPC9zdmc+'">
+                        <br>
+                        <button onclick="deleteImage(${weaponData.weaponId}, ${image.id})" 
+                                style="background: #dc3545; margin-top: 10px; width: auto; padding: 5px 15px;">
+                            删除图片
+                        </button>
+                    </div>
+                `;
+            });
+
+            imagesDiv.innerHTML = html;
+        }
+
+        async function deleteImage(weaponId, imageId) {
+            if (!confirm('确定要删除这张图片吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/weapon-images/${weaponId}/${imageId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'x-admin-user': 'true'  // 使用简化管理员认证
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('图片删除成功！', 'success');
+                    loadImages(); // 重新加载图片列表
+                } else {
+                    showMessage(`删除失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('删除错误:', error);
+                showMessage(`网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时自动加载图片
+        window.onload = function() {
+            loadImages();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,804 @@
+/* ==================== 世界地图样式 ==================== */
+.world-map-container {
+    height: 600px;
+    background: #00000000;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.map-visualization {
+    width: 100%;
+    height: 600px;
+    position: relative;
+}
+
+.map-legend {
+    background: #2c3e50;
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.map-legend h3 {
+    margin: 0 0 10px 0;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.map-info {
+    background: white;
+    padding: 15px;
+    border-top: 1px solid #e9ecef;
+    max-height: 600px;
+    overflow-y: auto;
+    min-height: 300px;
+}
+
+.map-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+/* 国家边界样式 */
+.country {
+    transition: all 0.3s ease;
+}
+
+.country:hover {
+    fill: #2e8b57 !important;
+    stroke: #fff;
+    stroke-width: 1.5;
+    cursor: pointer;
+}
+
+/* 国家节点样式 */
+.country-node {
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.country-node:hover {
+    r: 10 !important;
+    fill: #2e8b57 !important;
+    filter: drop-shadow(0 0 8px rgba(78, 205, 196, 0.8));
+}
+
+/* 国家标签样式 */
+.country-label {
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px white, -1px -1px 2px white;
+    pointer-events: none;
+}
+
+/* 武器列表样式 */
+.weapon-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+.weapon-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    color: #666;
+}
+
+.weapon-list li:last-child {
+    border-bottom: none;
+}
+
+/* 武器网格布局 */
+.weapons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.weapon-card {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid #4ecdc4;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.weapon-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.weapon-card h5 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.weapon-card p {
+    margin: 4px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+/* 地图工具提示样式 */
+.map-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    pointer-events: none !important;
+    z-index: 1000 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .world-map-container {
+        height: 400px;
+        margin: 10px 0;
+    }
+    
+    .weapons-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .map-legend,
+    .map-info {
+        padding: 10px;
+    }
+}
+
+/* 地图缩放控件样式 */
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.map-controls button {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: background 0.2s ease;
+}
+
+.map-controls button:hover {
+    background: #f8f9fa;
+}
+
+.map-controls button:first-child {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 4px 4px 0 0;
+}
+
+.map-controls button:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+/* 高亮国家样式 */
+.country-highlighted {
+    fill: #ff6b6b !important;
+    stroke: #ff4757 !important;
+    stroke-width: 2 !important;
+    filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.5));
+}
+
+/* 选中节点样式 */
+.node-selected {
+    r: 12 !important;
+    fill: #ff6b6b !important;
+    stroke: #ff4757 !important;
+    stroke-width: 3 !important;
+    filter: drop-shadow(0 0 15px rgba(255, 107, 107, 0.8));
+}
+
+/* 动画效果 */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.country-node.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* 加载状态 */
+.map-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #666;
+    font-size: 16px;
+}
+
+.map-loading::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #4ecdc4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==================== 国家详情面板样式 ==================== */
+.country-details-panel {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    position: relative;
+}
+
+.country-details-panel .country-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.country-details-panel .country-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: headerShine 8s linear infinite;
+}
+
+@keyframes headerShine {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 滑入动画 */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 统计卡片脉冲动画 */
+@keyframes statsPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.country-stats > div > div {
+    animation: statsPulse 3s ease-in-out infinite;
+}
+
+.country-stats > div > div:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.country-stats > div > div:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.country-stats > div > div:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+/* 滚动条美化 */
+.country-details-panel ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.country-details-panel ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.country-details-panel ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+}
+
+.country-details-panel ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+/* ==================== 地图视图布局（知识图谱 SPA 集成） ==================== */
+/* 地图为视觉中心 + 右侧省份详情常驻栏 */
+/* 左右两栏互相独立：align-items:start 禁止右侧内容把左侧地图拉高 */
+.map-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 18px;
+    align-items: start;
+}
+
+/* 地图独立卡片：固定高度，不受右侧面板内容影响 */
+.map-card {
+    position: relative;
+    height: 520px;
+    min-height: 520px;
+    max-height: 520px;
+    background: #fbfcf9;
+    border: 1px solid #e2e8e4;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(27, 67, 50, 0.06);
+    overflow: hidden;
+}
+
+.map-container {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    position: relative;
+}
+
+.map-container .map-visualization {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+/* 视图切换按钮组 */
+.view-switch {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.view-switch .btn {
+    min-width: 96px;
+    height: 36px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* ==================== 右侧省份详情常驻面板 ==================== */
+.region-details-panel {
+    --ink-green: #1B4332;
+    --herb-green: #40916C;
+    --beige: #F8F1E3;
+    --bronze: #B08968;
+    --dark-brown: #2d1f14;
+    --sage: #6b8f71;
+
+    display: flex;
+    flex-direction: column;
+    /* 固定可视高度（与左侧地图等高），内容超出仅内部滚动，绝不撑高页面/地图 */
+    height: min(520px, calc(100vh - 180px));
+    min-height: 0;
+    background: linear-gradient(180deg, #1B4332 0%, #143a2b 45%, #0f2c20 100%);
+    color: #F8F1E3;
+    border-radius: 12px;
+    border: 1px solid rgba(176, 137, 104, 0.35);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.14);
+    overflow: hidden;
+}
+
+/* 顶部标题区域 */
+.region-details-panel .panel-header {
+    position: relative;
+    padding: 22px 20px 18px;
+    background: linear-gradient(135deg, #1B4332 0%, #2d6a4f 60%, #B08968 160%);
+    border-bottom: 1px solid rgba(176, 137, 104, 0.35);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.region-details-panel .panel-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -30px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(176,137,104,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.panel-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 30px; height: 30px;
+    border: 1px solid rgba(248,241,227,0.4);
+    background: rgba(248,241,227,0.08);
+    color: #F8F1E3;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.3s;
+    z-index: 2;
+}
+.panel-close:hover {
+    background: rgba(248,241,227,0.25);
+    transform: rotate(90deg);
+}
+
+.panel-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* 中药印章图标 */
+.title-stamp {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #B08968;
+    color: #1B4332;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 6px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border: 2px solid rgba(248,241,227,0.3);
+    flex-shrink: 0;
+}
+
+.title-text h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: #F8F1E3;
+    letter-spacing: 4px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.title-text span {
+    font-size: 13px;
+    color: rgba(248,241,227,0.7);
+    letter-spacing: 1px;
+}
+
+.header-ornament {
+    position: absolute;
+    bottom: 8px;
+    right: 14px;
+    font-size: 22px;
+    opacity: 0.35;
+}
+
+/* 面板主体 - 独立滚动（省份药材过多时不在页面产生巨大高度） */
+.panel-body {
+    flex: 1;
+    min-height: 0;  /* 允许在固定高度面板内收缩，启用内部滚动 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 16px 28px;
+    scrollbar-width: thin;
+    scrollbar-color: #B08968 rgba(255,255,255,0.1);
+}
+.panel-body::-webkit-scrollbar { width: 5px; }
+.panel-body::-webkit-scrollbar-thumb { background: #B08968; border-radius: 4px; }
+
+.panel-loading, .panel-error, .panel-empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: #B08968;
+    font-size: 14px;
+}
+
+/* 药材概况 - 三个数据卡片（宽度均匀、等高、数字突出） */
+.herb-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    margin-bottom: 16px;
+}
+
+.stat-card {
+    background: #F8F1E3;
+    border: 1px solid #B08968;
+    border-radius: 10px;
+    padding: 10px 6px;
+    min-height: 76px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.15);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 8px; right: 8px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(176,137,104,0.4), transparent);
+}
+
+.stat-num {
+    font-size: 25px;
+    font-weight: 700;
+    color: #1B4332;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+.stat-label {
+    font-size: 11.5px;
+    color: #B08968;
+    margin-top: 4px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+/* 区块标题（作用域限定在详情面板内，避免污染图谱页顶部 .section-title）
+   层级“中等”：明显小于省份名(28px)/统计数字(25px)，但大于标签(12px) */
+.panel-section {
+    margin-bottom: 16px;
+}
+.region-details-panel .section-title {
+    margin: 0 0 10px;
+    font-size: 17px;
+    line-height: 1.3;
+    font-weight: 700;
+    color: #F8F1E3;
+    letter-spacing: 1px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(176,137,104,0.3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.region-details-panel .star-title { color: #ffd166; }
+
+/* “主要药材详情”标题：与其他区块标题同级，不与下方卡片拥挤 */
+.region-details-panel .herb-detail-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    letter-spacing: 1.5px;
+}
+
+/* 分类标签（紧凑胶囊） */
+.category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+.category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 26px;
+    padding: 6px 10px;
+    background: rgba(64,145,108,0.18);
+    border: 1px solid rgba(64,145,108,0.4);
+    color: #95d5b2;
+    border-radius: 14px;
+    font-size: 12px;
+    line-height: 1;
+}
+.category-tag b {
+    color: #ffd166;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(27,67,50,0.35);
+    border-radius: 9px;
+    padding: 1px 6px;
+}
+
+/* 药材标签（紧凑胶囊、自动换行） */
+.herb-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.herb-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(248,241,227,0.2);
+    color: #F8F1E3;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+}
+.herb-tag.common {
+    background: rgba(255,209,102,0.14);
+    border-color: rgba(255,209,102,0.4);
+    color: #ffd166;
+}
+.herb-tag-expand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 10px;
+    background: rgba(176,137,104,0.2);
+    border: 1px dashed rgba(176,137,104,0.6);
+    color: #d9b89a;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.herb-tag-expand:hover {
+    background: rgba(176,137,104,0.35);
+    color: #F8F1E3;
+}
+
+/* ==================== 主要药材详情卡片 ==================== */
+/* display:block 覆盖 herb-app.css 中全局 .herb-card 的 display:grid（86px 两列布局）
+   否则详情字段会被塞进 86px 窄列，导致“功效/简介”竖排成一列 */
+.herb-card {
+    display: block;
+    grid-template-columns: none;
+    gap: 0;
+    position: relative;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    background: #FDFAF3;
+    border: 1px solid #e6dfd2;
+    border-left: 4px solid #40916C;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+/* 覆盖 herb-app.css 的 .herb-card:hover 上浮效果，避免详情卡片悬停跳动 */
+.region-details-panel .herb-card:hover {
+    transform: none;
+    border-color: #e6dfd2;
+}
+/* 右下角“药”字水印（非常淡，不遮挡正文） */
+.herb-card::after {
+    content: '藥';
+    position: absolute;
+    right: 14px;
+    bottom: 2px;
+    font-size: 44px;
+    color: rgba(64, 145, 108, 0.05);
+    font-weight: bold;
+    line-height: 1;
+    pointer-events: none;
+}
+
+/* 标题区：图标 + 名称 + 右侧“常用”标签，分类单独一行 */
+.herb-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+.herb-icon { font-size: 17px; line-height: 1; flex-shrink: 0; }
+.herb-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1B4332;
+    letter-spacing: 1px;
+    line-height: 1.3;
+}
+.herb-common-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: #ffd166;
+    color: #1B4332;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 7px;
+    border-radius: 999px;
+}
+
+.herb-category {
+    font-size: 12.5px;
+    color: #8a7a68;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ece5d8;
+}
+
+/* 详情字段：两列 grid（固定标签列 + 可自由换行的正文列），杜绝窄列竖排 */
+.herb-detail-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 48px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 10px;
+    align-items: start;
+}
+.herb-detail-row {
+    display: contents;
+}
+.detail-label {
+    width: 48px;
+    flex-shrink: 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #B08968;
+    line-height: 1.6;
+}
+.detail-value {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    font-size: 12.5px;
+    color: #4a4038;
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
+}
+
+/* 图谱页顶部标题（26~30px 加粗深色，禁止被覆盖成低对比度）
+   必须限定到 .section-header：否则会同时命中右侧面板内 h4.section-title，
+   把“药材分类/常用药材”等覆盖成 28px（此前 bug 根因） */
+.graph-section .section-header .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #16241d;
+    margin: 0;
+}
+
+/* ==================== 响应式 ==================== */
+@media (max-width: 900px) {
+    .map-layout {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    /* 小屏上下排列：地图固定高度、面板恢复自然高度（仍各自独立） */
+    .region-details-panel {
+        height: auto;
+        max-height: none;
+        min-height: 0;
+    }
+    .map-card {
+        height: 420px;
+        min-height: 420px;
+        max-height: 420px;
+    }
+    .map-container {
+        min-height: 0;
+    }
+    .map-container .map-visualization {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-switch .btn {
+        min-width: 80px;
+    }
+    .region-details-panel {
+        border-radius: 10px;
+    }
+}

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-page-role="content"><rect id="bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F3F6F4"/><g id="header" data-pptx-bounds="60 36 1160 86"><rect x="60" y="40" width="10" height="44" rx="5" fill="#0F5E53"/><text x="88" y="76" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="34" font-weight="bold" fill="#17302C">系统总体架构</text><text x="90" y="110" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#5F716C">前端不直连数据库，后端统一代理，密钥仅存于 .env</text></g>
+<g id="arch-front" data-pptx-bounds="180 140 920 90">
+  <rect x="180" y="140" width="920" height="88" rx="12" fill="#0F5E53"/>
+  <text x="640" y="180" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="22" font-weight="bold" fill="#FFFFFF">浏览器前端</text>
+  <text x="640" y="208" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="15" fill="#DCE5E0">知识图谱 / AI 问答 / 药材识别 / 药材管理</text>
+</g>
+<g id="arch-api" data-pptx-bounds="180 270 920 90">
+  <rect x="180" y="270" width="920" height="88" rx="12" fill="#14806F"/>
+  <text x="640" y="310" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="22" font-weight="bold" fill="#FFFFFF">Node.js + Express 后端代理</text>
+  <text x="640" y="338" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="15" fill="#DCE5E0">ragServiceV2 · embeddingService · 知识图谱 / 药材 / 识别路由</text>
+</g>
+<g id="arch-data" data-pptx-bounds="180 400 920 90">
+  <rect x="180" y="400" width="920" height="88" rx="12" fill="#0F5E53"/>
+  <text x="640" y="440" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="22" font-weight="bold" fill="#FFFFFF">数据层</text>
+  <text x="640" y="468" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="15" fill="#DCE5E0">Neo4j AuraDB（图）　+　SQLite（用户 / 会话 / 向量）</text>
+</g>
+<g id="arch-ext" data-pptx-bounds="180 530 920 90">
+  <rect x="180" y="530" width="920" height="88" rx="12" fill="#D8A642"/>
+  <text x="640" y="570" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="22" font-weight="bold" fill="#FFFFFF">外部 AI 服务</text>
+  <text x="640" y="598" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="15" fill="#0B3D35">DeepSeek API · 阿里云百炼 DashScope（向量 / 视觉）</text>
+</g>
+<g id="arch-arrows" data-pptx-bounds="620 228 40 320">
+  <text x="640" y="258" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" fill="#D8A642">↓</text>
+  <text x="640" y="388" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" fill="#D8A642">↓</text>
+  <text x="640" y="518" text-anchor="middle" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" fill="#D8A642">↓</text>
+</g>
+<g id="footer" data-pptx-bounds="1000 686 220 26"><text x="1220" y="700" text-anchor="end" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="13" fill="#5F716C">神农AI · 中药知识图谱系统 · 07</text></g></svg>

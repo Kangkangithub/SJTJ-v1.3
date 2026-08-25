@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-page-role="content"><rect id="bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F3F6F4"/><g id="header" data-pptx-bounds="60 36 1160 86"><rect x="60" y="40" width="10" height="44" rx="5" fill="#0F5E53"/><text x="88" y="76" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="34" font-weight="bold" fill="#17302C">向量语义检索</text><text x="90" y="110" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#5F716C">text-embedding-v3 · 1024 维 · 余弦相似度</text></g>
+<g id="vec-problem" data-pptx-bounds="60 150 560 230">
+  <rect x="60" y="150" width="560" height="230" rx="16" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="90" y="196" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="24" font-weight="bold" fill="#D8A642">原有 CONTAINS 字面匹配</text>
+  <text x="90" y="244" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="19" fill="#17302C">用户问「肾虚」，只命中描述里恰好</text>
+  <text x="90" y="274" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="19" fill="#17302C">出现「肾虚」二字的虫草</text>
+  <text x="90" y="318" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#C0392B">漏掉山药、肉苁蓉、山茱萸、</text>
+  <text x="90" y="346" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#C0392B">墨旱莲等真正补肾的药材</text>
+</g>
+<g id="vec-solution" data-pptx-bounds="660 150 560 230">
+  <rect x="660" y="150" width="560" height="230" rx="16" fill="#0F5E53"/>
+  <text x="690" y="196" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="24" font-weight="bold" fill="#D8A642">向量语义检索</text>
+  <text x="690" y="244" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="19" fill="#FFFFFF">把药材文本与问题映射为 1024 维向量，</text>
+  <text x="690" y="274" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="19" fill="#FFFFFF">用余弦相似度做语义匹配</text>
+  <text x="690" y="318" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#DCE5E0">「肾虚」与「补肾阳」字面不同，</text>
+  <text x="690" y="346" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="18" fill="#DCE5E0">语义空间却距离很近</text>
+</g>
+<g id="vec-tech" data-pptx-bounds="60 410 1160 100">
+  <rect x="60" y="410" width="1160" height="92" rx="14" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="90" y="450" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="20" font-weight="bold" fill="#0F5E53">实现要点</text>
+  <text x="90" y="482" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">text-embedding-v3 批量向量化（BATCH_SIZE=10） · SQLite herb_embeddings 持久化 · 启动增量同步 · 药材增删改实时更新</text>
+</g>
+<g id="vec-effect" data-pptx-bounds="60 530 1160 80">
+  <rect x="60" y="530" width="1160" height="72" rx="12" fill="#D8A642"/>
+  <text x="90" y="570" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="19" font-weight="bold" fill="#0B3D35">实测效果：CONTAINS 命中 1 味 → 向量检索命中山药、肉苁蓉、山茱萸等多味补肾药</text>
+</g>
+<g id="footer" data-pptx-bounds="1000 686 220 26"><text x="1220" y="700" text-anchor="end" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="13" fill="#5F716C">神农AI · 中药知识图谱系统 · 10</text></g></svg>

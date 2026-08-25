@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武器删除功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #c0392b;
+        }
+        .log-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .weapon-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .weapon-info h4 {
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+        }
+        .weapon-info p {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>武器删除功能测试</h1>
+        
+        <div class="test-section">
+            <h3>测试武器列表</h3>
+            <p>以下是一些测试武器，点击删除按钮测试删除功能：</p>
+            
+            <div id="weaponList">
+                <div class="weapon-item">
+                    <div class="weapon-info">
+                        <h4>AK-47突击步枪</h4>
+                        <p>步枪 | 俄罗斯 | 1947年</p>
+                    </div>
+                    <button class="test-button" onclick="testDeleteWeapon('1', 'AK-47突击步枪')">删除</button>
+                </div>
+                
+                <div class="weapon-item">
+                    <div class="weapon-info">
+                        <h4>M16突击步枪</h4>
+                        <p>步枪 | 美国 | 1964年</p>
+                    </div>
+                    <button class="test-button" onclick="testDeleteWeapon('2', 'M16突击步枪')">删除</button>
+                </div>
+                
+                <div class="weapon-item">
+                    <div class="weapon-info">
+                        <h4>95式突击步枪</h4>
+                        <p>步枪 | 中国 | 1995年</p>
+                    </div>
+                    <button class="test-button" onclick="testDeleteWeapon('3', '95式突击步枪')">删除</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试控制</h3>
+            <button class="test-button" onclick="testDirectAPI()">测试直接API调用</button>
+            <button class="test-button" onclick="checkFunctionExists()">检查函数是否存在</button>
+            <button class="test-button" onclick="clearLog()">清空日志</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试日志</h3>
+            <div id="logArea" class="log-area"></div>
+        </div>
+    </div>
+
+    <script>
+        // 日志函数
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logArea.textContent += logEntry;
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(logEntry);
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').textContent = '';
+        }
+
+        // 检查函数是否存在
+        function checkFunctionExists() {
+            log('检查deleteWeapon函数是否存在...');
+            
+            if (typeof window.deleteWeapon === 'function') {
+                log('✓ window.deleteWeapon函数存在', 'success');
+                log(`函数内容预览: ${window.deleteWeapon.toString().substring(0, 200)}...`);
+            } else {
+                log('✗ window.deleteWeapon函数不存在', 'error');
+            }
+            
+            if (typeof deleteWeapon === 'function') {
+                log('✓ deleteWeapon函数存在', 'success');
+            } else {
+                log('✗ deleteWeapon函数不存在', 'error');
+            }
+        }
+
+        // 测试删除武器
+        async function testDeleteWeapon(weaponId, weaponName) {
+            log(`开始测试删除武器: ${weaponName} (ID: ${weaponId})`);
+            
+            try {
+                if (typeof window.deleteWeapon === 'function') {
+                    log('使用window.deleteWeapon函数');
+                    await window.deleteWeapon(weaponId, weaponName);
+                } else if (typeof deleteWeapon === 'function') {
+                    log('使用deleteWeapon函数');
+                    await deleteWeapon(weaponId, weaponName);
+                } else {
+                    log('deleteWeapon函数不存在，尝试直接API调用', 'warning');
+                    await testDirectAPI(weaponId, weaponName);
+                }
+            } catch (error) {
+                log(`删除测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试直接API调用
+        async function testDirectAPI(weaponId = '999', weaponName = '测试武器') {
+            log(`测试直接API调用删除武器: ${weaponName} (ID: ${weaponId})`);
+            
+            try {
+                const response = await fetch(`http://localhost:3001/api/weapons/direct-delete/${weaponId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-User': 'JunkangShen'
+                    }
+                });
+                
+                log(`API响应状态: ${response.status} ${response.statusText}`);
+                
+                let result;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                    log(`API响应内容: ${JSON.stringify(result)}`);
+                } else {
+                    const text = await response.text();
+                    log(`API响应文本: ${text}`);
+                    
+                    if (response.ok) {
+                        result = { success: true, message: '删除成功' };
+                    } else {
+                        result = { success: false, message: `删除失败: ${response.status} ${response.statusText}` };
+                    }
+                }
+                
+                if (result.success) {
+                    log('✓ API调用成功', 'success');
+                } else {
+                    log(`✗ API调用失败: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`✗ API调用异常: ${error.message}`, 'error');
+            }
+        }
+
+        // 模拟showMessage函数
+        window.showMessage = function(message, type = 'info') {
+            log(`消息提示: ${message} (类型: ${type})`);
+            
+            // 创建临时提示框
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status ${type}`;
+            messageDiv.textContent = message;
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 10px 20px;
+                border-radius: 4px;
+                z-index: 1000;
+                max-width: 300px;
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 3000);
+        };
+
+        // 模拟refreshWeaponList函数
+        window.refreshWeaponList = function() {
+            log('刷新武器列表被调用');
+        };
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('页面加载完成，开始初始化测试');
+            checkFunctionExists();
+        });
+    </script>
+
+    <!-- 加载修复脚本 -->
+    <script src="scripts/weapon-delete-fix.js"></script>
+    
+    <script>
+        // 在修复脚本加载后再次检查
+        setTimeout(() => {
+            log('修复脚本加载完成，再次检查函数');
+            checkFunctionExists();
+        }, 1000);
+    </script>
+</body>
+</html>

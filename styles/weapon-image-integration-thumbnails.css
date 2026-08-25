@@ -1,0 +1,121 @@
+/* 武器图片缩略图样式 */
+.weapon-thumbnails {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.thumbnail-item {
+    position: relative;
+}
+
+.thumbnail-item img {
+    width: 50px;
+    height: 35px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.thumbnail-item img:hover {
+    transform: scale(1.1);
+    border-color: #007bff;
+}
+
+.thumbnail-more {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loading-thumbnails,
+.no-thumbnails,
+.error-thumbnails {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    color: #666;
+    font-size: 12px;
+}
+
+.loading-thumbnails i {
+    animation: spin 1s linear infinite;
+    margin-right: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 武器图片管理区域样式增强 */
+.weapon-image-management h4 {
+    color: #fff;
+    font-size: 14px;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weapon-image-management h4 i {
+    color: #007bff;
+}
+
+.weapon-image-display-area {
+    min-height: 60px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.weapon-image-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.weapon-image-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.weapon-image-btn:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+.weapon-image-btn.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.weapon-image-btn.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.weapon-image-btn.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.weapon-image-btn i {
+    font-size: 10px;
+}

@@ -1,0 +1,19 @@
+[
+  {"id": 1, "name": "美国", "code": "US", "en_name": "United States"},
+  {"id": 2, "name": "俄罗斯", "code": "RU", "en_name": "Russia"},
+  {"id": 3, "name": "中国", "code": "CN", "en_name": "China"},
+  {"id": 4, "name": "德国", "code": "DE", "en_name": "Germany"},
+  {"id": 5, "name": "法国", "code": "FR", "en_name": "France"},
+  {"id": 6, "name": "英国", "code": "GB", "en_name": "United Kingdom"},
+  {"id": 7, "name": "以色列", "code": "IL", "en_name": "Israel"},
+  {"id": 8, "name": "瑞典", "code": "SE", "en_name": "Sweden"},
+  {"id": 9, "name": "意大利", "code": "IT", "en_name": "Italy"},
+  {"id": 10, "name": "日本", "code": "JP", "en_name": "Japan"},
+  {"id": 11, "name": "奥地利", "code": "AT", "en_name": "Austria"},
+  {"id": 460, "name": "西班牙", "code": "ES", "en_name": "Spain"},
+  {"id": 1198, "name": "比利时", "code": "BE", "en_name": "Belgium"},
+  {"id": 1474, "name": "土耳其", "code": "TR", "en_name": "Turkey"},
+  {"id": 1508, "name": "乌克兰", "code": "UA", "en_name": "Ukraine"},
+  {"id": 1520, "name": "澳大利亚", "code": "AU", "en_name": "Australia"},
+  {"id": 1631, "name": "新西兰", "code": "NZ", "en_name": "New Zealand"}
+]

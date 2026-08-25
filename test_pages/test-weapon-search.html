@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武器搜索功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .search-box {
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .search-box button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .search-box button:hover {
+            background: #0056b3;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .weapon-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+        .weapon-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 18px;
+        }
+        .weapon-info {
+            color: #666;
+            margin-top: 5px;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .debug-info {
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>武器搜索功能测试</h1>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="输入武器名称进行搜索，例如：M4, AK-47, F-16" />
+            <button onclick="testSearch()">搜索</button>
+            <button onclick="testAPI()">测试API连接</button>
+        </div>
+        
+        <div id="status"></div>
+        <div id="results" class="results"></div>
+        <div id="debugInfo" class="debug-info" style="display: none;"></div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+        const debugDiv = document.getElementById('debugInfo');
+
+        // 回车键搜索
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testSearch();
+            }
+        });
+
+        function showStatus(message, type = 'info') {
+            statusDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function showDebug(info) {
+            debugDiv.style.display = 'block';
+            debugDiv.innerHTML = `<strong>调试信息:</strong><br>${JSON.stringify(info, null, 2)}`;
+        }
+
+        async function testAPI() {
+            showStatus('正在测试API连接...', 'loading');
+            resultsDiv.innerHTML = '';
+            
+            const ports = [3001, 3000];
+            let connectionResults = [];
+            
+            for (const port of ports) {
+                try {
+                    console.log(`测试端口 ${port}...`);
+                    const response = await fetch(`http://localhost:${port}/api/weapons?limit=1`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        connectionResults.push({
+                            port: port,
+                            status: 'success',
+                            message: `端口 ${port} 连接成功`,
+                            data: data
+                        });
+                    } else {
+                        connectionResults.push({
+                            port: port,
+                            status: 'error',
+                            message: `端口 ${port} HTTP错误: ${response.status}`
+                        });
+                    }
+                } catch (error) {
+                    connectionResults.push({
+                        port: port,
+                        status: 'error',
+                        message: `端口 ${port} 连接失败: ${error.message}`
+                    });
+                }
+            }
+            
+            showDebug(connectionResults);
+            
+            const successfulPorts = connectionResults.filter(r => r.status === 'success');
+            if (successfulPorts.length > 0) {
+                showStatus(`API连接测试完成，可用端口: ${successfulPorts.map(r => r.port).join(', ')}`, 'success');
+            } else {
+                showStatus('所有端口都无法连接，请检查服务器是否启动', 'error');
+            }
+        }
+
+        async function testSearch() {
+            const searchTerm = searchInput.value.trim();
+            if (!searchTerm) {
+                showStatus('请输入搜索关键词', 'error');
+                return;
+            }
+
+            showStatus('正在搜索武器...', 'loading');
+            resultsDiv.innerHTML = '';
+            debugDiv.style.display = 'none';
+
+            try {
+                // 尝试多个端口
+                const ports = [3001, 3000];
+                let response = null;
+                let lastError = null;
+                let usedPort = null;
+                
+                for (const port of ports) {
+                    try {
+                        console.log(`尝试在端口 ${port} 搜索...`);
+                        response = await fetch(`http://localhost:${port}/api/weapons/search?q=${encodeURIComponent(searchTerm)}`);
+                        
+                        if (response.ok) {
+                            usedPort = port;
+                            console.log(`成功连接到端口 ${port}`);
+                            break;
+                        } else {
+                            console.warn(`端口 ${port} 响应状态: ${response.status}`);
+                            lastError = new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    } catch (error) {
+                        console.warn(`端口 ${port} 连接失败:`, error.message);
+                        lastError = error;
+                        response = null;
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                    throw lastError || new Error('所有端口都无法连接');
+                }
+
+                const result = await response.json();
+                console.log('搜索API响应:', result);
+                
+                showDebug({
+                    usedPort: usedPort,
+                    searchTerm: searchTerm,
+                    response: result
+                });
+
+                if (result.success && result.data && result.data.weapons) {
+                    displayResults(result.data.weapons);
+                    showStatus(`搜索完成，找到 ${result.data.weapons.length} 个结果 (使用端口 ${usedPort})`, 'success');
+                } else if (result.success && Array.isArray(result.data)) {
+                    displayResults(result.data);
+                    showStatus(`搜索完成，找到 ${result.data.length} 个结果 (使用端口 ${usedPort})`, 'success');
+                } else {
+                    showStatus('未找到相关武器', 'error');
+                    resultsDiv.innerHTML = '<p>未找到相关武器</p>';
+                }
+            } catch (error) {
+                console.error('搜索失败:', error);
+                showStatus(`搜索失败: ${error.message}`, 'error');
+                showDebug({
+                    error: error.message,
+                    searchTerm: searchTerm
+                });
+            }
+        }
+
+        function displayResults(weapons) {
+            if (!weapons || weapons.length === 0) {
+                resultsDiv.innerHTML = '<p>未找到相关武器</p>';
+                return;
+            }
+
+            const html = weapons.map(weapon => `
+                <div class="weapon-item">
+                    <div class="weapon-name">${weapon.name || '未知名称'}</div>
+                    <div class="weapon-info">
+                        <strong>类型:</strong> ${weapon.type || '未知'} | 
+                        <strong>国家:</strong> ${weapon.country || '未知'} | 
+                        <strong>年份:</strong> ${weapon.year || '未知'}
+                    </div>
+                    ${weapon.manufacturers && weapon.manufacturers.length > 0 ? 
+                        `<div class="weapon-info"><strong>制造商:</strong> ${weapon.manufacturers.join(', ')}</div>` : 
+                        ''
+                    }
+                    ${weapon.description ? 
+                        `<div class="weapon-info"><strong>描述:</strong> ${weapon.description}</div>` : 
+                        ''
+                    }
+                </div>
+            `).join('');
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // 页面加载时自动测试API连接
+        window.addEventListener('load', function() {
+            testAPI();
+        });
+    </script>
+</body>
+</html>

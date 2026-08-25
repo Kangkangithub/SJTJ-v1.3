@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 神农AI</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles/herb-app.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+    <a class="skip-link" href="#loginForm">跳到主内容</a>
+    <div class="container">
+        <header class="auth-header">
+            <a class="auth-brand" href="index.html">
+                <span class="logo">神农AI</span>
+                <span>中药药材知识图谱系统</span>
+            </a>
+        </header>
+        <main class="content">
+            <div class="auth-card">
+                <h1>登录</h1>
+                <p class="auth-note">登录后进入个人中心管理账户资料。</p>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">用户名或邮箱</label>
+                        <input type="text" id="username" name="username" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" name="password" autocomplete="current-password" required>
+                    </div>
+                    <div id="loginMessage" class="auth-message" role="status" aria-live="polite"></div>
+                    <button type="submit" class="auth-btn">登录</button>
+                </form>
+                <div class="auth-links">
+                    <p>没有账号？<a href="register.html">注册</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        const loginForm = document.getElementById('loginForm');
+        const loginMessage = document.getElementById('loginMessage');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('authToken')) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function showMessage(text, type) {
+            loginMessage.textContent = text;
+            loginMessage.className = `auth-message ${type || ''}`.trim();
+        }
+
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const submitBtn = loginForm.querySelector('.auth-btn');
+            const originalText = submitBtn.textContent;
+
+            if (!username || !password) {
+                showMessage('请输入用户名和密码。', 'error');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '登录中';
+                showMessage('', '');
+
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || '登录失败，请稍后重试。');
+                }
+
+                localStorage.setItem('authToken', data.data.token);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    ...data.data.user,
+                    isLoggedIn: true,
+                    loginTime: new Date().toISOString()
+                }));
+
+                showMessage('登录成功，正在返回首页。', 'success');
+                window.location.href = 'index.html';
+            } catch (error) {
+                showMessage(error.message || '登录失败，请稍后重试。', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

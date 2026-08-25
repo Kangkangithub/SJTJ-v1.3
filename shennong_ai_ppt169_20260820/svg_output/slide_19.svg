@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-page-role="content"><rect id="bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F3F6F4"/><g id="header" data-pptx-bounds="60 30 1160 84"><rect x="60" y="36" width="10" height="44" rx="5" fill="#0F5E53"/><text x="88" y="72" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="32" font-weight="bold" fill="#17302C">成果总结</text><text x="90" y="104" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#5F716C">已完成可运行系统，核心能力全面落地</text></g>
+<g id="result-1" data-pptx-bounds="60 150 370 170">
+  <rect x="60" y="150" width="370" height="170" rx="14" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="90" y="200" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" font-weight="bold" fill="#0F5E53">275 味药材</text>
+  <text x="90" y="238" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">Neo4j 知识图谱迁移完成</text>
+  <text x="90" y="268" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">7 类节点 · 7 类核心关系</text>
+  <text x="90" y="298" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">分类、产地、性味、归经、功效、方剂入库</text>
+</g>
+<g id="result-2" data-pptx-bounds="455 150 370 170">
+  <rect x="455" y="150" width="370" height="170" rx="14" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="485" y="200" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" font-weight="bold" fill="#14806F">GraphRAG 七步管线</text>
+  <text x="485" y="238" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">关键词 → 图检索 → 向量检索</text>
+  <text x="485" y="268" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">→ 图遍历 → 知识增强 → 生成</text>
+  <text x="485" y="298" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">答案可溯源、可解释</text>
+</g>
+<g id="result-3" data-pptx-bounds="850 150 370 170">
+  <rect x="850" y="150" width="370" height="170" rx="14" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="880" y="200" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" font-weight="bold" fill="#D8A642">向量语义检索</text>
+  <text x="880" y="238" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">text-embedding-v3 · 1024 维</text>
+  <text x="880" y="268" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">「证型 ↔ 功效」语义对齐</text>
+  <text x="880" y="298" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">肾虚 → 补肾阳药材</text>
+</g>
+<g id="result-4" data-pptx-bounds="60 340 370 170">
+  <rect x="60" y="340" width="370" height="170" rx="14" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="90" y="390" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" font-weight="bold" fill="#0F5E53">问答耗时 ↓ 60%</text>
+  <text x="90" y="428" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">37s → 12~15s</text>
+  <text x="90" y="458" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">LLM 调用次数下降约 79%</text>
+  <text x="90" y="488" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">n-gram 本地切词 + 补全上限 + 3 并发</text>
+</g>
+<g id="result-5" data-pptx-bounds="455 340 370 170">
+  <rect x="455" y="340" width="370" height="170" rx="14" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="485" y="390" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" font-weight="bold" fill="#14806F">多模态识别</text>
+  <text x="485" y="428" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">qwen3.5-omni-plus 拍照识药</text>
+  <text x="485" y="458" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">Neo4j 精确匹配跳转节点</text>
+  <text x="485" y="488" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">识别即关联知识图谱</text>
+</g>
+<g id="result-6" data-pptx-bounds="850 340 370 170">
+  <rect x="850" y="340" width="370" height="170" rx="14" fill="#FFFFFF" stroke="#E4ECE7"/>
+  <text x="880" y="390" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="26" font-weight="bold" fill="#D8A642">安全架构</text>
+  <text x="880" y="428" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">后端代理 · Cypher 参数化</text>
+  <text x="880" y="458" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="17" fill="#17302C">密钥仅存于 .env</text>
+  <text x="880" y="488" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="16" fill="#5F716C">防注入、防泄密</text>
+</g>
+<g id="footer" data-pptx-bounds="1000 686 220 26"><text x="1220" y="700" text-anchor="end" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="13" fill="#5F716C">神农AI · 中药知识图谱系统 · 19</text></g></svg>

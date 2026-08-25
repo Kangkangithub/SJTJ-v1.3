@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武器数据管理测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-success {
+            background: #27ae60;
+        }
+        .btn-success:hover {
+            background: #229954;
+        }
+        .btn-danger {
+            background: #e74c3c;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ 武器数据管理系统测试</h1>
+            <p>测试武器数据的增删改查功能</p>
+            <div id="serverStatus" class="status offline">
+                服务器状态检查中...
+            </div>
+        </div>
+
+        <!-- 服务器连接测试 -->
+        <div class="test-section">
+            <h3>🔗 服务器连接测试</h3>
+            <button class="btn" onclick="testServerConnection()">测试连接</button>
+            <button class="btn btn-success" onclick="testHealthCheck()">健康检查</button>
+            <div id="connectionResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 武器数据查询测试 -->
+        <div class="test-section">
+            <h3>📋 武器数据查询</h3>
+            <button class="btn" onclick="getWeaponsList()">获取武器列表</button>
+            <button class="btn" onclick="getWeaponStatistics()">获取统计信息</button>
+            <button class="btn" onclick="searchWeapons()">搜索武器 (AK)</button>
+            <div id="queryResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 武器添加测试 -->
+        <div class="test-section">
+            <h3>➕ 武器添加测试</h3>
+            <form id="addWeaponForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>武器名称 *</label>
+                        <input type="text" id="weaponName" value="测试武器-AK74" required>
+                    </div>
+                    <div class="form-group">
+                        <label>武器类型 *</label>
+                        <select id="weaponType" required>
+                            <option value="步枪">步枪</option>
+                            <option value="手枪">手枪</option>
+                            <option value="机枪">机枪</option>
+                            <option value="狙击枪">狙击枪</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>制造国家 *</label>
+                        <select id="weaponCountry" required>
+                            <option value="俄罗斯">俄罗斯</option>
+                            <option value="美国">美国</option>
+                            <option value="中国">中国</option>
+                            <option value="德国">德国</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>服役年份</label>
+                        <input type="number" id="weaponYear" value="1974" min="1800" max="2030">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>武器描述</label>
+                    <textarea id="weaponDescription" rows="3">这是一个测试武器，用于验证数据管理功能。</textarea>
+                </div>
+            </form>
+            <button class="btn btn-success" onclick="addTestWeapon()">添加测试武器</button>
+            <button class="btn" onclick="addTestWeaponDirect()">直接添加 (管理员)</button>
+            <div id="addResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 制造商管理测试 -->
+        <div class="test-section">
+            <h3>🏭 制造商管理测试</h3>
+            <button class="btn" onclick="getManufacturersList()">获取制造商列表</button>
+            <button class="btn btn-success" onclick="addTestManufacturer()">添加测试制造商</button>
+            <div id="manufacturerResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 批量操作测试 -->
+        <div class="test-section">
+            <h3>📦 批量操作测试</h3>
+            <button class="btn" onclick="batchAddWeapons()">批量添加武器</button>
+            <button class="btn btn-danger" onclick="cleanupTestData()">清理测试数据</button>
+            <div id="batchResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        
+        // 页面加载时检查服务器状态
+        window.addEventListener('DOMContentLoaded', function() {
+            checkServerStatus();
+        });
+
+        // 检查服务器状态
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const result = await response.json();
+                
+                const statusDiv = document.getElementById('serverStatus');
+                if (response.ok && result.success) {
+                    statusDiv.className = 'status online';
+                    statusDiv.textContent = `✅ 服务器在线 - ${result.database} 数据库`;
+                } else {
+                    throw new Error('服务器响应异常');
+                }
+            } catch (error) {
+                const statusDiv = document.getElementById('serverStatus');
+                statusDiv.className = 'status offline';
+                statusDiv.textContent = `❌ 服务器离线 - ${error.message}`;
+            }
+        }
+
+        // 测试服务器连接
+        async function testServerConnection() {
+            showResult('connectionResult', '正在测试连接...', 'success');
+            
+            try {
+                const response = await fetch(`${API_BASE}`);
+                const result = await response.json();
+                showResult('connectionResult', JSON.stringify(result, null, 2), 'success');
+            } catch (error) {
+                showResult('connectionResult', `连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 健康检查
+        async function testHealthCheck() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const result = await response.json();
+                showResult('connectionResult', JSON.stringify(result, null, 2), 'success');
+            } catch (error) {
+                showResult('connectionResult', `健康检查失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 获取武器列表
+        async function getWeaponsList() {
+            try {
+                const response = await fetch(`${API_BASE}/weapons?limit=5`);
+                const result = await response.json();
+                showResult('queryResult', JSON.stringify(result, null, 2), 'success');
+            } catch (error) {
+                showResult('queryResult', `获取武器列表失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 获取统计信息
+        async function getWeaponStatistics() {
+            try {
+                const response = await fetch(`${API_BASE}/weapons/statistics`);
+                const result = await response.json();
+                showResult('queryResult', JSON.stringify(result, null, 2), 'success');
+            } catch (error) {
+                showResult('queryResult', `获取统计信息失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 搜索武器
+        async function searchWeapons() {
+            try {
+                const response = await fetch(`${API_BASE}/weapons/search?q=AK`);
+                const result = await response.json();
+                showResult('queryResult', JSON.stringify(result, null, 2), 'success');
+            } catch (error) {
+                showResult('queryResult', `搜索武器失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 添加测试武器
+        async function addTestWeapon() {
+            const weaponData = {
+                name: document.getElementById('weaponName').value,
+                type: document.getElementById('weaponType').value,
+                country: document.getElementById('weaponCountry').value,
+                year: parseInt(document.getElementById('weaponYear').value) || null,
+                description: document.getElementById('weaponDescription').value,
+                specifications: {
+                    test: true,
+                    added_by: 'test_system'
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/weapons`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer test-token' // 测试token
+                    },
+                    body: JSON.stringify(weaponData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('addResult', `武器添加成功!\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult('addResult', `添加失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('addResult', `添加武器失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 直接添加武器（管理员权限）
+        async function addTestWeaponDirect() {
+            const weaponData = {
+                name: document.getElementById('weaponName').value,
+                type: document.getElementById('weaponType').value,
+                country: document.getElementById('weaponCountry').value,
+                year: parseInt(document.getElementById('weaponYear').value) || null,
+                description: document.getElementById('weaponDescription').value,
+                specifications: {
+                    test: true,
+                    added_by: 'direct_admin'
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/weapons/direct-add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-user': 'JunkangShen'
+                    },
+                    body: JSON.stringify(weaponData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('addResult', `武器直接添加成功!\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult('addResult', `直接添加失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('addResult', `直接添加武器失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 获取制造商列表
+        async function getManufacturersList() {
+            try {
+                const response = await fetch(`${API_BASE}/manufacturers`);
+                const result = await response.json();
+                showResult('manufacturerResult', JSON.stringify(result, null, 2), 'success');
+            } catch (error) {
+                showResult('manufacturerResult', `获取制造商列表失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 添加测试制造商
+        async function addTestManufacturer() {
+            const manufacturerData = {
+                name: '测试军工公司',
+                country: '中国',
+                founded: 2000,
+                description: '这是一个测试制造商'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/manufacturers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-user': 'JunkangShen'
+                    },
+                    body: JSON.stringify(manufacturerData)
+                });
+
+                const result = await response.json();
+                showResult('manufacturerResult', JSON.stringify(result, null, 2), response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('manufacturerResult', `添加制造商失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 批量添加武器
+        async function batchAddWeapons() {
+            const weapons = [
+                {
+                    name: '测试步枪-1',
+                    type: '步枪',
+                    country: '美国',
+                    year: 2020,
+                    description: '批量测试武器1'
+                },
+                {
+                    name: '测试手枪-1',
+                    type: '手枪',
+                    country: '德国',
+                    year: 2021,
+                    description: '批量测试武器2'
+                },
+                {
+                    name: '测试机枪-1',
+                    type: '机枪',
+                    country: '俄罗斯',
+                    year: 2019,
+                    description: '批量测试武器3'
+                }
+            ];
+
+            showResult('batchResult', '正在批量添加武器...', 'success');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            let results = [];
+
+            for (const weapon of weapons) {
+                try {
+                    const response = await fetch(`${API_BASE}/weapons/direct-add`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-user': 'JunkangShen'
+                        },
+                        body: JSON.stringify(weapon)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        successCount++;
+                        results.push(`✅ ${weapon.name} - 添加成功`);
+                    } else {
+                        errorCount++;
+                        results.push(`❌ ${weapon.name} - 添加失败: ${result.message}`);
+                    }
+                } catch (error) {
+                    errorCount++;
+                    results.push(`❌ ${weapon.name} - 网络错误: ${error.message}`);
+                }
+            }
+
+            const summary = `批量添加完成!\n成功: ${successCount} 个\n失败: ${errorCount} 个\n\n详细结果:\n${results.join('\n')}`;
+            showResult('batchResult', summary, successCount > 0 ? 'success' : 'error');
+        }
+
+        // 清理测试数据
+        async function cleanupTestData() {
+            if (!confirm('确定要清理所有测试数据吗？此操作不可撤销！')) {
+                return;
+            }
+
+            showResult('batchResult', '正在清理测试数据...', 'success');
+            
+            try {
+                // 这里需要实现清理逻辑
+                // 由于没有批量删除接口，这里只是模拟
+                showResult('batchResult', '测试数据清理功能需要在后端实现批量删除接口', 'error');
+            } catch (error) {
+                showResult('batchResult', `清理失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

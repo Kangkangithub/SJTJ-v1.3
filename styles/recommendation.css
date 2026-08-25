@@ -1,0 +1,164 @@
+/* 智能推荐页面样式 */
+.content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card h1 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    text-align: center;
+}
+
+/* 文章列表样式 */
+.recommendation-list {
+    margin-top: 2rem;
+}
+
+.recommendation-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-left: 4px solid var(--accent-color);
+}
+
+.recommendation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.recommendation-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+.recommendation-title::before {
+    content: '\f02d';
+    font-family: 'Font Awesome 5 Free';
+    margin-right: 0.8rem;
+    color: var(--accent-color);
+}
+
+.recommendation-description {
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+    color: #ccc;
+    padding-left: 2rem;
+    border-left: 1px dashed rgba(255, 255, 255, 0.1);
+    margin-left: 0.5rem;
+}
+
+.recommendation-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.recommendation-footer span {
+    display: flex;
+    align-items: center;
+}
+
+.recommendation-footer span:first-child::before {
+    content: '\f005';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: #f1c40f;
+    margin-right: 0.5rem;
+}
+
+.recommendation-footer span:last-child::before {
+    content: '\f518';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: var(--secondary-color);
+    margin-right: 0.5rem;
+}
+
+.recommendation-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tag {
+    background-color: rgba(52, 152, 219, 0.2);
+    color: var(--secondary-color);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.read-more {
+    align-self: flex-end;
+    margin-top: 0.5rem;
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.read-more::after {
+    content: '\f054';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    transition: transform 0.3s;
+}
+
+.read-more:hover {
+    color: var(--secondary-color);
+}
+
+.read-more:hover::after {
+    transform: translateX(3px);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .recommendation-card {
+        padding: 1.2rem;
+    }
+    
+    .recommendation-title {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recommendation-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+} 

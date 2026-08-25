@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 神农AI</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles/herb-app.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+    <a class="skip-link" href="#registerForm">跳到主内容</a>
+    <div class="container">
+        <header class="auth-header">
+            <a class="auth-brand" href="index.html">
+                <span class="logo">神农AI</span>
+                <span>中药药材知识图谱系统</span>
+            </a>
+        </header>
+        <main class="content">
+            <div class="auth-card">
+                <h1>注册</h1>
+                <p class="auth-note">创建账户后可管理个人资料。</p>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" name="username" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">电子邮箱</label>
+                        <input type="email" id="email" name="email" autocomplete="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" name="password" autocomplete="new-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认密码</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required>
+                    </div>
+                    <div id="registerMessage" class="auth-message" role="status" aria-live="polite"></div>
+                    <button type="submit" class="auth-btn">注册</button>
+                </form>
+                <div class="auth-links">
+                    <p>已有账号？<a href="login.html">登录</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        const registerForm = document.getElementById('registerForm');
+        const registerMessage = document.getElementById('registerMessage');
+
+        function showMessage(text, type) {
+            registerMessage.textContent = text;
+            registerMessage.className = `auth-message ${type || ''}`.trim();
+        }
+
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = registerForm.querySelector('.auth-btn');
+            const originalText = submitBtn.textContent;
+
+            if (password !== confirmPassword) {
+                showMessage('两次输入的密码不一致。', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('密码至少需要 6 个字符。', 'error');
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9]{3,30}$/.test(username)) {
+                showMessage('用户名只能包含字母和数字，长度为 3-30 个字符。', 'error');
+                return;
+            }
+
+            try {
+                submitBtn.textContent = '注册中';
+                submitBtn.disabled = true;
+                showMessage('', '');
+
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, name: username })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || '注册失败，请稍后重试。');
+                }
+
+                localStorage.setItem('authToken', data.data.token);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    ...data.data.user,
+                    isLoggedIn: true
+                }));
+
+                showMessage('注册成功，正在返回首页。', 'success');
+                window.location.href = 'index.html';
+            } catch (error) {
+                showMessage(error.message || '注册失败，请稍后重试。', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

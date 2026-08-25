@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="本草图标">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2f7d59"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="72" fill="#f6f3eb"/>
+  <circle cx="128" cy="128" r="96" fill="#e2f0e6"/>
+  <circle cx="128" cy="128" r="70" fill="#ffffff"/>
+  <path d="M128 60 C92 82, 74 116, 78 152 C82 190, 108 204, 128 206 C148 204, 174 190, 178 152 C182 116, 164 82, 128 60 Z" fill="url(#g)"/>
+  <path d="M128 82 C112 96, 104 112, 102 130 C100 150, 110 166, 128 182 C146 166, 156 150, 154 130 C152 112, 144 96, 128 82 Z" fill="#f6f3eb"/>
+  <path d="M96 145 C110 138, 122 132, 128 120 C134 132, 146 138, 160 145" fill="none" stroke="#f6f3eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

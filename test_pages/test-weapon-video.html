@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武器视频功能测试</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .test-section h2 {
+            color: #4ecdc4;
+            margin-top: 0;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .btn.success {
+            background: #28a745;
+        }
+        .btn.danger {
+            background: #dc3545;
+        }
+        .btn.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .result {
+            background: #333;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #4ecdc4;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #2d1b1b;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #1b2d1b;
+        }
+        .video-upload-form {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #444;
+            color: white;
+            box-sizing: border-box;
+        }
+        .video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .video-item {
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #555;
+        }
+        .video-item h4 {
+            margin: 0 0 10px 0;
+            color: #4ecdc4;
+        }
+        .video-item p {
+            margin: 5px 0;
+            color: #ccc;
+        }
+        .video-actions {
+            margin-top: 15px;
+        }
+        .video-actions button {
+            margin-right: 10px;
+        }
+        .loading {
+            text-align: center;
+            color: #ccc;
+            padding: 20px;
+        }
+        .loading i {
+            font-size: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-video"></i> 武器视频功能测试</h1>
+        
+        <!-- 后端连接测试 -->
+        <div class="test-section">
+            <h2>1. 后端连接测试</h2>
+            <button class="btn" onclick="testBackendConnection()">
+                <i class="fas fa-plug"></i> 测试后端连接
+            </button>
+            <div id="connectionResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 视频API测试 -->
+        <div class="test-section">
+            <h2>2. 视频API测试</h2>
+            <button class="btn" onclick="testVideoAPI()">
+                <i class="fas fa-video"></i> 测试视频API
+            </button>
+            <div id="videoAPIResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 武器列表获取 -->
+        <div class="test-section">
+            <h2>3. 武器列表获取</h2>
+            <button class="btn" onclick="loadWeaponsList()">
+                <i class="fas fa-list"></i> 加载武器列表
+            </button>
+            <div id="weaponsListResult" class="result" style="display: none;"></div>
+            <select id="weaponSelect" style="display: none; width: 100%; padding: 10px; margin: 10px 0; background: #444; color: white; border: 1px solid #555;">
+                <option value="">请选择武器</option>
+            </select>
+        </div>
+
+        <!-- 视频上传测试 -->
+        <div class="test-section">
+            <h2>4. 视频上传测试</h2>
+            <div class="video-upload-form">
+                <div class="form-group">
+                    <label for="uploadWeaponId">武器ID:</label>
+                    <input type="number" id="uploadWeaponId" placeholder="输入武器ID" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="videoFile">选择视频文件:</label>
+                    <input type="file" id="videoFile" accept="video/*">
+                </div>
+                <div class="form-group">
+                    <label for="videoDescription">视频描述:</label>
+                    <textarea id="videoDescription" rows="3" placeholder="输入视频描述（可选）"></textarea>
+                </div>
+                <button class="btn success" onclick="uploadVideo()">
+                    <i class="fas fa-upload"></i> 上传视频
+                </button>
+            </div>
+            <div id="uploadResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 视频列表查看 -->
+        <div class="test-section">
+            <h2>5. 视频列表查看</h2>
+            <div class="form-group">
+                <label for="viewWeaponId">武器ID:</label>
+                <input type="number" id="viewWeaponId" placeholder="输入武器ID" min="1">
+            </div>
+            <button class="btn" onclick="loadWeaponVideos()">
+                <i class="fas fa-eye"></i> 查看武器视频
+            </button>
+            <div id="videoListResult" class="result" style="display: none;"></div>
+            <div id="videosList" class="video-list"></div>
+        </div>
+
+        <!-- 视频删除测试 -->
+        <div class="test-section">
+            <h2>6. 视频删除测试</h2>
+            <div class="form-group">
+                <label for="deleteVideoId">视频ID:</label>
+                <input type="number" id="deleteVideoId" placeholder="输入要删除的视频ID" min="1">
+            </div>
+            <button class="btn danger" onclick="deleteVideo()">
+                <i class="fas fa-trash"></i> 删除视频
+            </button>
+            <div id="deleteResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 前后端连接状态 -->
+        <div class="test-section">
+            <h2>7. 前后端连接状态总结</h2>
+            <div id="connectionSummary">
+                <p><strong>前后端连接体现：</strong></p>
+                <ul>
+                    <li><strong>API通信：</strong> 前端通过HTTP请求与后端API进行数据交互</li>
+                    <li><strong>文件上传：</strong> 前端使用FormData上传视频文件到后端</li>
+                    <li><strong>数据存储：</strong> 后端将视频文件保存到本地，元数据存储到SQLite数据库</li>
+                    <li><strong>实时反馈：</strong> 后端处理结果实时返回给前端显示</li>
+                    <li><strong>错误处理：</strong> 前后端都有完整的错误处理机制</li>
+                    <li><strong>状态管理：</strong> 前端根据后端响应更新UI状态</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001';
+
+        // 测试后端连接
+        async function testBackendConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 正在测试连接...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4><i class="fas fa-check-circle"></i> 后端连接成功</h4>
+                            <p><strong>状态：</strong> ${data.status}</p>
+                            <p><strong>时间：</strong> ${data.timestamp}</p>
+                            <p><strong>服务器：</strong> ${API_BASE_URL}</p>
+                        </div>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4><i class="fas fa-exclamation-circle"></i> 后端连接失败</h4>
+                        <p><strong>错误：</strong> ${error.message}</p>
+                        <p><strong>建议：</strong> 请确保后端服务器正在运行在 ${API_BASE_URL}</p>
+                    </div>
+                `;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 测试视频API
+        async function testVideoAPI() {
+            const resultDiv = document.getElementById('videoAPIResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 正在测试视频API...</div>';
+
+            try {
+                // 测试获取视频列表API
+                const response = await fetch(`${API_BASE_URL}/api/weapon-videos/weapon/1`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4><i class="fas fa-check-circle"></i> 视频API测试成功</h4>
+                            <p><strong>API端点：</strong> /api/weapon-videos/weapon/1</p>
+                            <p><strong>响应状态：</strong> ${response.status}</p>
+                            <p><strong>数据格式：</strong> ${data.success ? '正确' : '错误'}</p>
+                            <p><strong>视频数量：</strong> ${data.data ? data.data.length : 0}</p>
+                        </div>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4><i class="fas fa-exclamation-circle"></i> 视频API测试失败</h4>
+                        <p><strong>错误：</strong> ${error.message}</p>
+                        <p><strong>可能原因：</strong> 视频API路由未正确配置或后端服务未启动</p>
+                    </div>
+                `;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 加载武器列表
+        async function loadWeaponsList() {
+            const resultDiv = document.getElementById('weaponsListResult');
+            const selectElement = document.getElementById('weaponSelect');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 正在加载武器列表...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/weapons?limit=20`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const weapons = data.data.weapons || data.data || [];
+                    
+                    // 填充选择框
+                    selectElement.innerHTML = '<option value="">请选择武器</option>';
+                    weapons.forEach(weapon => {
+                        const option = document.createElement('option');
+                        option.value = weapon.id;
+                        option.textContent = `${weapon.name} (ID: ${weapon.id})`;
+                        selectElement.appendChild(option);
+                    });
+                    
+                    selectElement.style.display = 'block';
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4><i class="fas fa-check-circle"></i> 武器列表加载成功</h4>
+                            <p><strong>武器数量：</strong> ${weapons.length}</p>
+                            <p><strong>数据来源：</strong> ${API_BASE_URL}/api/weapons</p>
+                        </div>
+                    `;
+                    resultDiv.className = 'result success';
+                    
+                    // 自动填充上传和查看表单
+                    if (weapons.length > 0) {
+                        document.getElementById('uploadWeaponId').value = weapons[0].id;
+                        document.getElementById('viewWeaponId').value = weapons[0].id;
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4><i class="fas fa-exclamation-circle"></i> 武器列表加载失败</h4>
+                        <p><strong>错误：</strong> ${error.message}</p>
+                    </div>
+                `;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 上传视频
+        async function uploadVideo() {
+            const weaponId = document.getElementById('uploadWeaponId').value;
+            const fileInput = document.getElementById('videoFile');
+            const description = document.getElementById('videoDescription').value;
+            const resultDiv = document.getElementById('uploadResult');
+
+            if (!weaponId) {
+                alert('请输入武器ID');
+                return;
+            }
+
+            if (!fileInput.files[0]) {
+                alert('请选择视频文件');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            
+            // 检查文件大小（限制为50MB）
+            if (file.size > 50 * 1024 * 1024) {
+                alert('视频文件大小不能超过50MB');
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 正在上传视频...</div>';
+
+            try {
+                const formData = new FormData();
+                formData.append('video', file);
+                formData.append('description', description);
+
+                const response = await fetch(`${API_BASE_URL}/api/weapon-videos/weapon/${weaponId}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4><i class="fas fa-check-circle"></i> 视频上传成功</h4>
+                            <p><strong>视频ID：</strong> ${data.data.id}</p>
+                            <p><strong>文件名：</strong> ${data.data.filename}</p>
+                            <p><strong>文件大小：</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <p><strong>上传时间：</strong> ${new Date().toLocaleString()}</p>
+                        </div>
+                    `;
+                    resultDiv.className = 'result success';
+                    
+                    // 清空表单
+                    fileInput.value = '';
+                    document.getElementById('videoDescription').value = '';
+                } else {
+                    throw new Error(data.message || '上传失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4><i class="fas fa-exclamation-circle"></i> 视频上传失败</h4>
+                        <p><strong>错误：</strong> ${error.message}</p>
+                    </div>
+                `;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 加载武器视频
+        async function loadWeaponVideos() {
+            const weaponId = document.getElementById('viewWeaponId').value;
+            const resultDiv = document.getElementById('videoListResult');
+            const videosList = document.getElementById('videosList');
+
+            if (!weaponId) {
+                alert('请输入武器ID');
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 正在加载视频列表...</div>';
+            videosList.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/weapon-videos/weapon/${weaponId}`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    const videos = data.data || [];
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4><i class="fas fa-check-circle"></i> 视频列表加载成功</h4>
+                            <p><strong>视频数量：</strong> ${videos.length}</p>
+                            <p><strong>武器ID：</strong> ${weaponId}</p>
+                        </div>
+                    `;
+                    resultDiv.className = 'result success';
+
+                    if (videos.length > 0) {
+                        videosList.innerHTML = videos.map(video => `
+                            <div class="video-item">
+                                <h4><i class="fas fa-video"></i> ${video.filename}</h4>
+                                <p><strong>ID：</strong> ${video.id}</p>
+                                <p><strong>描述：</strong> ${video.description || '无描述'}</p>
+                                <p><strong>文件大小：</strong> ${video.file_size ? (video.file_size / 1024 / 1024).toFixed(2) + ' MB' : '未知'}</p>
+                                <p><strong>上传时间：</strong> ${new Date(video.created_at).toLocaleString()}</p>
+                                <div class="video-actions">
+                                    <button class="btn" onclick="playVideo('${video.file_path}')">
+                                        <i class="fas fa-play"></i> 播放
+                                    </button>
+                                    <button class="btn danger" onclick="setDeleteVideoId(${video.id})">
+                                        <i class="fas fa-trash"></i> 删除
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        videosList.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">该武器暂无视频</p>';
+                    }
+                } else {
+                    throw new Error(data.message || '加载失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4><i class="fas fa-exclamation-circle"></i> 视频列表加载失败</h4>
+                        <p><strong>错误：</strong> ${error.message}</p>
+                    </div>
+                `;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 播放视频
+        function playVideo(filePath) {
+            const videoUrl = `${API_BASE_URL}/api/weapon-videos/file/${encodeURIComponent(filePath)}`;
+            window.open(videoUrl, '_blank');
+        }
+
+        // 设置删除视频ID
+        function setDeleteVideoId(videoId) {
+            document.getElementById('deleteVideoId').value = videoId;
+        }
+
+        // 删除视频
+        async function deleteVideo() {
+            const videoId = document.getElementById('deleteVideoId').value;
+            const resultDiv = document.getElementById('deleteResult');
+
+            if (!videoId) {
+                alert('请输入视频ID');
+                return;
+            }
+
+            if (!confirm('确定要删除这个视频吗？此操作不可撤销。')) {
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 正在删除视频...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/weapon-videos/${videoId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4><i class="fas fa-check-circle"></i> 视频删除成功</h4>
+                            <p><strong>视频ID：</strong> ${videoId}</p>
+                            <p><strong>删除时间：</strong> ${new Date().toLocaleString()}</p>
+                        </div>
+                    `;
+                    resultDiv.className = 'result success';
+                    
+                    // 清空输入框
+                    document.getElementById('deleteVideoId').value = '';
+                } else {
+                    throw new Error(data.message || '删除失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4><i class="fas fa-exclamation-circle"></i> 视频删除失败</h4>
+                        <p><strong>错误：</strong> ${error.message}</p>
+                    </div>
+                `;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // 页面加载时自动测试连接
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                testBackendConnection();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

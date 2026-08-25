@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兵智世界后端API测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .section h2 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left: 4px solid #27ae60;
+        }
+        .error {
+            border-left: 4px solid #e74c3c;
+            background-color: #fdf2f2;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ 兵智世界后端API测试平台</h1>
+        
+        <!-- 系统状态 -->
+        <div class="section">
+            <h2>📊 系统状态</h2>
+            <button onclick="checkHealth()">检查系统健康状态</button>
+            <button onclick="getApiInfo()">获取API信息</button>
+            <div id="health-result" class="result"></div>
+        </div>
+
+        <!-- 用户认证 -->
+        <div class="section">
+            <h2>👤 用户认证</h2>
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="username" value="testuser" placeholder="输入用户名">
+                <label>邮箱:</label>
+                <input type="email" id="email" value="test@example.com" placeholder="输入邮箱">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="password" value="123456" placeholder="输入密码">
+                <label>姓名:</label>
+                <input type="text" id="name" value="测试用户" placeholder="输入姓名">
+            </div>
+            <button onclick="registerUser()">用户注册</button>
+            <button onclick="loginUser()">用户登录</button>
+            <button onclick="getUserProfile()">获取用户信息</button>
+            <div id="auth-result" class="result"></div>
+        </div>
+
+        <!-- 武器数据 -->
+        <div class="section">
+            <h2>⚔️ 武器数据</h2>
+            <div class="form-group">
+                <label>搜索:</label>
+                <input type="text" id="search-term" placeholder="输入搜索关键词">
+                <label>类型:</label>
+                <select id="weapon-type">
+                    <option value="">全部类型</option>
+                    <option value="步枪">步枪</option>
+                    <option value="手枪">手枪</option>
+                    <option value="机枪">机枪</option>
+                    <option value="狙击枪">狙击枪</option>
+                    <option value="火箭筒">火箭筒</option>
+                </select>
+                <label>国家:</label>
+                <select id="weapon-country">
+                    <option value="">全部国家</option>
+                    <option value="美国">美国</option>
+                    <option value="俄罗斯">俄罗斯</option>
+                    <option value="中国">中国</option>
+                    <option value="德国">德国</option>
+                </select>
+            </div>
+            <button onclick="getWeapons()">获取武器列表</button>
+            <button onclick="searchWeapons()">搜索武器</button>
+            <button onclick="getWeaponStats()">获取武器统计</button>
+            <div id="weapons-result" class="result"></div>
+        </div>
+
+        <!-- 武器详情 -->
+        <div class="section">
+            <h2>🔍 武器详情</h2>
+            <div class="form-group">
+                <label>武器ID:</label>
+                <input type="text" id="weapon-id" placeholder="输入武器ID">
+            </div>
+            <button onclick="getWeaponDetail()">获取武器详情</button>
+            <button onclick="getSimilarWeapons()">获取相似武器</button>
+            <div id="detail-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        let authToken = '';
+
+        // 显示结果
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+
+        // 系统健康检查
+        async function checkHealth() {
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                showResult('health-result', data);
+            } catch (error) {
+                showResult('health-result', { error: error.message }, true);
+            }
+        }
+
+        // 获取API信息
+        async function getApiInfo() {
+            try {
+                const response = await fetch(API_BASE);
+                const data = await response.json();
+                showResult('health-result', data);
+            } catch (error) {
+                showResult('health-result', { error: error.message }, true);
+            }
+        }
+
+        // 用户注册
+        async function registerUser() {
+            try {
+                const userData = {
+                    username: document.getElementById('username').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    name: document.getElementById('name').value
+                };
+
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    authToken = data.data.token;
+                }
+                showResult('auth-result', data, !response.ok);
+            } catch (error) {
+                showResult('auth-result', { error: error.message }, true);
+            }
+        }
+
+        // 用户登录
+        async function loginUser() {
+            try {
+                const loginData = {
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value
+                };
+
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    authToken = data.data.token;
+                }
+                showResult('auth-result', data, !response.ok);
+            } catch (error) {
+                showResult('auth-result', { error: error.message }, true);
+            }
+        }
+
+        // 获取用户信息
+        async function getUserProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                showResult('auth-result', data, !response.ok);
+            } catch (error) {
+                showResult('auth-result', { error: error.message }, true);
+            }
+        }
+
+        // 获取武器列表
+        async function getWeapons() {
+            try {
+                const type = document.getElementById('weapon-type').value;
+                const country = document.getElementById('weapon-country').value;
+                
+                let url = `${API_BASE}/weapons?`;
+                if (type) url += `category=${type}&`;
+                if (country) url += `country=${country}&`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                showResult('weapons-result', data, !response.ok);
+            } catch (error) {
+                showResult('weapons-result', { error: error.message }, true);
+            }
+        }
+
+        // 搜索武器
+        async function searchWeapons() {
+            try {
+                const searchTerm = document.getElementById('search-term').value;
+                if (!searchTerm) {
+                    alert('请输入搜索关键词');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/weapons/search?q=${encodeURIComponent(searchTerm)}`);
+                const data = await response.json();
+                showResult('weapons-result', data, !response.ok);
+            } catch (error) {
+                showResult('weapons-result', { error: error.message }, true);
+            }
+        }
+
+        // 获取武器统计
+        async function getWeaponStats() {
+            try {
+                const response = await fetch(`${API_BASE}/weapons/statistics`);
+                const data = await response.json();
+                showResult('weapons-result', data, !response.ok);
+            } catch (error) {
+                showResult('weapons-result', { error: error.message }, true);
+            }
+        }
+
+        // 获取武器详情
+        async function getWeaponDetail() {
+            try {
+                const weaponId = document.getElementById('weapon-id').value;
+                if (!weaponId) {
+                    alert('请输入武器ID');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/weapons/${weaponId}`);
+                const data = await response.json();
+                showResult('detail-result', data, !response.ok);
+            } catch (error) {
+                showResult('detail-result', { error: error.message }, true);
+            }
+        }
+
+        // 获取相似武器
+        async function getSimilarWeapons() {
+            try {
+                const weaponId = document.getElementById('weapon-id').value;
+                if (!weaponId) {
+                    alert('请输入武器ID');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/weapons/${weaponId}/similar`);
+                const data = await response.json();
+                showResult('detail-result', data, !response.ok);
+            } catch (error) {
+                showResult('detail-result', { error: error.message }, true);
+            }
+        }
+
+        // 页面加载时自动检查系统状态
+        window.onload = function() {
+            checkHealth();
+        };
+    </script>
+</body>
+</html>

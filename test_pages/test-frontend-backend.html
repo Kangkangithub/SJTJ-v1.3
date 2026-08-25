@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前后端连接测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 前后端连接测试工具</h1>
+        <p>这个工具可以帮助您测试前端页面与后端API的连接状态</p>
+
+        <!-- 1. 健康检查 -->
+        <div class="test-section">
+            <h3>1. 🏥 后端服务健康检查</h3>
+            <p>测试后端服务是否正常运行</p>
+            <button onclick="testHealth()">检查服务状态</button>
+            <div id="health-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 2. 用户注册测试 -->
+        <div class="test-section">
+            <h3>2. 📝 用户注册测试</h3>
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="reg-username" value="testuser" placeholder="输入用户名">
+            </div>
+            <div class="form-group">
+                <label>邮箱:</label>
+                <input type="email" id="reg-email" value="test@example.com" placeholder="输入邮箱">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="reg-password" value="123456" placeholder="输入密码">
+            </div>
+            <div class="form-group">
+                <label>姓名:</label>
+                <input type="text" id="reg-name" value="测试用户" placeholder="输入姓名">
+            </div>
+            <button onclick="testRegister()">测试注册</button>
+            <div id="register-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 3. 用户登录测试 -->
+        <div class="test-section">
+            <h3>3. 🔐 用户登录测试</h3>
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="login-username" value="testuser" placeholder="输入用户名">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="login-password" value="123456" placeholder="输入密码">
+            </div>
+            <button onclick="testLogin()">测试登录</button>
+            <div id="login-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 4. 获取用户信息测试 -->
+        <div class="test-section">
+            <h3>4. 👤 获取用户信息测试</h3>
+            <p>需要先登录获取令牌</p>
+            <button onclick="testProfile()">获取用户信息</button>
+            <div id="profile-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 5. 更新用户信息测试 -->
+        <div class="test-section">
+            <h3>5. ✏️ 更新用户信息测试</h3>
+            <div class="form-group">
+                <label>姓名:</label>
+                <input type="text" id="update-name" value="更新后的姓名" placeholder="输入新姓名">
+            </div>
+            <div class="form-group">
+                <label>手机号:</label>
+                <input type="text" id="update-phone" value="13800138000" placeholder="输入手机号">
+            </div>
+            <div class="form-group">
+                <label>个人简介:</label>
+                <textarea id="update-bio" placeholder="输入个人简介">这是更新后的个人简介</textarea>
+            </div>
+            <button onclick="testUpdateProfile()">更新用户信息</button>
+            <div id="update-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 6. 完整流程测试 -->
+        <div class="test-section">
+            <h3>6. 🔄 完整流程测试</h3>
+            <p>自动执行：注册 → 登录 → 获取信息 → 更新信息</p>
+            <button onclick="testFullFlow()">执行完整流程测试</button>
+            <div id="flow-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        let currentToken = null;
+
+        // 显示结果
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        // 1. 健康检查
+        async function testHealth() {
+            try {
+                showResult('health-result', '正在检查服务状态...', 'info');
+                
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('health-result', 
+                        `✅ 服务运行正常\n状态码: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('health-result', 
+                        `❌ 服务异常\n状态码: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('health-result', 
+                    `❌ 连接失败\n错误: ${error.message}\n请确保后端服务正在运行在 ${API_BASE}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 2. 注册测试
+        async function testRegister() {
+            try {
+                showResult('register-result', '正在测试用户注册...', 'info');
+                
+                const userData = {
+                    username: document.getElementById('reg-username').value,
+                    email: document.getElementById('reg-email').value,
+                    password: document.getElementById('reg-password').value,
+                    name: document.getElementById('reg-name').value
+                };
+
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentToken = data.data?.token;
+                    showResult('register-result', 
+                        `✅ 注册成功\n状态码: ${response.status}\n用户ID: ${data.data?.user?.id}\n令牌已保存`, 
+                        'success'
+                    );
+                } else {
+                    showResult('register-result', 
+                        `❌ 注册失败\n状态码: ${response.status}\n错误: ${data.message || '未知错误'}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('register-result', 
+                    `❌ 注册请求失败\n错误: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 3. 登录测试
+        async function testLogin() {
+            try {
+                showResult('login-result', '正在测试用户登录...', 'info');
+                
+                const loginData = {
+                    username: document.getElementById('login-username').value,
+                    password: document.getElementById('login-password').value
+                };
+
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentToken = data.data?.token;
+                    showResult('login-result', 
+                        `✅ 登录成功\n状态码: ${response.status}\n用户: ${data.data?.user?.username}\n令牌已保存`, 
+                        'success'
+                    );
+                } else {
+                    showResult('login-result', 
+                        `❌ 登录失败\n状态码: ${response.status}\n错误: ${data.message || '未知错误'}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('login-result', 
+                    `❌ 登录请求失败\n错误: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 4. 获取用户信息测试
+        async function testProfile() {
+            try {
+                if (!currentToken) {
+                    showResult('profile-result', '❌ 请先登录获取令牌', 'error');
+                    return;
+                }
+
+                showResult('profile-result', '正在获取用户信息...', 'info');
+
+                const response = await fetch(`${API_BASE}/api/auth/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('profile-result', 
+                        `✅ 获取用户信息成功\n状态码: ${response.status}\n用户信息: ${JSON.stringify(data.data, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('profile-result', 
+                        `❌ 获取用户信息失败\n状态码: ${response.status}\n错误: ${data.message || '未知错误'}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('profile-result', 
+                    `❌ 获取用户信息请求失败\n错误: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 5. 更新用户信息测试
+        async function testUpdateProfile() {
+            try {
+                if (!currentToken) {
+                    showResult('update-result', '❌ 请先登录获取令牌', 'error');
+                    return;
+                }
+
+                showResult('update-result', '正在更新用户信息...', 'info');
+
+                const updateData = {
+                    name: document.getElementById('update-name').value,
+                    phone: document.getElementById('update-phone').value,
+                    bio: document.getElementById('update-bio').value
+                };
+
+                const response = await fetch(`${API_BASE}/api/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('update-result', 
+                        `✅ 更新用户信息成功\n状态码: ${response.status}\n更新后信息: ${JSON.stringify(data.data, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('update-result', 
+                        `❌ 更新用户信息失败\n状态码: ${response.status}\n错误: ${data.message || '未知错误'}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('update-result', 
+                    `❌ 更新用户信息请求失败\n错误: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 6. 完整流程测试
+        async function testFullFlow() {
+            showResult('flow-result', '开始执行完整流程测试...', 'info');
+            
+            let results = [];
+            
+            try {
+                // 生成随机用户名避免冲突
+                const randomId = Math.floor(Math.random() * 10000);
+                const testUsername = `flowtest${randomId}`;
+                const testEmail = `flowtest${randomId}@example.com`;
+                
+                // 1. 注册
+                results.push('1. 开始注册测试...');
+                const registerResponse = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: testUsername,
+                        email: testEmail,
+                        password: '123456',
+                        name: '流程测试用户'
+                    })
+                });
+                
+                if (!registerResponse.ok) {
+                    throw new Error(`注册失败: ${registerResponse.status}`);
+                }
+                
+                const registerData = await registerResponse.json();
+                currentToken = registerData.data?.token;
+                results.push('✅ 注册成功');
+                
+                // 2. 登录
+                results.push('2. 开始登录测试...');
+                const loginResponse = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: testUsername,
+                        password: '123456'
+                    })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error(`登录失败: ${loginResponse.status}`);
+                }
+                
+                const loginData = await loginResponse.json();
+                currentToken = loginData.data?.token;
+                results.push('✅ 登录成功');
+                
+                // 3. 获取用户信息
+                results.push('3. 开始获取用户信息...');
+                const profileResponse = await fetch(`${API_BASE}/api/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (!profileResponse.ok) {
+                    throw new Error(`获取用户信息失败: ${profileResponse.status}`);
+                }
+                
+                results.push('✅ 获取用户信息成功');
+                
+                // 4. 更新用户信息
+                results.push('4. 开始更新用户信息...');
+                const updateResponse = await fetch(`${API_BASE}/api/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: '更新后的流程测试用户',
+                        phone: '13800138000',
+                        bio: '这是通过完整流程测试更新的个人简介'
+                    })
+                });
+                
+                if (!updateResponse.ok) {
+                    throw new Error(`更新用户信息失败: ${updateResponse.status}`);
+                }
+                
+                results.push('✅ 更新用户信息成功');
+                results.push('');
+                results.push('🎉 完整流程测试全部通过！');
+                results.push('前后端连接正常，所有功能都可以正常使用。');
+                
+                showResult('flow-result', results.join('\n'), 'success');
+                
+            } catch (error) {
+                results.push('');
+                results.push(`❌ 流程测试失败: ${error.message}`);
+                showResult('flow-result', results.join('\n'), 'error');
+            }
+        }
+
+        // 页面加载时自动检查服务状态
+        window.addEventListener('load', function() {
+            setTimeout(testHealth, 1000);
+        });
+    </script>
+</body>
+</html>

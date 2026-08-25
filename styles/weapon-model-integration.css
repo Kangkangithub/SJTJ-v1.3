@@ -1,0 +1,463 @@
+/* 武器3D模型管理样式 */
+.weapon-model-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.model-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #007bff;
+}
+
+.model-section-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.model-section-header h4 i {
+    color: #007bff;
+}
+
+/* 3D模型上传区域 */
+.model-upload-area {
+    background: white;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.model-upload-area:hover {
+    border-color: #007bff;
+    background: #f8f9ff;
+}
+
+.model-upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.model-file-input-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.model-file-input-wrapper input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.model-file-input-content {
+    text-align: center;
+    padding: 30px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.model-file-input-wrapper:hover .model-file-input-content {
+    border-color: #007bff;
+    background: #f8f9ff;
+}
+
+.model-file-input-content i {
+    font-size: 48px;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.model-file-input-content div {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.model-file-input-content small {
+    color: #666;
+    font-size: 12px;
+}
+
+.model-description-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.model-upload-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* 3D模型展示网格 */
+.weapon-models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.model-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.model-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.model-preview {
+    width: 100%;
+    height: 150px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.model-preview i {
+    font-size: 48px;
+    color: white;
+    opacity: 0.8;
+}
+
+.model-format-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.model-info {
+    padding: 12px;
+}
+
+.model-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+.model-description {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    max-height: 40px;
+    overflow: hidden;
+}
+
+.model-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.model-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.model-action-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.model-action-btn.view {
+    background: #007bff;
+    color: white;
+}
+
+.model-action-btn.edit {
+    background: #28a745;
+    color: white;
+}
+
+.model-action-btn.delete {
+    background: #dc3545;
+    color: white;
+}
+
+.model-action-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+/* 3D模型查看器 */
+.model-viewer-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+}
+
+.model-viewer-content {
+    position: relative;
+    margin: 2% auto;
+    width: 90%;
+    height: 90%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.model-viewer-header {
+    background: #333;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.model-viewer-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.model-viewer-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.model-viewer-body {
+    height: calc(100% - 70px);
+    position: relative;
+}
+
+.model-canvas-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.model-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.model-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    padding: 10px 20px;
+    border-radius: 25px;
+    display: flex;
+    gap: 10px;
+}
+
+.model-control-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.model-control-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.model-info-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 250px;
+}
+
+.model-info-panel h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+}
+
+.model-info-panel p {
+    margin: 5px 0;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* 加载状态 */
+.loading-models {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.loading-models i {
+    font-size: 24px;
+    margin-bottom: 10px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.no-models {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.no-models i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+/* 消息提示 */
+.model-message {
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.model-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.model-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.model-message.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .weapon-models-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .model-viewer-content {
+        margin: 1% auto;
+        width: 95%;
+        height: 95%;
+    }
+    
+    .model-info-panel {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin: 10px;
+        max-width: none;
+    }
+    
+    .model-controls {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        margin: 10px;
+        justify-content: center;
+    }
+}
+
+/* 文件格式图标 */
+.model-format-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.model-format-icon i {
+    font-size: 20px !important;
+    color: white;
+}
+
+/* 上传进度 */
+.model-upload-progress {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.model-upload-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    width: 0%;
+    transition: width 0.3s ease;
+}

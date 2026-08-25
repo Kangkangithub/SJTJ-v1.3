@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前后端连接测试 - 兵智世界</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .test-section h2 {
+            color: #2980b9;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .test-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .result-box {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .info {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .upload-section {
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .file-input {
+            margin: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .connected {
+            background: #27ae60;
+        }
+
+        .disconnected {
+            background: #e74c3c;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-endpoint {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">
+        <span class="loading"></span>检查连接中...
+    </div>
+
+    <div class="container">
+        <h1>🔗 前后端连接测试</h1>
+        
+        <!-- 服务器状态检查 -->
+        <div class="test-section">
+            <h2>1. 服务器状态检查</h2>
+            <p>测试后端服务器是否正常运行</p>
+            <div class="api-endpoint">GET http://localhost:3000/health</div>
+            <button class="test-button" onclick="testServerHealth()">检查服务器状态</button>
+            <div class="result-box" id="healthResult"></div>
+        </div>
+
+        <!-- API端点测试 -->
+        <div class="test-section">
+            <h2>2. API端点测试</h2>
+            <p>测试各个API端点的连通性</p>
+            <div class="api-endpoint">GET http://localhost:3000/api</div>
+            <button class="test-button" onclick="testApiEndpoints()">测试API端点</button>
+            <div class="result-box" id="apiResult"></div>
+        </div>
+
+        <!-- 武器数据获取 -->
+        <div class="test-section">
+            <h2>3. 武器数据获取</h2>
+            <p>从后端获取武器数据，展示数据交互</p>
+            <div class="api-endpoint">GET http://localhost:3000/api/weapons</div>
+            <button class="test-button" onclick="testWeaponData()">获取武器数据</button>
+            <button class="test-button" onclick="testWeaponSearch()">搜索武器</button>
+            <div class="result-box" id="weaponResult"></div>
+        </div>
+
+        <!-- 图片上传测试 -->
+        <div class="test-section">
+            <h2>4. 文件上传测试</h2>
+            <p>测试前端向后端上传文件的功能</p>
+            <div class="upload-section">
+                <input type="file" id="imageFile" class="file-input" accept="image/*">
+                <button class="test-button" onclick="testImageUpload()">上传图片</button>
+            </div>
+            <div class="upload-section">
+                <input type="file" id="videoFile" class="file-input" accept="video/*">
+                <button class="test-button" onclick="testVideoUpload()">上传视频</button>
+            </div>
+            <div class="result-box" id="uploadResult"></div>
+        </div>
+
+        <!-- 数据库操作测试 -->
+        <div class="test-section">
+            <h2>5. 数据库操作测试</h2>
+            <p>测试前端通过后端进行数据库CRUD操作</p>
+            <div class="api-endpoint">POST/PUT/DELETE http://localhost:3000/api/weapons</div>
+            <button class="test-button" onclick="testDatabaseOperations()">测试数据库操作</button>
+            <div class="result-box" id="dbResult"></div>
+        </div>
+
+        <!-- 实时数据测试 -->
+        <div class="test-section">
+            <h2>6. 统计数据获取</h2>
+            <p>获取制造商统计、武器类型等统计数据</p>
+            <div class="api-endpoint">GET http://localhost:3000/api/manufacturer-statistics</div>
+            <button class="test-button" onclick="testStatistics()">获取统计数据</button>
+            <div class="result-box" id="statsResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        
+        // 页面加载时检查连接状态
+        window.onload = function() {
+            checkConnectionStatus();
+        };
+
+        // 检查连接状态
+        async function checkConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    statusElement.innerHTML = '✅ 后端已连接';
+                    statusElement.className = 'connection-status connected';
+                } else {
+                    throw new Error('服务器响应异常');
+                }
+            } catch (error) {
+                statusElement.innerHTML = '❌ 后端未连接';
+                statusElement.className = 'connection-status disconnected';
+            }
+        }
+
+        // 测试服务器健康状态
+        async function testServerHealth() {
+            const resultElement = document.getElementById('healthResult');
+            resultElement.innerHTML = '<span class="info">正在检查服务器状态...</span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                resultElement.innerHTML = `
+                    <span class="success">✅ 服务器运行正常</span><br>
+                    <strong>响应数据:</strong><br>
+                    ${JSON.stringify(data, null, 2)}
+                `;
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ 服务器连接失败: ${error.message}</span>`;
+            }
+        }
+
+        // 测试API端点
+        async function testApiEndpoints() {
+            const resultElement = document.getElementById('apiResult');
+            resultElement.innerHTML = '<span class="info">正在测试API端点...</span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api`);
+                const data = await response.json();
+                
+                resultElement.innerHTML = `
+                    <span class="success">✅ API端点正常</span><br>
+                    <strong>可用端点:</strong><br>
+                    ${JSON.stringify(data.endpoints, null, 2)}
+                `;
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ API端点测试失败: ${error.message}</span>`;
+            }
+        }
+
+        // 测试武器数据获取
+        async function testWeaponData() {
+            const resultElement = document.getElementById('weaponResult');
+            resultElement.innerHTML = '<span class="info">正在获取武器数据...</span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/weapons?limit=5`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultElement.innerHTML = `
+                        <span class="success">✅ 武器数据获取成功</span><br>
+                        <strong>获取到 ${data.data.length} 条武器数据:</strong><br>
+                        ${data.data.map(weapon => `• ${weapon.name} (${weapon.type})`).join('<br>')}
+                    `;
+                } else {
+                    resultElement.innerHTML = `<span class="error">❌ 获取失败: ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ 请求失败: ${error.message}</span>`;
+            }
+        }
+
+        // 测试武器搜索
+        async function testWeaponSearch() {
+            const resultElement = document.getElementById('weaponResult');
+            resultElement.innerHTML = '<span class="info">正在搜索武器...</span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/weapons/search?q=坦克&limit=3`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultElement.innerHTML = `
+                        <span class="success">✅ 武器搜索成功</span><br>
+                        <strong>搜索"坦克"结果 (${data.data.length} 条):</strong><br>
+                        ${data.data.map(weapon => `• ${weapon.name} - ${weapon.description?.substring(0, 50)}...`).join('<br>')}
+                    `;
+                } else {
+                    resultElement.innerHTML = `<span class="error">❌ 搜索失败: ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ 搜索请求失败: ${error.message}</span>`;
+            }
+        }
+
+        // 测试图片上传
+        async function testImageUpload() {
+            const fileInput = document.getElementById('imageFile');
+            const resultElement = document.getElementById('uploadResult');
+            
+            if (!fileInput.files[0]) {
+                resultElement.innerHTML = '<span class="error">❌ 请先选择图片文件</span>';
+                return;
+            }
+            
+            resultElement.innerHTML = '<span class="info">正在上传图片...</span>';
+            
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            formData.append('description', '测试上传的图片');
+            
+            try {
+                // 假设武器ID为1
+                const response = await fetch(`${API_BASE}/api/weapon-images/weapon/1/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultElement.innerHTML = `
+                        <span class="success">✅ 图片上传成功</span><br>
+                        <strong>文件信息:</strong><br>
+                        • 文件名: ${data.data.filename}<br>
+                        • 大小: ${(data.data.fileSize / 1024).toFixed(2)} KB<br>
+                        • 类型: ${data.data.mimeType}
+                    `;
+                } else {
+                    resultElement.innerHTML = `<span class="error">❌ 上传失败: ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ 上传请求失败: ${error.message}</span>`;
+            }
+        }
+
+        // 测试视频上传
+        async function testVideoUpload() {
+            const fileInput = document.getElementById('videoFile');
+            const resultElement = document.getElementById('uploadResult');
+            
+            if (!fileInput.files[0]) {
+                resultElement.innerHTML = '<span class="error">❌ 请先选择视频文件</span>';
+                return;
+            }
+            
+            resultElement.innerHTML = '<span class="info">正在上传视频...</span>';
+            
+            const formData = new FormData();
+            formData.append('video', fileInput.files[0]);
+            formData.append('description', '测试上传的视频');
+            
+            try {
+                // 假设武器ID为1
+                const response = await fetch(`${API_BASE}/api/weapon-videos/weapon/1/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultElement.innerHTML = `
+                        <span class="success">✅ 视频上传成功</span><br>
+                        <strong>文件信息:</strong><br>
+                        • 文件名: ${data.data.filename}<br>
+                        • 大小: ${(data.data.fileSize / 1024 / 1024).toFixed(2)} MB<br>
+                        • 类型: ${data.data.mimeType}
+                    `;
+                } else {
+                    resultElement.innerHTML = `<span class="error">❌ 上传失败: ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ 上传请求失败: ${error.message}</span>`;
+            }
+        }
+
+        // 测试数据库操作
+        async function testDatabaseOperations() {
+            const resultElement = document.getElementById('dbResult');
+            resultElement.innerHTML = '<span class="info">正在测试数据库操作...</span>';
+            
+            try {
+                // 1. 创建测试武器
+                const createResponse = await fetch(`${API_BASE}/api/weapons`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-user': 'true'
+                    },
+                    body: JSON.stringify({
+                        name: '测试武器_' + Date.now(),
+                        type: '测试类型',
+                        country: '测试国家',
+                        manufacturer: '测试制造商',
+                        description: '这是一个测试武器，用于验证前后端连接'
+                    })
+                });
+                
+                const createData = await createResponse.json();
+                
+                if (createData.success) {
+                    const weaponId = createData.data.id;
+                    
+                    // 2. 更新武器信息
+                    const updateResponse = await fetch(`${API_BASE}/api/weapons/${weaponId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-user': 'true'
+                        },
+                        body: JSON.stringify({
+                            description: '更新后的描述 - 前后端连接测试成功'
+                        })
+                    });
+                    
+                    const updateData = await updateResponse.json();
+                    
+                    // 3. 删除测试武器
+                    const deleteResponse = await fetch(`${API_BASE}/api/weapons/${weaponId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'x-admin-user': 'true'
+                        }
+                    });
+                    
+                    const deleteData = await deleteResponse.json();
+                    
+                    resultElement.innerHTML = `
+                        <span class="success">✅ 数据库操作测试成功</span><br>
+                        <strong>操作结果:</strong><br>
+                        • 创建武器: ${createData.success ? '成功' : '失败'}<br>
+                        • 更新武器: ${updateData.success ? '成功' : '失败'}<br>
+                        • 删除武器: ${deleteData.success ? '成功' : '失败'}<br>
+                        <strong>测试武器ID:</strong> ${weaponId}
+                    `;
+                } else {
+                    resultElement.innerHTML = `<span class="error">❌ 创建测试武器失败: ${createData.message}</span>`;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ 数据库操作测试失败: ${error.message}</span>`;
+            }
+        }
+
+        // 测试统计数据
+        async function testStatistics() {
+            const resultElement = document.getElementById('statsResult');
+            resultElement.innerHTML = '<span class="info">正在获取统计数据...</span>';
+            
+            try {
+                const [manufacturerResponse, typeResponse] = await Promise.all([
+                    fetch(`${API_BASE}/api/manufacturer-statistics`),
+                    fetch(`${API_BASE}/api/weapon-types`)
+                ]);
+                
+                const manufacturerData = await manufacturerResponse.json();
+                const typeData = await typeResponse.json();
+                
+                if (manufacturerData.success && typeData.success) {
+                    resultElement.innerHTML = `
+                        <span class="success">✅ 统计数据获取成功</span><br>
+                        <strong>制造商统计 (前5名):</strong><br>
+                        ${manufacturerData.data.slice(0, 5).map(item => 
+                            `• ${item.manufacturer}: ${item.weapon_count} 种武器`
+                        ).join('<br>')}<br><br>
+                        <strong>武器类型统计:</strong><br>
+                        ${typeData.data.slice(0, 5).map(item => 
+                            `• ${item.type}: ${item.count} 种`
+                        ).join('<br>')}
+                    `;
+                } else {
+                    resultElement.innerHTML = `<span class="error">❌ 获取统计数据失败</span>`;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">❌ 统计数据请求失败: ${error.message}</span>`;
+            }
+        }
+
+        // 定期检查连接状态
+        setInterval(checkConnectionStatus, 30000); // 每30秒检查一次
+    </script>
+</body>
+</html>
