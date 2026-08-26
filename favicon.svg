@@ -1,4 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-  <rect width="16" height="16" fill="#667eea"/>
-  <text x="8" y="12" text-anchor="middle" fill="white" font-family="Arial" font-size="10" font-weight="bold">兵</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f7651"/>
+      <stop offset="1" stop-color="#14766f"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#g)"/>
+  <path d="M16 4.5C21.5 8 25.5 13 25.5 18 25.5 22 21.5 25.5 16 25.5 10.5 25.5 6.5 22 6.5 18 6.5 13 10.5 8 16 4.5Z" fill="#ffffff"/>
+  <path d="M16 8.5V22.5" stroke="#2f7651" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="16" cy="9" r="1.8" fill="#c67517"/>
 </svg>
