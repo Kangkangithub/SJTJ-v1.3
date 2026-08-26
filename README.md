@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![神农AI](favicon.svg)
+![神农AI](Alogo.png)
 
 **基于 Neo4j AuraDB 知识图谱的中医药数据可视化、药材管理与 GraphRAG 智能问答系统**
 
