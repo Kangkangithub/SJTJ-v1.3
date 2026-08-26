@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![神农AI](favicon.svg)
+<img src="Alogo.png" alt="神农AI Logo" width="140">
 
 **基于 Neo4j AuraDB 知识图谱的中医药数据可视化、药材管理与 GraphRAG 智能问答系统**
 
@@ -211,47 +211,6 @@ http://localhost:3001
 | 知识图谱可视化 | `http://localhost:3001/knowledge-graph.html` |
 | GraphRAG 智能问答 | `http://localhost:3001/qa.html` |
 | 系统首页 | `http://localhost:3001/index.html` |
-
----
-
-## 🤝 给同学运行（多人协作）
-
-如果你要把项目分享给同学，让她在另一台电脑运行，请使用下面的方式，**不要**把真实密钥提交到 Git。
-
-### 正确做法：私聊发送 `.env`
-
-1. 你把本机这个文件通过微信、QQ、飞书、钉钉或加密邮件发给对方：
-
-```text
-backend\.env
-```
-
-2. 对方 `git pull` 或拿到项目后，把这个文件放进她本机的：
-
-```text
-D:\K3\SJTJ-v1.3\backend\.env
-```
-
-3. 然后运行：
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-4. 浏览器访问：
-
-```text
-http://localhost:3001
-```
-
-### 注意
-
-- `backend/.env` 已被 Git 忽略，正常情况下不会提交到仓库
-- 如果只是临时共用一个 Neo4j AuraDB，发送 `.env` 是最简单的方式
-- 不要把 `.env` 发到公开仓库、群里或截图到公网
-- 如果 `.env` 中包含 DeepSeek API Key，建议让对方优先换成自己的 Key
 
 ---
 
