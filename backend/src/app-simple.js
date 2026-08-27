@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -109,7 +109,7 @@ class SimpleApp {
 
     // 静态文件服务
     // 前端页面（项目根目录下的 HTML 文件）
-    this.app.use(express.static(path.join(__dirname, '../../')));
+    this.app.use(express.static(path.join(__dirname, '../../frontend')));
     this.app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
     this.app.use('/public', express.static(path.join(__dirname, '../public')));
 

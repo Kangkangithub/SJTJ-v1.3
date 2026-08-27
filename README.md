@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="Alogo.png" alt="神农AI Logo" width="140">
+<img src="frontend/assets/Alogo.png" alt="神农AI Logo" width="140">
 
 **基于 Neo4j AuraDB 知识图谱的中医药数据可视化、药材管理与 GraphRAG 智能问答系统**
 
@@ -83,7 +83,7 @@
 
 <div align="center">
 
-![神农AI Neo4j GraphRAG 智能问答系统总体架构图](<RAG Structure.png>)
+![神农AI Neo4j GraphRAG 智能问答系统总体架构图](<docs/RAG Structure.png>)
 
 </div>
 
@@ -301,55 +301,55 @@ http://localhost:3001
 ## 🗂️ 项目结构
 
 ```text
-D:\K3\SJTJ-v1.3
-├─ knowledge-graph.html        # 知识图谱可视化 + 药材管理 Tab
-├─ qa.html                     # GraphRAG 智能问答页面
-├─ index.html                  # 系统首页
-├─ login.html                  # 登录页面
-├─ register.html               # 注册页面
-├─ profile.html                # 个人中心
+Herb-v1.3（神农AI）
+├─ frontend                      # 前端三件套
+│  ├─ index.html                 # 系统首页
+│  ├─ knowledge-graph.html       # 知识图谱可视化 + 药材管理
+│  ├─ qa.html                    # GraphRAG 智能问答
+│  ├─ herb-search.html           # 药材查询
+│  ├─ formula-library.html       # 方剂库
+│  ├─ recommendation.html        # 方剂推荐
+│  ├─ herb-recognition.html      # 拍照识药
+│  ├─ quiz.html                  # 知识测评
+│  ├─ login/register/profile/admin.html
+│  ├─ favicon.svg
+│  ├─ css/                       # 样式（原 styles/）
+│  ├─ js/                        # 脚本（原 scripts/）
+│  │  ├─ herb-pages.js           # 核心渲染器
+│  │  ├─ qa.js                   # GraphRAG 问答前端
+│  │  ├─ herb-manage.js          # 药材管理
+│  │  ├─ world-map-visualization.js
+│  │  └─ vendor/echarts.min.js
+│  └─ assets/                    # 图片资源（含 Alogo.png）
 │
-├─ scripts
-│  ├─ knowledge-graph.js       # 知识图谱前端逻辑
-│  ├─ knowledge-graph-analysis-fixed.js
-│  ├─ herb-manage.js           # 药材管理前端逻辑
-│  ├─ qa.js                    # GraphRAG 问答前端逻辑
-│  └─ ...
-│
-├─ styles
-│  └─ ...
-│
-├─ backend
-│  ├─ .env                     # 密钥和数据库连接配置（不提交）
+├─ backend                       # Node.js 后端
+│  ├─ .env                       # 密钥（不提交）
 │  ├─ package.json
 │  └─ src
-│     ├─ app-simple.js         # 后端启动入口
-│     ├─ config
-│     │  ├─ index.js           # 环境配置
-│     │  ├─ neo4j-simple.js    # Neo4j 单例连接
-│     │  └─ database-simple.js # SQLite 连接
-│     ├─ routes
-│     │  ├─ ai-engine.js       # AI 引擎路由
-│     │  ├─ ai-gateway.js      # AI 网关路由
-│     │  ├─ knowledge-graph.js # 知识图谱 API
-│     │  ├─ herbs.js           # 药材 API
-│     │  ├─ herbs-manage.js    # 药材管理 API
-│     │  ├─ conversations.js   # 对话历史 API
+│     ├─ app-simple.js           # 启动入口
+│     ├─ config/                 # 环境/数据库/Neo4j 配置
+│     ├─ routes/                 # API 路由
+│     │  ├─ ai-engine.js         # AI 引擎（RAG 等）
+│     │  ├─ ai-gateway.js        # AI 网关
+│     │  ├─ knowledge-graph.js   # 知识图谱 API
+│     │  ├─ herbs.js             # 药材 API
+│     │  ├─ herbs-manage.js      # 药材管理 API
 │     │  └─ ...
-│     └─ services
-│        ├─ ragServiceV2.js    # GraphRAG 核心服务
-│        ├─ ragService.js      # 早期 RAG 服务
-│        ├─ knowledgeGraphService.js
+│     └─ services/               # 业务服务
+│        ├─ ragServiceV2.js      # GraphRAG 核心
+│        ├─ embeddingService.js  # 向量检索
 │        └─ ...
 │
-├─ docs
-│  ├─ AI_ENGINE_RAG_TEACHING.md # AI 引擎改造教学文档
-│  └─ ...
+├─ docs                          # 项目文档
+│  ├─ AI_ENGINE_RAG_TEACHING.md  # AI 引擎教学
+│  ├─ EMBEDDING_VECTOR_SEARCH.md # 向量检索详解
+│  ├─ RAG_PERFORMANCE_OPTIMIZATION.md
+│  ├─ NEO4J_MIGRATION.md         # AuraDB 迁移说明
+│  ├─ CHANGELOG.md               # 更新日志
+│  └─ function_description/      # 历史功能说明（留档）
 │
-├─ data
-│  └─ compatibility_rules.json  # 十八反十九畏规则
-│
-└─ README.md                   # 本文档
+├─ start-simple-server.js        # 后端启动脚本
+└─ README.md                     # 本文档
 ```
 
 ---
@@ -455,10 +455,10 @@ quality        品质
 | `docs/EMBEDDING_VECTOR_SEARCH.md` | 向量检索（Embedding 语义检索）实现详解 |
 | `docs/RAG_PERFORMANCE_OPTIMIZATION.md` | 问答性能优化详解 |
 | `backend/API.md` | 后端 API 详细说明 |
-| `NEO4J_MIGRATION.md` | Neo4j AuraDB 迁移说明 |
-| `NEO4J_AURADB_MIGRATION.md` | AuraDB 迁移补充说明 |
-| `AI-ENGINE-ARCHITECTURE.md` | AI 引擎架构说明 |
-| `CHANGELOG.md` | 更新日志 |
+| `docs/NEO4J_MIGRATION.md` | Neo4j AuraDB 迁移说明 |
+| `docs/NEO4J_AURADB_MIGRATION.md` | AuraDB 迁移补充说明 |
+| `docs/AI-ENGINE-ARCHITECTURE.md` | AI 引擎架构说明 |
+| `docs/CHANGELOG.md` | 更新日志 |
 
 ---
 
