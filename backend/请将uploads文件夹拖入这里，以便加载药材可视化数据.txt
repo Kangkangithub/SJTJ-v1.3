@@ -1,0 +1,19 @@
+请将uploads文件夹拖入这里，以便加载药材可视化数据
+
+📌 说明
+本项目药材图片、视频等可视化数据存放在 backend/uploads/ 目录。
+由于文件体积较大（约 480MB），该目录未纳入 Git 版本管理，拉取仓库后需手动补充。
+
+📂 操作步骤
+1. 从项目负责人处获取 uploads 文件夹
+2. 将整个 uploads 文件夹拖入 backend/ 目录（最终路径：backend/uploads/）
+3. 启动后端后，即可正常加载药材图片与视频
+
+📁 目录结构
+backend/uploads/
+├── herbs/      # 药材图片
+└── videos/     # 药材视频
+
+⚠️ 注意
+- 不要把 uploads 提交到 Git（已在 .gitignore 中忽略）
+- 只需拖入一次，之后启动后端即可正常显示
