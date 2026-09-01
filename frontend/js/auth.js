@@ -15,9 +15,23 @@ function updateUserStatusDisplay() {
     }
 
     const userName = getStoredUserName();
+    const userInfo = getStoredUserInfo();
+    const avatar = userInfo.avatar || '';
+    // 有头像显示头像，没头像显示默认 SVG 头像占位
+    const avatarHtml = (typeof avatar === 'string' && avatar.indexOf('data:image/') === 0)
+        ? '<img class="user-avatar-img" src="' + escapeHtml(avatar) + '" alt="用户头像">'
+        : '<img class="user-avatar-img" src="assets/default-avatar.svg" alt="默认头像">';
     userStatusElement.innerHTML = `
-        <a href="profile.html" class="btn btn-secondary secondary"><i class="fa-solid fa-user"></i> ${escapeHtml(userName || '个人中心')}</a>
+        <a href="profile.html" class="btn btn-secondary secondary">${avatarHtml}<span>${escapeHtml(userName || '个人中心')}</span></a>
     `;
+}
+
+function getStoredUserInfo() {
+    try {
+        return JSON.parse(localStorage.getItem('userInfo') || '{}');
+    } catch (error) {
+        return {};
+    }
 }
 
 function getStoredUserName() {

@@ -293,6 +293,14 @@
     const isAuthenticated = Boolean(localStorage.getItem('authToken') || localStorage.getItem('token'));
     const userName = isAuthenticated ? getStoredUserName() : '';
     const userLabel = userName || '个人中心';
+    let userInfo = {};
+    try { userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}'); } catch (e) {}
+    const userAvatar = userInfo.avatar || '';
+    const userAvatarHtml = isAuthenticated
+      ? ((typeof userAvatar === 'string' && userAvatar.indexOf('data:image/') === 0)
+          ? `<img class="user-avatar-img" src="${escapeHtml(userAvatar)}" alt="用户头像">`
+          : '<img class="user-avatar-img" src="assets/default-avatar.svg" alt="默认头像">')
+      : '';
     return `
       <header class="topbar">
         <div class="topbar-inner">
@@ -304,7 +312,7 @@
             </div>
           </a>
           <div class="user-entry">
-            <a class="btn ${isAuthenticated ? 'btn-secondary' : 'btn-primary'}" href="${isAuthenticated ? 'profile.html' : 'login.html'}" aria-label="${isAuthenticated ? '打开个人中心' : '登录'}"><i class="fa-solid ${isAuthenticated ? 'fa-user' : 'fa-right-to-bracket'}"></i> ${isAuthenticated ? escapeHtml(userLabel) : '登录'}</a>
+            <a class="btn ${isAuthenticated ? 'btn-secondary' : 'btn-primary'}" href="${isAuthenticated ? 'profile.html' : 'login.html'}" aria-label="${isAuthenticated ? '打开个人中心' : '登录'}">${isAuthenticated ? userAvatarHtml : '<i class="fa-solid fa-right-to-bracket"></i>'} ${isAuthenticated ? escapeHtml(userLabel) : '登录'}</a>
           </div>
         </div>
         <nav class="nav">
@@ -523,6 +531,8 @@
   }
 
   function renderDetail() {
+    const fromGraph = getQueryParam('from') === 'graph';
+    const backQa = getQueryParam('back') === 'qa';
     const herb = state.detailHerb;
     if (!herb) {
       return `<section class="section"><div class="empty-state">暂无药材详情，请从药材查询页选择一条药材。</div></section>`;
@@ -538,7 +548,7 @@
             <p class="section-note">查看药材的性味、归经、功效等完整信息。</p>
           </div>
           <div class="page-actions">
-            <a class="btn btn-secondary" href="herb-search.html"><i class="fa-solid fa-arrow-left"></i> 返回查询</a>
+            ${fromGraph ? '<a class="btn btn-secondary" href="knowledge-graph.html?herb=' + encodeURIComponent(herb.name) + (backQa ? '&from=qa' : '') + '"><i class="fa-solid fa-arrow-left"></i> 返回知识图谱</a>' : '<a class="btn btn-secondary" href="herb-search.html"><i class="fa-solid fa-arrow-left"></i> 返回查询</a>'}
             <a class="btn btn-primary" href="knowledge-graph.html?herb=${encodeURIComponent(herb.name)}"><i class="fa-solid fa-diagram-project"></i> 打开图谱</a>
           </div>
         </div>
@@ -586,6 +596,7 @@
   }
 
   function renderGraph() {
+    const fromQa = getQueryParam('from') === 'qa';
     const graphView = buildGraphView();
     const hasGraph = graphView.nodes.length > 0;
     const graphStatusMessage = state.loading
@@ -608,7 +619,7 @@
           <label for="graphHerbSelect">中心药材</label>
           <select class="select js-graph-herb" id="graphHerbSelect">${graphView.herbs.map((item) => `<option value="${escapeAttr(item.name)}"${item.name === graphView.focusName ? ' selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}</select>
         </div>
-        <a class="btn btn-primary" href="herb-detail.html?herb=${encodeURIComponent(graphView.focusName)}"><i class="fa-solid fa-circle-info"></i> 打开详情</a>
+        <a class="btn btn-primary" href="herb-detail.html?herb=${encodeURIComponent(graphView.focusName)}&from=graph${fromQa ? '&back=qa' : ''}"><i class="fa-solid fa-circle-info"></i> 打开详情</a>
       </div>
     ` : `<div class="empty-state">${graphStatusMessage}</div>`;
     const graphCanvas = hasGraph ? `
@@ -649,6 +660,7 @@
             <p class="section-note">${sectionNote}</p>
           </div>
           <div class="view-switch" role="group" aria-label="视图切换">
+            ${fromQa ? '<a class="btn btn-secondary" href="qa.html"><i class="fa-solid fa-arrow-left"></i> 返回 AI 问答</a>' : ''}
             <button type="button" class="btn ${state.mapMode ? 'btn-secondary' : 'btn-primary'} js-graph-view-btn" data-view="graph">图谱视图</button>
             <button type="button" class="btn ${state.mapMode ? 'btn-primary' : 'btn-secondary'} js-map-view-btn" data-view="map">地图视图</button>
           </div>

@@ -1470,3 +1470,59 @@ img {
     font-size: 13px;
   }
 }
+
+
+/* ============================================================
+   P0 移动端全局补强（只追加，不影响桌面端布局）
+   ============================================================ */
+
+/* 移除移动端点击时的默认高亮底色 */
+a,
+button,
+.nav-link,
+.action-button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 视频自适应容器，避免移动端溢出 */
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 移动端（≤720px）补强 */
+@media (max-width: 720px) {
+  /* 触控目标至少 44px 高，方便手指点击 */
+  .btn,
+  .nav-link,
+  .action-button,
+  .pagination-btn {
+    min-height: 44px;
+  }
+
+  /* 输入框字号 16px，避免 iOS 聚焦时自动放大页面 */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* 长文本自动换行，避免撑破容器 */
+  .detail-value,
+  .herb-result-description,
+  .message-content {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+}
+
+
+/* 右上角用户按钮的头像 */
+.user-avatar-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+

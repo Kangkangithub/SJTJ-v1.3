@@ -563,28 +563,50 @@ async function deleteConversation(id) {
 
 function wireHistoryControls() {
   var btn = document.getElementById("qaHistoryBtn");
+  var sidebar = document.getElementById("convSidebar");
   var panel = document.getElementById("qaHistoryPanel");
   var newBtn = document.getElementById("qaNewChatBtn");
-  if (btn && panel) {
-    btn.addEventListener("click", function(){
-      var next = panel.hasAttribute("hidden");
-      if (next) panel.removeAttribute("hidden"); else panel.setAttribute("hidden", "");
-      btn.setAttribute("aria-expanded", next ? "true" : "false");
-      renderConversationList();
+
+  // 关闭侧边栏（移动端覆盖式显示用）
+  function closeHistoryPanel() {
+    if (sidebar) sidebar.classList.remove("open");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+
+  if (btn && sidebar) {
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      sidebar.classList.toggle("open");
+      btn.setAttribute("aria-expanded", sidebar.classList.contains("open") ? "true" : "false");
     });
+  }
+
+  if (panel) {
     panel.addEventListener("click", function(e){
+      e.stopPropagation();
       var load = e.target.getAttribute("data-load");
       var del = e.target.getAttribute("data-delete");
-      if (load) loadConversation(load);
+      // 选择某条历史对话后关闭侧边栏
+      if (load) { loadConversation(load); closeHistoryPanel(); }
       if (del) deleteConversation(del);
     });
   }
+
+  // 点击侧边栏和按钮以外的区域时，关闭侧边栏（移动端）
+  document.addEventListener("click", function(e){
+    if (!sidebar || !sidebar.classList.contains("open")) return;
+    if (sidebar.contains(e.target)) return;
+    if (btn && btn.contains(e.target)) return;
+    closeHistoryPanel();
+  });
+
   if (newBtn) {
     newBtn.addEventListener("click", function(){
       currentConversationId = null;
       clearChatToWelcome();
       if (!cloudHistoryEnabled) sessionStorage.removeItem(SESSION_KEY);
       renderConversationList();
+      closeHistoryPanel();
     });
   }
 }
@@ -629,9 +651,20 @@ document.addEventListener("DOMContentLoaded", function(){
   wireHistoryControls();
   clearChatToWelcome();
   refreshConversations().then(function(){
-    if (!cloudHistoryEnabled) loadTempHistory();
+    if (!cloudHistoryEnabled) {
+      // 未登录：从 sessionStorage 恢复临时对话
+      loadTempHistory();
+    } else if (conversations.length > 0) {
+      // 登录状态：自动恢复最近一条对话，保证跳转页面后对话不丢失
+      loadConversation(conversations[0].id);
+    }
   });
   checkAiHealth();
+  // 恢复上次打开的药材详情面板（页面跳转后保持打开状态）
+  try {
+    var savedHerb = sessionStorage.getItem("qa_herb_panel");
+    if (savedHerb) openHerbPanel(savedHerb);
+  } catch (e) {}
   wirePendingNavigationGuard();
 });
 
@@ -910,14 +943,15 @@ function togglePL(el) {
 
 async function openHerbPanel(name) {
   var panel = document.getElementById("herbSidePanel");
-  var overlay = document.getElementById("herbPanelOverlay");
+  var stage = document.querySelector(".qa-stage");
   var body = document.getElementById("herbSidePanelBody");
   var title = document.getElementById("herbSidePanelTitle");
   if (!panel || !body) return;
   if (title) title.innerHTML = '<i class="fas fa-leaf"></i> ' + esc(name);
   body.innerHTML = '<div class="herb-loading"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
   panel.classList.add("active");
-  if (overlay) overlay.classList.add("active");
+  if (stage) stage.classList.add("panel-open");
+  try { sessionStorage.setItem("qa_herb_panel", name); } catch (e) {}
   try {
     var resp = await fetch(API_BASE + "/api/ai-engine/herb-detail/" + encodeURIComponent(name));
     var data = await resp.json();
@@ -952,7 +986,7 @@ function renderHerb(ct, h) {
   if (h.usage_dosage) html += '<div class="detail-row"><span class="detail-label">用法用量</span><span class="detail-value">' + esc(h.usage_dosage) + '</span></div>';
   if (h.caution) html += '<div class="detail-row"><span class="detail-label">注意事项</span><span class="detail-value detail-danger">' + esc(h.caution) + '</span></div>';
   html += '</div>';
-  html += '<div class="herb-kg-link"><a href="knowledge-graph.html?herb=' + encodeURIComponent(h.name || "") + '" class="herb-kg-btn"><i class="fas fa-project-diagram"></i> 在知识图谱中查看完整关系网络</a></div>';
+  html += '<div class="herb-kg-link"><a href="knowledge-graph.html?herb=' + encodeURIComponent(h.name || "") + '&from=qa" class="herb-kg-btn"><i class="fas fa-project-diagram"></i> 在知识图谱中查看完整关系网络</a></div>';
 
   if (h.graphData && h.graphData.nodes && h.graphData.nodes.length) {
     html += '<div class="herb-mini-graph-container"><h4><i class="fas fa-project-diagram"></i> 知识图谱关联</h4><svg id="herbMiniGraphSvg"></svg><div class="mini-graph-legend"><span class="legend-item"><span class="legend-dot" style="background:#27ae60"></span>药材</span><span class="legend-item"><span class="legend-dot" style="background:#f39c12"></span>性味</span><span class="legend-item"><span class="legend-dot" style="background:#3498db"></span>归经</span><span class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span>功效</span><span class="legend-item"><span class="legend-dot" style="background:#9b59b6"></span>分类</span><span class="legend-item"><span class="legend-dot" style="background:#8e44ad"></span>方剂</span></div></div>';
@@ -979,7 +1013,7 @@ function drawMini(svgId, gd) {
     .force("center", d3.forceCenter(w / 2, h / 2))
     .force("collision", d3.forceCollide().radius(30));
   var link = g.append("g").selectAll("line").data(links).join("line")
-    .attr("stroke", "rgba(255,255,255,0.3)").attr("stroke-width", 1.5);
+    .attr("stroke", "rgba(22, 36, 29, 0.22)").attr("stroke-width", 1.5);
   var node = g.append("g").selectAll("g").data(nodes).join("g")
     .call(d3.drag()
       .on("start", function(e, d){ if (!e.active) _d3sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
@@ -988,12 +1022,12 @@ function drawMini(svgId, gd) {
   node.append("circle")
     .attr("r", function(d){ return d.isCenter ? 14 : 9; })
     .attr("fill", function(d){ return cm[d.label] || "#95a5a6"; })
-    .attr("stroke", function(d){ return d.isCenter ? "#fff" : "rgba(255,255,255,0.3)"; })
+    .attr("stroke", function(d){ return d.isCenter ? "#20563b" : "rgba(22, 36, 29, 0.25)"; })
     .attr("stroke-width", function(d){ return d.isCenter ? 2.5 : 1; });
   node.append("text")
     .text(function(d){ return d.name.length > 5 ? d.name.substring(0, 5) + "..." : d.name; })
     .attr("font-size", function(d){ return d.isCenter ? "13px" : "10px"; })
-    .attr("fill", "#fff").attr("text-anchor", "middle")
+    .attr("fill", "#16241d").attr("text-anchor", "middle")
     .attr("dy", function(d){ return d.isCenter ? 24 : 18; });
   node.append("title").text(function(d){ return d.name; });
   _d3sim.on("tick", function(){
@@ -1005,9 +1039,10 @@ function drawMini(svgId, gd) {
 
 function closeHerbPanel() {
   var panel = document.getElementById("herbSidePanel");
-  var overlay = document.getElementById("herbPanelOverlay");
+  var stage = document.querySelector(".qa-stage");
   if (panel) panel.classList.remove("active");
-  if (overlay) overlay.classList.remove("active");
+  if (stage) stage.classList.remove("panel-open");
+  try { sessionStorage.removeItem("qa_herb_panel"); } catch (e) {}
   if (_d3sim) { _d3sim.stop(); _d3sim = null; }
 }
 

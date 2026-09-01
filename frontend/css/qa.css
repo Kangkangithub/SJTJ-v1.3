@@ -618,7 +618,8 @@
 
 /* 药材面板跳转知识图谱按钮 */
 .herb-kg-link {
-    margin-top: 12px;
+    margin-top: 14px;
+    margin-bottom: 14px;
     text-align: center;
 }
 .herb-kg-btn {
@@ -1797,6 +1798,7 @@ button.rag-source-tag {
 .qa-page .container {
     width: min(1440px, calc(100vw - 96px));
     max-width: none;
+    min-height: auto;
 }
 .qa-page .qa-container {
     min-height: 600px;
@@ -1882,4 +1884,241 @@ button.rag-source-tag {
     margin-top: 0;
 }
 
+
+/* ============================================
+   历史对话左侧侧边栏（亮色主题）
+   ============================================ */
+.qa-wrapper {
+    gap: 12px;
+    max-width: 1150px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.qa-history-sidebar {
+    width: 250px;
+    min-width: 250px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.qa-history-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
+.qa-history-sidebar-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.qa-history-sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+/* 桌面端：侧边栏常驻，隐藏「历史对话」按钮 */
+@media (min-width: 769px) {
+    #qaHistoryBtn { display: none; }
+}
+
+/* 移动端：侧边栏覆盖式显示 */
+@media (max-width: 768px) {
+    .qa-wrapper {
+        display: block;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .qa-history-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        min-width: 280px;
+        z-index: 120;
+        border-radius: 0;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+    .qa-history-sidebar.open {
+        transform: translateX(0);
+        box-shadow: var(--shadow);
+    }
+    #qaHistoryBtn { display: inline-flex; }
+}
+
+
+/* ============================================
+   顶部限宽对齐（与下方对话区一致）
+   ============================================ */
+.qa-page .qa-page-header,
+.qa-page .tech-stack-bar {
+    max-width: 1150px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ============================================
+   挤压式布局舞台（对话区 + 药材面板）
+   ============================================ */
+.qa-stage {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 12px;
+    max-width: 1150px;
+    margin: 0 auto;
+    transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.qa-stage.panel-open {
+    max-width: 1582px;
+}
+.qa-stage .qa-wrapper {
+    flex: 1;
+    min-width: 0;
+    margin-top: 0;
+}
+
+/* ============================================
+   药材详情面板：挤压式 + 亮色主题
+   ============================================ */
+.herb-side-panel {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 0;
+    max-width: none;
+    height: auto;
+    min-height: 500px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    z-index: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 0;
+    box-shadow: none;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+.herb-side-panel.active {
+    width: 420px;
+    opacity: 1;
+}
+
+/* 面板头部亮色 */
+.herb-side-panel-header {
+    background: var(--primary-soft);
+    border-bottom: 1px solid var(--line);
+}
+.herb-side-panel-header h3 {
+    color: var(--primary-dark);
+}
+.herb-side-panel-close {
+    color: var(--muted);
+}
+.herb-side-panel-close:hover {
+    color: var(--text);
+    background: var(--surface-muted);
+}
+
+/* 面板卡片亮色 */
+.herb-panel-card {
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+}
+.herb-panel-card h4 {
+    color: var(--primary-dark);
+}
+.herb-panel-card .detail-label {
+    color: var(--muted);
+}
+.herb-panel-card .detail-value {
+    color: var(--text);
+}
+.herb-panel-card .detail-tag {
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    border: 1px solid rgba(47, 118, 81, 0.2);
+}
+
+/* 跳转按钮亮色 */
+.herb-kg-btn {
+    background: var(--primary-soft);
+    border: 1px solid rgba(47, 118, 81, 0.3);
+    color: var(--primary-dark);
+}
+.herb-kg-btn:hover {
+    background: rgba(47, 118, 81, 0.18);
+    border-color: rgba(47, 118, 81, 0.5);
+    color: var(--primary-dark);
+    box-shadow: none;
+}
+
+/* 迷你图谱亮色 */
+.herb-mini-graph-container {
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+}
+.herb-mini-graph-container h4 {
+    color: var(--primary-dark);
+    background: var(--primary-soft);
+    border-bottom: 1px solid var(--line);
+}
+.mini-graph-legend {
+    background: var(--surface-soft);
+}
+.legend-item,
+.herb-mini-graph-legend {
+    color: var(--muted);
+}
+.herb-loading {
+    color: var(--muted);
+}
+
+/* ============================================
+   移动端：药材面板改为覆盖式滑入
+   ============================================ */
+@media (max-width: 768px) {
+    .qa-stage,
+    .qa-stage.panel-open {
+        max-width: none;
+        margin: 0;
+    }
+    .herb-side-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 90vw;
+        max-width: 400px;
+        height: 100vh;
+        min-height: auto;
+        z-index: 1001;
+        border-radius: 0;
+        opacity: 1;
+        transform: translateX(100%);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .herb-side-panel.active {
+        width: 90vw;
+        transform: translateX(0);
+    }
+}
 

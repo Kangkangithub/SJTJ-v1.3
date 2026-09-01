@@ -103,13 +103,18 @@
                 </span>
             </div>
 
-            <div class="qa-container">
-                <div class="qa-controls" aria-label="AI 问答工具栏">
-                    <div class="qa-history-control">
-                        <button id="qaHistoryBtn" class="qa-tool-btn" type="button" aria-expanded="false" aria-controls="qaHistoryPanel">历史对话</button>
+            <div class="qa-stage">
+            <div class="qa-wrapper">
+                <aside class="qa-history-sidebar" id="convSidebar" aria-label="历史对话">
+                    <div class="qa-history-sidebar-header">
+                        <span class="qa-history-sidebar-title"><i class="fas fa-clock-rotate-left"></i> 历史对话</span>
                         <button id="qaNewChatBtn" class="qa-tool-btn" type="button">新对话</button>
-                        <div id="qaHistoryPanel" class="qa-history-panel" hidden></div>
                     </div>
+                    <div class="qa-history-sidebar-list" id="qaHistoryPanel"></div>
+                </aside>
+                <div class="qa-container">
+                <div class="qa-controls" aria-label="AI 问答工具栏">
+                    <button id="qaHistoryBtn" class="qa-tool-btn" type="button" aria-expanded="false" aria-controls="convSidebar">历史对话</button>
                     <label class="qa-stream-toggle" for="qaStreamToggle">
                         <input id="qaStreamToggle" type="checkbox">
                         <span>流式回答</span>
@@ -137,24 +142,21 @@
                     <button id="qaSendBtn" type="button">发送</button>
                 </div>
             </div>
+            </div>
+            <aside id="herbSidePanel" class="herb-side-panel">
+                <div class="herb-side-panel-header">
+                    <h3 id="herbSidePanelTitle"><i class="fas fa-leaf"></i> 药材详情</h3>
+                    <button class="herb-side-panel-close" onclick="closeHerbPanel()" title="关闭"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="herb-side-panel-body" id="herbSidePanelBody">
+                    <div class="herb-loading"><i class="fas fa-spinner fa-spin"></i> 选择药材查看详情...</div>
+                </div>
+            </aside>
+        </div>
         </main>
     </div>
         <footer class="footer"><div><strong>神农AI</strong><div>中药药材知识图谱系统</div></div></footer>
     </div>
-
-    <!-- ========== 右侧药材详情面板 ========== -->
-    <div id="herbSidePanel" class="herb-side-panel">
-        <div class="herb-side-panel-header">
-            <h3 id="herbSidePanelTitle"><i class="fas fa-leaf"></i> 药材详情</h3>
-            <button class="herb-side-panel-close" onclick="closeHerbPanel()" title="关闭">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="herb-side-panel-body" id="herbSidePanelBody">
-            <div class="herb-loading"><i class="fas fa-spinner fa-spin"></i> 选择药材查看详情...</div>
-        </div>
-    </div>
-    <div id="herbPanelOverlay" class="herb-panel-overlay" onclick="closeHerbPanel()"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
