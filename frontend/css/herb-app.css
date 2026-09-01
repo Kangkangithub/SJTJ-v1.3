@@ -1526,3 +1526,232 @@ video {
   flex-shrink: 0;
 }
 
+
+/* ============================================
+   P1：移动端导航汉堡菜单
+   ============================================ */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    backdrop-filter: none;
+  }
+  .nav-toggle {
+    display: inline-flex;
+  }
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 320px;
+    max-width: 85vw;
+    background: #fbfcfa;
+    border-right: 1px solid var(--line);
+    z-index: 150;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .nav.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow);
+  }
+  .nav::before {
+    content: '';
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--teal));
+    flex-shrink: 0;
+  }
+  .nav .nav-inner {
+    flex: 1;
+    flex-direction: column;
+    align-items: stretch;
+    overflow-y: auto;
+    overflow-x: visible;
+    padding: 12px;
+  }
+  .nav .nav-link {
+    justify-content: flex-start;
+    min-height: 46px;
+    font-size: 15px;
+    color: var(--text);
+    border-radius: var(--radius);
+  }
+  .nav .nav-link:hover,
+  .nav .nav-link.active {
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    border-color: rgba(47, 118, 81, 0.2);
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    margin: 0 12px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius);
+    flex-shrink: 0;
+  }
+  .sidebar-brand .brand-mark {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+  .sidebar-brand .brand-name {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .sidebar-brand .brand-subtitle {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+}
+
+/* 桌面端隐藏侧边栏 brand 信息（仅移动端显示） */
+@media (min-width: 769px) {
+  .sidebar-brand {
+    display: none;
+  }
+}
+
+/* 侧边栏遮罩 */
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 35;
+}
+
+
+/* ============================================
+   P1：图谱触屏优化
+   ============================================ */
+.graph-canvas {
+  touch-action: pan-x pan-y;
+}
+
+@media (max-width: 768px) {
+  .graph-node {
+    width: 110px;
+    min-height: 74px;
+    padding: 12px;
+    font-size: 14px;
+  }
+  .graph-node.center {
+    width: 132px;
+    min-height: 88px;
+  }
+  .graph-node:active {
+    transform: translate(-50%, -50%) scale(0.94);
+  }
+}
+
+
+/* ============================================
+   药材查询进度条分页
+   ============================================ */
+.herb-pager-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.herb-progress-track {
+  flex: 1;
+  min-width: 120px;
+  height: 8px;
+  background: var(--surface-muted);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.herb-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--teal));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.herb-progress-label {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+
+/* ============================================
+   移动端 topbar 紧凑化（左汉堡 / 中 brand / 右头像，一行）
+   ============================================ */
+@media (max-width: 768px) {
+  .topbar-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  .nav-toggle {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .brand {
+    flex: 1;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+  .brand-copy {
+    min-width: 0;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+  .brand-name {
+    font-size: 15px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .brand-subtitle {
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .user-entry {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .user-entry .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-height: 30px;
+  }
+  .user-avatar-img {
+    width: 18px;
+    height: 18px;
+  }
+}
+

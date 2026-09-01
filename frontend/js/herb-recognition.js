@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function openCameraModal() {
     if (!cameraModal) return;
     cameraModal.hidden = false;
-    navigator.mediaDevices?.getUserMedia({ video: true })
+    navigator.mediaDevices?.getUserMedia({ video: { facingMode: 'environment' } })
       .then(stream => {
         mediaStream = stream;
         if (cameraPreview) cameraPreview.srcObject = stream;

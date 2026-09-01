@@ -102,7 +102,7 @@
       return;
     }
     if (state.page === 'search') {
-      await loadHerbs({ limit: 50, useFilters: true });
+      await loadHerbs({ useFilters: true });
       return;
     }
     if (state.page === 'detail') {
@@ -124,7 +124,8 @@
 
   async function loadHerbs(options = {}) {
     const version = ++requestVersion;
-    const limit = options.limit || state.herbLimit || 50;
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const limit = options.limit || (isMobile ? 5 : 26);
     const page = options.page || 1;
     const append = Boolean(options.append);
     const useFilters = Boolean(options.useFilters);
@@ -304,6 +305,7 @@
     return `
       <header class="topbar">
         <div class="topbar-inner">
+          <button class="nav-toggle" type="button" aria-label="打开菜单" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
           <a class="brand" href="index.html">
             <div class="brand-mark"><img src="assets/herb-ornament.svg" alt="神农AI图标"></div>
             <div class="brand-copy">
@@ -322,6 +324,13 @@
                 <i class="fa-solid ${item.icon}"></i>${escapeHtml(item.label)}
               </a>
             `).join('')}
+          </div>
+          <div class="sidebar-brand">
+            <div class="brand-mark"><img src="assets/herb-ornament.svg" alt="神农AI图标"></div>
+            <div class="brand-copy">
+              <p class="brand-name">${escapeHtml(FALLBACK.siteName || '神农AI')}</p>
+              <p class="brand-subtitle">${escapeHtml(FALLBACK.siteTagline || '中药药材知识图谱系统')}</p>
+            </div>
           </div>
         </nav>
       </header>
@@ -781,7 +790,39 @@
     `;
   }
 
+  function bindNavToggle() {
+    const toggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('.nav');
+    if (!toggle || !nav) return;
+    let overlay = null;
+
+    function openNav() {
+      nav.classList.add('open');
+      toggle.setAttribute('aria-expanded', 'true');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'nav-overlay';
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', closeNav);
+      }
+    }
+    function closeNav() {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+      if (overlay) { overlay.remove(); overlay = null; }
+    }
+
+    toggle.addEventListener('click', () => {
+      if (nav.classList.contains('open')) closeNav();
+      else openNav();
+    });
+    nav.addEventListener('click', (event) => {
+      if (event.target.closest('a')) closeNav();
+    });
+  }
+
   function bindEvents() {
+    bindNavToggle();
     if (state.page === 'search') bindSearch();
     if (state.page === 'graph') bindGraph();
     if (state.page === 'qa') bindQA();
@@ -795,7 +836,7 @@
     const runSearch = async () => {
       resetHerbPagination();
       state.loading = true;
-      await loadHerbs({ limit: 50, useFilters: true });
+      await loadHerbs({ useFilters: true });
       state.loading = false;
       updateSearchResults();
     };
@@ -819,13 +860,13 @@
     document.querySelector('.js-search-category')?.addEventListener('change', async (event) => {
       state.category = event.target.value;
       resetHerbPagination();
-      await loadHerbs({ limit: 50, useFilters: true });
+      await loadHerbs({ useFilters: true });
       render();
     });
     document.querySelector('.js-search-region')?.addEventListener('change', async (event) => {
       state.region = event.target.value;
       resetHerbPagination();
-      await loadHerbs({ limit: 50, useFilters: true });
+      await loadHerbs({ useFilters: true });
       render();
     });
     document.getElementById('resetSearch')?.addEventListener('click', async () => {
@@ -833,7 +874,7 @@
       state.category = '全部';
       state.region = '全部';
       resetHerbPagination();
-      await loadHerbs({ limit: 50, useFilters: true });
+      await loadHerbs({ useFilters: true });
       render();
     });
     bindHerbPager();
@@ -847,7 +888,7 @@
         if (!page || page < 1 || page > totalPages || page === state.herbPage) return;
         state.herbLoadingMore = true;
         updateSearchResults();
-        await loadHerbs({ limit: state.herbLimit, page, useFilters: true });
+        await loadHerbs({ page, useFilters: true });
         state.herbLoadingMore = false;
         updateSearchResults();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -920,8 +961,29 @@
     });
   }
 
+  function setupGraphTouchZoom() {
+    const canvas = document.querySelector('.graph-canvas');
+    if (!canvas) return;
+    let zoom = 1, startDist = 0, startZoom = 1;
+    canvas.addEventListener('touchstart', (event) => {
+      if (event.touches.length === 2) {
+        startDist = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
+        startZoom = zoom;
+      }
+    }, { passive: true });
+    canvas.addEventListener('touchmove', (event) => {
+      if (event.touches.length === 2) {
+        const dist = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
+        zoom = Math.min(2.5, Math.max(0.8, startZoom * (dist / startDist)));
+        canvas.style.transform = 'scale(' + zoom + ')';
+        canvas.style.transformOrigin = 'center';
+      }
+    }, { passive: true });
+  }
+
   function bindGraph() {
     bindRegionPager();
+    setupGraphTouchZoom();
     // —— 图谱 / 地图 视图切换 ——
     document.querySelectorAll('.js-graph-view-btn, .js-map-view-btn').forEach((button) => {
       button.addEventListener('click', () => {

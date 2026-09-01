@@ -15,6 +15,7 @@
   <div class="page-shell">
     <header class="topbar" role="banner">
       <div class="topbar-inner">
+      <button class="nav-toggle" type="button" aria-label="打开菜单" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
         <a class="brand" href="index.html">
           <div class="brand-mark"><img src="assets/herb-ornament.svg" alt="神农AI图标"></div>
           <div class="brand-copy">
@@ -35,6 +36,13 @@
         <a class="nav-link" href="quiz.html"><i class="fa-solid fa-bullseye"></i>知识测评</a>
         <a class="nav-link active" href="herb-recognition.html"><i class="fa-solid fa-camera"></i>药材识别</a>
       </div>
+      <div class="sidebar-brand">
+        <div class="brand-mark"><img src="assets/herb-ornament.svg" alt="神农AI图标"></div>
+        <div class="brand-copy">
+          <p class="brand-name">神农AI</p>
+          <p class="brand-subtitle">中药药材知识图谱系统</p>
+        </div>
+      </div>
       </nav>
     </header>
 
@@ -52,7 +60,7 @@
             <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
             <p>点击或拖放图片到此处</p>
             <p>支持 JPG、PNG 等常见图片格式</p>
-            <input type="file" id="fileInput" accept="image/*" hidden>
+            <input type="file" id="fileInput" accept="image/*" capture="environment" hidden>
             <img id="imagePreview" alt="上传图片预览" hidden>
             <video id="videoPreview" controls preload="metadata" playsinline hidden></video>
           </div>
@@ -115,7 +123,7 @@
         <h3>使用摄像头</h3>
         <button id="closeCameraModal" type="button" class="action-button action-button-secondary"><i class="fas fa-times"></i></button>
       </div>
-      <video id="cameraPreview" autoplay></video>
+      <video id="cameraPreview" autoplay playsinline muted></video>
       <div class="camera-actions">
         <button id="captureCameraButton" class="action-button" type="button"><i class="fas fa-camera"></i> 拍摄</button>
         <button id="realtimeRecognitionButton" class="action-button" type="button"><i class="fas fa-bolt"></i> 实时识别</button>

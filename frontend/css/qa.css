@@ -2122,3 +2122,53 @@ button.rag-source-tag {
     }
 }
 
+
+/* ============================================
+   P1：移动端问答输入框吸底
+   ============================================ */
+@media (max-width: 768px) {
+    .qa-page .qa-container {
+        height: calc(100dvh - 130px);
+        min-height: 460px;
+    }
+}
+
+
+/* ============================================
+   移动端隐藏技术栈条（桌面端不受影响）
+   ============================================ */
+@media (max-width: 768px) {
+  .qa-page .tech-stack-bar {
+    display: none;
+  }
+}
+
+
+/* ============================================
+   移动端 AI 问答展示窗格特调（桌面端不受影响）
+   ============================================ */
+@media (max-width: 720px) {
+  .qa-page .chat-window {
+    padding-inline: 8px;
+  }
+  .qa-page .message,
+  .qa-page .user-message {
+    width: 100%;
+    max-width: 100%;
+  }
+  .qa-page .message-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .qa-page .message-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .qa-page .message-content {
+    padding: 9px 12px;
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+}
+

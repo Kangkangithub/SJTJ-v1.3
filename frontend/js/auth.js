@@ -2,6 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     updateUserStatusDisplay();
+    initNavToggle();
 });
 
 function updateUserStatusDisplay() {
@@ -32,6 +33,37 @@ function getStoredUserInfo() {
     } catch (error) {
         return {};
     }
+}
+
+function initNavToggle() {
+    const toggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('.nav');
+    if (!toggle || !nav) return;
+    let overlay = null;
+
+    function openNav() {
+        nav.classList.add('open');
+        toggle.setAttribute('aria-expanded', 'true');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'nav-overlay';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', closeNav);
+        }
+    }
+    function closeNav() {
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+        if (overlay) { overlay.remove(); overlay = null; }
+    }
+
+    toggle.addEventListener('click', () => {
+        if (nav.classList.contains('open')) closeNav();
+        else openNav();
+    });
+    nav.addEventListener('click', (event) => {
+        if (event.target.closest('a')) closeNav();
+    });
 }
 
 function getStoredUserName() {
