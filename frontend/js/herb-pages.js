@@ -996,6 +996,9 @@
     document.querySelector('.js-map-panel-close')?.addEventListener('click', () => {
       const panel = document.getElementById('regionDetailsPanel');
       const body = document.getElementById('regionPanelBody');
+      if (panel) panel.classList.remove('open');
+      const layout = document.querySelector('.map-layout');
+      if (layout) layout.classList.remove('panel-open');
       if (body) body.innerHTML = '<div class="panel-loading">点击地图省份，查看该省药材分布详情。</div>';
       const cn = document.getElementById('panelRegionCn');
       const en = document.getElementById('panelRegionEn');

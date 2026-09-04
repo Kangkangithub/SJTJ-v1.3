@@ -334,15 +334,23 @@
 /* 地图为视觉中心 + 右侧省份详情常驻栏 */
 /* 左右两栏互相独立：align-items:start 禁止右侧内容把左侧地图拉高 */
 .map-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
     gap: 18px;
-    align-items: start;
+    max-width: 1000px;
+    margin: 0 auto;
+    transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.map-layout.panel-open {
+    max-width: 1400px;
 }
 
 /* 地图独立卡片：固定高度，不受右侧面板内容影响 */
 .map-card {
     position: relative;
+    flex: 1;
+    min-width: 0;
     height: 520px;
     min-height: 520px;
     max-height: 520px;
@@ -396,12 +404,20 @@
     /* 固定可视高度（与左侧地图等高），内容超出仅内部滚动，绝不撑高页面/地图 */
     height: min(520px, calc(100vh - 180px));
     min-height: 0;
+    width: 0;
+    opacity: 0;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
     background: linear-gradient(180deg, #1B4332 0%, #143a2b 45%, #0f2c20 100%);
     color: #F8F1E3;
     border-radius: 12px;
     border: 1px solid rgba(176, 137, 104, 0.35);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.14);
     overflow: hidden;
+}
+
+.region-details-panel.open {
+    width: 380px;
+    opacity: 1;
 }
 
 /* 顶部标题区域 */
@@ -777,9 +793,23 @@
     }
     /* 小屏上下排列：地图固定高度、面板恢复自然高度（仍各自独立） */
     .region-details-panel {
-        height: auto;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 300;
+        width: auto;
+        opacity: 1;
+        height: 80vh;
         max-height: none;
         min-height: 0;
+        border-radius: 16px 16px 0 0;
+        transform: translateY(105%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .region-details-panel.open {
+        width: auto;
+        transform: translateY(0);
     }
     .map-card {
         height: 420px;
@@ -802,3 +832,12 @@
         border-radius: 10px;
     }
 }
+
+
+/* 药材卡片可点击跳转图谱 */
+.region-details-panel .herb-card {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+

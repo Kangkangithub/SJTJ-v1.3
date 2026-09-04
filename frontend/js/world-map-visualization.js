@@ -286,6 +286,8 @@ class WorldMapVisualization {
         if (!panel) return;
 
         panel.classList.add('open');
+        const layout = document.querySelector('.map-layout');
+        if (layout) layout.classList.add('panel-open');
         const body = document.getElementById('regionPanelBody');
         body.innerHTML = `<div class="panel-loading">📜 正在翻阅药典...</div>`;
 
@@ -403,6 +405,14 @@ class WorldMapVisualization {
                 ${herbs.length === 0 ? '<p class="panel-empty">暂无药材数据</p>' : ''}
             `;
 
+            // 绑定主要药材卡片点击跳转图谱
+            body.querySelectorAll('.herb-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const herb = card.getAttribute('data-herb');
+                    if (herb) window.location.href = 'knowledge-graph.html?herb=' + encodeURIComponent(herb);
+                });
+            });
+
             // 绑定“其他药材”展开/收回事件（展开后显示“收回”，点击恢复折叠）
             const otherSection = Array.from(body.querySelectorAll('.panel-section')).find(s =>
                 (s.querySelector('.section-title')?.textContent || '').includes('其他药材')
@@ -454,7 +464,7 @@ class WorldMapVisualization {
         rows.push(this.buildDetailRow('简介', intro));
 
         return `
-            <div class="herb-card">
+            <div class="herb-card" data-herb="${d.name}" role="link" tabindex="0">
                 <div class="herb-card-header">
                     <span class="herb-icon">🌿</span>
                     <span class="herb-name">${d.name}</span>

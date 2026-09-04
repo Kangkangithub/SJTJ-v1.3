@@ -410,9 +410,12 @@ input[readonly] {
     width: 100%;
   }
 
-  .profile-header-actions .btn,
   .profile-form-actions .btn {
     flex: 1 1 100%;
+  }
+
+  .profile-header-actions .btn {
+    flex: 1;
   }
 }
 

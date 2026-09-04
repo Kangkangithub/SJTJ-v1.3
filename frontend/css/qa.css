@@ -1940,6 +1940,8 @@ button.rag-source-tag {
 @media (max-width: 768px) {
     .qa-wrapper {
         display: block;
+        height: auto;
+        min-height: auto;
         max-width: none;
         margin-left: 0;
         margin-right: 0;
@@ -2128,7 +2130,7 @@ button.rag-source-tag {
    ============================================ */
 @media (max-width: 768px) {
     .qa-page .qa-container {
-        height: calc(100dvh - 130px);
+        height: 70vh;
         min-height: 460px;
     }
 }
@@ -2149,26 +2151,35 @@ button.rag-source-tag {
    ============================================ */
 @media (max-width: 720px) {
   .qa-page .chat-window {
-    padding-inline: 8px;
+    padding-inline: 6px;
   }
-  .qa-page .message,
-  .qa-page .user-message {
+  /* AI 消息铺满：隐藏头像，内容占满整行 */
+  .qa-page .ai-message {
     width: 100%;
     max-width: 100%;
   }
-  .qa-page .message-avatar {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+  .qa-page .ai-message .message-avatar {
+    display: none;
   }
-  .qa-page .message-body {
-    flex: 1;
-    min-width: 0;
+  .qa-page .ai-message .message-body {
+    width: 100%;
   }
-  .qa-page .message-content {
-    padding: 9px 12px;
+  .qa-page .ai-message .message-content {
+    background: transparent;
+    padding: 2px 4px;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  /* 用户消息保持右侧气泡 */
+  .qa-page .user-message {
+    width: auto;
+    max-width: 80%;
+    align-self: flex-end;
+  }
+  .qa-page .user-message .message-content {
+    padding: 8px 14px;
     font-size: 14.5px;
-    line-height: 1.65;
   }
 }
 
