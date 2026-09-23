@@ -13,6 +13,7 @@ const { Neo4jGraph } = require("@langchain/community/graphs/neo4j_graph");
 const { GraphCypherQAChain } = require("@langchain/community/chains/graph_qa/cypher");
 const neo4jManager = require("../config/neo4j-simple");
 const embeddingService = require("./embeddingService");
+const hybridSearchService = require("./hybridSearchService");
 const path = require("path");
 const fs = require("fs");
 
@@ -21,7 +22,7 @@ const fs = require("fs");
 // =============================================
 const answerCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;           // 答案缓存 5 分钟
-const CACHE_VERSION = 5;                    // 每次修改搜索逻辑时递增，强制刷新旧缓存
+const CACHE_VERSION = 6;                    // 每次修改搜索逻辑时递增，强制刷新旧缓存
 const herbEnrichCache = new Map();
 const ENRICH_CACHE_TTL = 24 * 60 * 60 * 1000; // LLM 知识增强缓存 24 小时
 const ENRICH_HERB_LIMIT = 5;                // 每次最多对前 N 味药材做 LLM 补全（避免逐味串行 LLM 拖慢响应）
@@ -125,84 +126,48 @@ class RAGServiceV2 {
       detail: keywords.length > 0 ? "提取到关键词：" + keywords.slice(0, 8).join("、") + (keywords.length > 8 ? " 等共" + keywords.length + "个" : "") : "未提取到明确关键词，改用问题原文检索"
     });
 
-    // 步骤1：在 Neo4j 中搜索（使用 LLM 关键词 + 问题原文双路匹配）
-    const searchResults = await this.searchNeo4j(question, keywords);
+    // 步骤1：三路混合检索（BM25 + 向量 + 知识图谱）+ RRF 融合
+    const hybrid = await hybridSearchService.hybridSearch(question, keywords);
+    const rankedNames = hybrid.ranked.map(r => r.name);
+
+    // 按 RRF 融合顺序取完整字段
+    const herbList = await this.searchNeo4jByNames(rankedNames.slice(0, 20));
+    const orderedHerbs = rankedNames
+      .map(name => herbList.find(h => h.name === name))
+      .filter(Boolean);
+
+    // 方剂检索（保留字面匹配）
+    const formulas = await this.searchFormulas(question, keywords);
+
+    const finalResults = {
+      herbs: orderedHerbs,
+      formulas,
+      searchTerms: [...new Set([question, ...(keywords || [])])],
+      executedCyphers: [],
+      hybrid
+    };
+
     pipelineSteps.push({
-      name: "Neo4j 图检索",
-      status: searchResults.searchError ? "error" : "done",
-      detail: searchResults.searchError
-        ? "Neo4j 检索失败，后续将尝试回退回答"
-        : "搜索词 " + (searchResults.searchTerms || []).length + " 个，命中药材 " + searchResults.herbs.length + " 个、方剂 " + searchResults.formulas.length + " 个"
+      name: "三路混合检索",
+      status: "done",
+      detail: "BM25 " + hybrid.bm25Results.length + " 个、向量 " + hybrid.vectorResults.length + " 个、图检索 " + hybrid.graphResults.length + " 个 → RRF 融合 " + hybrid.ranked.length + " 个（" + rankedNames.slice(0, 5).join("、") + "）"
     });
-    
-    // 如果 LLM 关键词匹配没有结果，尝试只用问题原文搜索
-    let finalResults = searchResults;
-    if ((!searchResults || (searchResults.herbs.length === 0 && searchResults.formulas.length === 0)) && keywords.length > 0) {
-      console.log("[RAG-V2] 关键词搜索无结果，尝试纯文本搜索...");
-      finalResults = await this.searchNeo4j(question, []);
-      pipelineSteps.push({
-        name: "回退检索",
-        status: finalResults.searchError ? "error" : "done",
-        detail: finalResults.searchError
-          ? "问题原文检索失败"
-          : "使用问题原文重新检索，命中药材 " + finalResults.herbs.length + " 个、方剂 " + finalResults.formulas.length + " 个"
-      });
-    }
 
-    // 步骤1.5：向量检索补充（百炼 text-embedding-v3 语义相似度，弥补 CONTAINS 字面匹配对"证型↔功效"的失效）
-    if (finalResults && embeddingService.isReady()) {
-      try {
-        const semHits = await embeddingService.search(question, 10);
-        const existingNames = new Set(finalResults.herbs.map(h => h.name));
-        const newNames = semHits.map(s => s.name).filter(n => n && !existingNames.has(n));
-        if (newNames.length > 0) {
-          const semanticHerbs = await this.searchNeo4jByNames(newNames);
-          const semNames = new Set(semanticHerbs.map(h => h.name));
-          // 语义命中优先（按相关度排序），CONTAINS 命中去重后追加
-          finalResults.herbs = semanticHerbs.concat(finalResults.herbs.filter(h => !semNames.has(h.name)));
-          pipelineSteps.push({
-            name: "向量检索",
-            status: "done",
-            detail: "百炼 text-embedding-v3 语义命中 " + semHits.length + " 个，补充 " + semanticHerbs.length + " 个（" + newNames.slice(0, 6).join("、") + " 等）"
-          });
-        } else {
-          pipelineSteps.push({
-            name: "向量检索",
-            status: "done",
-            detail: "语义检索完成，命中药材均已被图检索覆盖，未新增"
-          });
-        }
-      } catch (e) {
-        console.warn("[RAG-V2] 向量检索补充失败:", e.message);
-        pipelineSteps.push({
-          name: "向量检索",
-          status: "fallback",
-          detail: "向量检索失败：" + e.message
-        });
-      }
-    } else if (finalResults) {
-      pipelineSteps.push({
-        name: "向量检索",
-        status: "fallback",
-        detail: "向量索引未就绪，跳过语义检索（需配置 DASHSCOPE_API_KEY 并完成向量化）"
-      });
-    }
-
-    // 如果 Neo4j 完全没有任何匹配，返回 null，由 answer 层处理 LLM 直接回答
-    if (!finalResults || (finalResults.herbs.length === 0 && finalResults.formulas.length === 0)) {
-      console.log("[RAG-V2] Neo4j 无匹配药材，上升到 LLM 直接回答");
+    // 如果三路完全无匹配，返回 null，由 answer 层处理 LLM 直接回答
+    if (finalResults.herbs.length === 0 && finalResults.formulas.length === 0) {
+      console.log("[RAG-V2] 三路混合检索无匹配，上升到 LLM 直接回答");
       return {
         answer: "",
         mode: "manual-no-match",
         sources: [],
         formulas: [],
         keywords,
-        cypher: this.formatExecutedCyphers(finalResults?.executedCyphers || searchResults?.executedCyphers || []),
-        executedCyphers: finalResults?.executedCyphers || searchResults?.executedCyphers || [],
+        cypher: null,
+        executedCyphers: [],
         pipelineSteps: pipelineSteps.concat([{
           name: "检索结果判断",
           status: "fallback",
-          detail: "Neo4j 未命中药材或方剂，将交给 LLM 直接回答"
+          detail: "三路检索均未命中药材或方剂，将交给 LLM 直接回答"
         }])
       };
     }
@@ -262,7 +227,13 @@ class RAGServiceV2 {
         searchTerms: finalResults.searchTerms || [],
         herbCount: enrichedContext.herbs.length,
         formulaCount: enrichedContext.formulas.length,
-        conflictCount: (enrichedContext.conflicts || []).length
+        conflictCount: (enrichedContext.conflicts || []).length,
+        hybrid: finalResults.hybrid ? {
+          bm25Count: finalResults.hybrid.bm25Results.length,
+          vectorCount: finalResults.hybrid.vectorResults.length,
+          graphCount: finalResults.hybrid.graphResults.length,
+          ranked: finalResults.hybrid.ranked.slice(0, 10)
+        } : null
       }
     };
   }
@@ -299,6 +270,38 @@ class RAGServiceV2 {
     }
     // 限制数量，避免超长问题生成过多搜索词
     return [...keywords].slice(0, 40);
+  }
+
+  // =============================================
+  // 方剂检索（字面匹配，供三路混合检索后补充方剂）
+  // =============================================
+  async searchFormulas(query, keywords = []) {
+    const session = neo4jManager.getSession();
+    try {
+      const terms = [...new Set([query, ...(keywords || [])].filter(t => t && t.length >= 2))];
+      if (terms.length === 0) return [];
+      const result = await session.run(
+        "MATCH (f:Formula) WHERE f.name IS NOT NULL AND f.name <> '' " +
+        "AND any(term IN $terms WHERE f.name CONTAINS term OR f.description CONTAINS term) " +
+        "RETURN f LIMIT 5",
+        { terms }
+      );
+      return result.records.map(record => {
+        const f = record.get("f");
+        return {
+          id: f.identity.toString(),
+          name: f.properties.name,
+          pinyin: f.properties.pinyin || "",
+          category: f.properties.category || "",
+          description: f.properties.description || ""
+        };
+      });
+    } catch (e) {
+      console.warn("[RAG-V2] 方剂搜索失败:", e.message);
+      return [];
+    } finally {
+      if (session) await session.close();
+    }
   }
 
   // =============================================
