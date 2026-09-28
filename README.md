@@ -51,11 +51,14 @@
 - 表单下拉框数据全部来自 Neo4j
 - 新增药材时，不存在的分类/产地等会通过 `MERGE` 自动创建
 - 删除前有软确认，并检查是否被方剂引用
+- 新增/修改/删除药材后，向量检索自动更新（全文索引自动同步，无需手动重建）
+
+> **新增药材说明**：通过药材管理面板正常新增即可，后端自动完成 Neo4j 写入、全文索引更新、向量更新。若用脚本**批量导入 Neo4j**（不走 herbs-manage API），导入后需手动执行 `embeddingService.syncAll()` 补齐向量。
 
 ### 3. GraphRAG 智能问答
 
 - 页面：`qa.html`
-- 技术链：Neo4j → 向量检索（text-embedding-v3）→ LangChain.js → 手动图检索 → DeepSeek-V3
+- 技术链：三路混合检索（BM25 + 向量 + 知识图谱）+ RRF 融合 → 图遍历 → LLM 增强 → DeepSeek-V3
 - 支持药材功效、产地、用法、注意事项、方剂组成等问题
 - 答案附带引用来源、可点击药材节点、D3 迷你知识图谱
 - 展示完整 GraphRAG 检索过程（含向量检索环节）
@@ -102,13 +105,17 @@ Node.js + Express 后端
    │
    ├── ragServiceV2.js（GraphRAG 核心）
    │     ├── 本地 n-gram 关键词提取
-   │     ├── Neo4j Cypher 图检索
-   │     ├── 向量语义检索（text-embedding-v3）
+   │     ├── 三路混合检索（hybridSearchService）
+   │     │     ├── BM25 全文检索（Neo4j cjk 全文索引）
+   │     │     ├── 向量语义检索（text-embedding-v3）
+   │     │     ├── 知识图谱检索（Cypher CONTAINS）
+   │     │     └── RRF 融合重排
    │     ├── 1-2 跳图遍历
    │     ├── LLM 知识增强（受控并发）
    │     ├── 上下文构建
    │     └── DeepSeek 答案生成
    │
+   ├── hybridSearchService.js（三路混合检索 + RRF）
    ├── embeddingService.js（向量检索 + SQLite 持久化）
    ├── neo4j-simple.js（Neo4j 单例连接）
    │
@@ -123,9 +130,12 @@ Neo4j AuraDB 云图数据库
    ↓
 ① 关键词提取：本地 n-gram 切词（不调 LLM），提取药材名、功效、症状等字面词
    ↓
-② Neo4j 图检索：Cypher 精确名称匹配，必要时扩展功效/描述/拼音
+② 三路混合检索（并行）：
+     · BM25 全文检索：Neo4j cjk 全文索引，字段加权 name^3 > pinyin^2 > 功效/描述
+     · 向量语义检索：text-embedding-v3 语义匹配「证型 ↔ 功效」
+     · 知识图谱检索：Cypher CONTAINS 字面匹配
    ↓
-③ 向量语义检索：text-embedding-v3 语义匹配「证型 ↔ 功效」，弥补字面匹配缺口
+③ RRF 融合重排：各路结果按排名取倒数求和，多路命中的药材排前
    ↓
 ④ 1-2 跳图遍历：沿关系边获取性味归经、功效、方剂、配伍禁忌
    ↓
@@ -139,6 +149,7 @@ Neo4j AuraDB 云图数据库
 详细教学请阅读：
 
 - `docs/AI_ENGINE_RAG_TEACHING.md`
+- `docs/三路混合检索技术方案.md`（三路混合检索 + RRF 融合）
 - `docs/EMBEDDING_VECTOR_SEARCH.md`（向量检索专项）
 - `docs/RAG_PERFORMANCE_OPTIMIZATION.md`（性能优化专项）
 
