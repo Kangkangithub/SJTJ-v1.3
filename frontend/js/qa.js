@@ -276,6 +276,12 @@ function buildRagModeBadge(mode) {
   if (mode === "manual-enhanced") {
     return '<span class="rag-badge rag-badge-manual"><i class="fas fa-search-plus"></i> 增强图检索 + LLM知识增强</span>'; 
   }
+  if (mode === "agent") {
+    return '<span class="rag-badge rag-badge-agent"><i class="fas fa-robot"></i> Agent 思维链（Tool Calling）</span>'; 
+  }
+  if (mode === "agent-fallback") {
+    return '<span class="rag-badge rag-badge-agent-fallback"><i class="fas fa-robot"></i> Agent 回退到固定管线</span>'; 
+  }
   return '<span class="rag-badge rag-badge-fallback"><i class="fas fa-brain"></i> GraphRAG/LLM 回答</span>'; 
 }
 
@@ -313,12 +319,53 @@ function buildGraphRagPipelineHtml(r) {
   return html;
 }
 
+function buildAgentStepsHtml(result) {
+  var steps = Array.isArray(result && result.steps) ? result.steps : [];
+  if (steps.length === 0) return "";
+  var html = '<div class="rag-pipeline-toggle agent-chain-toggle" onclick="toggleAgentChain(this)">';
+  html += '<i class="fas fa-chevron-right"></i><span class="rag-toggle-title">点击展开：Agent 思维链</span><span class="rag-toggle-subtitle">来自 /api/ai-engine/agent 的真实推理步骤（Thought → Tool → Observation）</span></div>';
+  html += '<div class="rag-pipeline-detail" style="display:none;">';
+  html += '<div class="rag-pipeline-intro"><i class="fas fa-robot"></i> 以下为本次问答 Agent 的真实执行流程（思考 / 工具调用 / 工具结果 / 最终答案）。</div>';
+  html += '<div class="rag-pipeline-log agent-chain-log">';
+  steps.forEach(function(step, index) {
+    var type = step && step.type ? String(step.type) : "thought";
+    var num = index + 1;
+    if (type === "thought") {
+      html += '<div class="agent-chain-step agent-thought"><span class="agent-step-icon">💭</span><span class="agent-step-label">思考</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(step.content || "") + '</div></div>';
+    } else if (type === "tool_call") {
+      var argsJson = "";
+      try { argsJson = JSON.stringify(step.args || {}, null, 2); } catch (e) { argsJson = String(step.args || ""); }
+      html += '<div class="agent-chain-step agent-tool"><span class="agent-step-icon">🔧</span><span class="agent-step-label">调用工具</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body"><strong>' + esc(step.tool || "未知工具") + '</strong><pre><code>' + esc(argsJson) + '</code></pre></div></div>';
+    } else if (type === "tool_result") {
+      html += '<div class="agent-chain-step agent-result"><span class="agent-step-icon">📋</span><span class="agent-step-label">工具结果</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(String(step.content || "")) + '</div></div>';
+    } else if (type === "answer") {
+      html += '<div class="agent-chain-step agent-answer"><span class="agent-step-icon">✅</span><span class="agent-step-label">最终答案</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body agent-answer-note">Agent 已生成最终答案（见下方回答正文）</div></div>';
+    } else {
+      html += '<div class="agent-chain-step agent-error"><span class="agent-step-icon">⚠️</span><span class="agent-step-label">提示</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(String(step.content || step.error || "")) + '</div></div>';
+    }
+  });
+  html += '</div>';
+  html += '<div class="rag-meta-bar">' + buildRagModeBadge(result.mode) + '</div>';
+  html += '</div>';
+  return html;
+}
+
 function buildAnswerHtml(result) {
   var r = result || {};
   var cleanAnswer = normalizeAnswerText(r.answer || "");
   var finalAnswer = normalizeAnswerEmphasis(cleanAnswer);
-  // 检索过程栏放在回答最前面，先展示后端真实检索链路
-  var html = buildGraphRagPipelineHtml(r);
+  // 检索过程栏 / Agent 思维链放在回答最前面，先展示后端真实执行链路
+  var isAgent = r.mode === "agent";
+  var isAgentFallback = r.mode === "agent-fallback";
+  var html = "";
+  if (isAgent) {
+    html += buildAgentStepsHtml(r);
+  } else if (isAgentFallback) {
+    html += buildAgentStepsHtml(r);
+    html += buildGraphRagPipelineHtml(r);
+  } else {
+    html += buildGraphRagPipelineHtml(r);
+  }
   html += '<div class="rag-answer-body">' + renderMarkdown(finalAnswer) + '</div>';
   html += formatSources(r.sources || []);
   html += formatFormulas(r.formulas || []);
@@ -680,6 +727,18 @@ async function askRag(question) {
   return data.data || {};
 }
 
+async function askAgent(question) {
+  var resp = await fetch(API_BASE + "/api/ai-engine/agent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: question }),
+    signal: _abort.signal
+  });
+  var data = await resp.json().catch(function(){ return {}; });
+  if (!resp.ok || data.success === false) throw new Error(data.message || "AGENT_FAILED");
+  return data.data || {};
+}
+
 async function askRagStream(question, aiDiv) {
   var resp = await fetch(API_BASE + "/api/ai-engine/rag-stream", {
     method: "POST",
@@ -741,6 +800,7 @@ async function doSend() {
   var ta = document.getElementById("qaTextarea");
   var btn = document.getElementById("qaSendBtn");
   var streamToggle = document.getElementById("qaStreamToggle");
+  var agentToggle = document.getElementById("qaAgentToggle");
   if (!ta || !btn) return;
   var input = (ta.value || "").trim();
   if (!input) { toast("请输入问题", "warning"); return; }
@@ -785,7 +845,12 @@ async function doSend() {
     }
 
     var result;
-    if (streamToggle && streamToggle.checked) {
+    var agentMode = agentToggle ? agentToggle.checked : true;
+    if (agentMode) {
+      result = await askAgent(input);
+      var mcA = aiDiv ? aiDiv.querySelector(".message-content") : null;
+      if (mcA) mcA.innerHTML = buildAnswerHtml(result);
+    } else if (streamToggle && streamToggle.checked) {
       result = await askRagStream(input, aiDiv);
       if (!result.answer) throw new Error("STREAM_EMPTY");
     } else {
@@ -941,6 +1006,27 @@ function togglePL(el) {
   }
 }
 
+function toggleAgentChain(el) {
+  var d = el.nextElementSibling;
+  if (!d) return;
+  var ic = el.querySelector("i");
+  if (d.style.display === "block") {
+    d.style.display = "none";
+    d.classList.remove("open");
+    el.classList.remove("open");
+    var titleClosed = el.querySelector(".rag-toggle-title");
+    if (titleClosed) titleClosed.textContent = "点击展开：Agent 思维链";
+    if (ic) ic.className = "fas fa-chevron-right";
+  } else {
+    d.style.display = "block";
+    d.classList.add("open");
+    el.classList.add("open");
+    var titleOpen = el.querySelector(".rag-toggle-title");
+    if (titleOpen) titleOpen.textContent = "点击收起：Agent 思维链";
+    if (ic) ic.className = "fas fa-chevron-right";
+  }
+}
+
 async function openHerbPanel(name) {
   var panel = document.getElementById("herbSidePanel");
   var stage = document.querySelector(".qa-stage");
@@ -1047,5 +1133,6 @@ function closeHerbPanel() {
 }
 
 window.togglePL = togglePL;
+window.toggleAgentChain = toggleAgentChain;
 window.openHerbPanel = openHerbPanel;
 window.closeHerbPanel = closeHerbPanel;

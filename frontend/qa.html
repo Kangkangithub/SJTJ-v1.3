@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/css/atom-one-dark.min.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/herb-app.css">
-    <link rel="stylesheet" href="css/qa.css">
+    <link rel="stylesheet" href="css/qa.css?v=20260817agent">
 </head>
 <body class="qa-page">
     <div class="page-shell">
@@ -127,6 +127,10 @@
                         <input id="qaStreamToggle" type="checkbox">
                         <span>流式回答</span>
                     </label>
+                    <label class="qa-stream-toggle qa-agent-toggle" for="qaAgentToggle" title="开启后展示 Agent 思维链">
+                        <input id="qaAgentToggle" type="checkbox" checked>
+                        <span>Agent 思维链</span>
+                    </label>
                     <span id="qaServiceStatus" class="qa-service-status" aria-live="polite"></span>
                 </div>
                 <div class="chat-window" role="log" aria-live="polite" aria-label="AI 问答对话记录">
@@ -170,6 +174,6 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/common.js"></script>
-    <script src="js/qa.js?v=20260817ai"></script>
+    <script src="js/qa.js?v=20260817agent"></script>
 </body>
 </html>

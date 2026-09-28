@@ -1,5 +1,76 @@
 /* 智能问答页面样式 - 中医药主题 */
 
+/* Agent 思维链步骤 */
+.agent-chain-log { padding: 8px 0; }
+.agent-chain-step {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 9px 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.82);
+  border-left: 3px solid rgba(255,255,255,0.12);
+}
+.agent-chain-step .agent-step-icon { flex-shrink: 0; font-size: 15px; }
+.agent-chain-step .agent-step-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 12px;
+  color: #20563b;
+  background: rgba(39,174,96,0.14);
+  border-radius: 4px;
+  padding: 1px 8px;
+  margin-top: 1px;
+}
+.agent-chain-step .agent-step-num {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: auto;
+}
+.agent-chain-step .agent-step-body {
+  flex-basis: 100%;
+  padding-left: 26px;
+  color: rgba(255,255,255,0.78);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.agent-chain-step .agent-step-body.agent-answer-note { color: rgba(255,255,255,0.6); }
+.agent-chain-step .agent-step-body pre {
+  margin: 6px 0 0 0;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+.agent-chain-step .agent-step-body pre code { background: transparent; }
+.agent-chain-step.agent-thought { border-left-color: #3498db; background: rgba(52,152,219,0.06); }
+.agent-chain-step.agent-thought .agent-step-label { color: #3498db; background: rgba(52,152,219,0.15); }
+.agent-chain-step.agent-tool { border-left-color: #9b59b6; background: rgba(155,89,182,0.07); }
+.agent-chain-step.agent-tool .agent-step-label { color: #a78bfa; background: rgba(155,89,182,0.18); }
+.agent-chain-step.agent-result { border-left-color: #f39c12; background: rgba(243,156,18,0.06); }
+.agent-chain-step.agent-result .agent-step-label { color: #f39c12; background: rgba(243,156,18,0.16); }
+.agent-chain-step.agent-answer { border-left-color: #27ae60; background: rgba(39,174,96,0.07); }
+.agent-chain-step.agent-answer .agent-step-label { color: #27ae60; background: rgba(39,174,96,0.18); }
+.agent-chain-step.agent-error { border-left-color: #e74c3c; background: rgba(231,76,60,0.07); }
+.agent-chain-step.agent-error .agent-step-label { color: #e74c3c; background: rgba(231,76,60,0.18); }
+.rag-badge-agent { background: rgba(52,152,219,0.18); color: #5dade2; border: 1px solid rgba(52,152,219,0.35); }
+.rag-badge-agent-fallback { background: rgba(241,196,15,0.16); color: #f1c40f; border: 1px solid rgba(241,196,15,0.35); }
+
 /* =============================================
    Q&A 容器
    ============================================= */
