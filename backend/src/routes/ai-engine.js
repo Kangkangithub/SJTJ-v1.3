@@ -15,6 +15,7 @@
 const express = require("express");
 const router = express.Router();
 const ragServiceV2 = require("../services/ragServiceV2");
+const agentService = require("../services/agentService");
 const embeddingService = require("../services/embeddingService");
 const neo4jManager = require("../config/neo4j-simple");
 const path = require("path");
@@ -170,6 +171,58 @@ router.post("/rag", async (req, res) => {
     });
   } catch (error) {
     console.error("[AI-Engine] RAG 错误:", error);
+    res.status(500).json({ success: false, message: "问答服务暂时不可用: " + error.message });
+  }
+});
+
+// =============================================
+// POST /agent — 多 Agent 编排问答（Tool Calling + 思维链）
+// =============================================
+router.post("/agent", async (req, res) => {
+  try {
+    const { question } = req.body;
+    if (!question || typeof question !== "string" || question.trim().length === 0) {
+      return res.status(400).json({ success: false, message: "请提供问题内容" });
+    }
+    if (question.length > 2000) {
+      return res.status(400).json({ success: false, message: "问题过长，请控制在2000字符以内" });
+    }
+
+    console.log("[AI-Engine] Agent 问答:", question.substring(0, 50) + "...");
+
+    const result = await agentService.answerWithAgent(question.trim());
+
+    if (result.answer) {
+      return res.json({
+        success: true,
+        data: {
+          question: question.trim(),
+          answer: result.answer,
+          mode: result.mode,
+          steps: result.steps,
+          sources: [],
+          formulas: []
+        }
+      });
+    }
+
+    // Agent 未得到答案，回退到固定管线
+    console.log("[AI-Engine] Agent 未得到答案，回退到固定管线");
+    const fallback = await ragServiceV2.answer(question.trim());
+    return res.json({
+      success: true,
+      data: {
+        question: question.trim(),
+        answer: fallback.answer,
+        mode: "agent-fallback",
+        steps: result.steps,
+        sources: fallback.sources || [],
+        formulas: fallback.formulas || [],
+        pipelineSteps: fallback.pipelineSteps || []
+      }
+    });
+  } catch (error) {
+    console.error("[AI-Engine] Agent 错误:", error);
     res.status(500).json({ success: false, message: "问答服务暂时不可用: " + error.message });
   }
 });
