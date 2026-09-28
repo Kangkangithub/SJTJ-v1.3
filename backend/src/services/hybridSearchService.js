@@ -17,6 +17,35 @@ function escapeLucene(str) {
   return String(str || "").replace(/([+\-&|!(){}[\]^"~*?:\\/])/g, "\\$1");
 }
 
+// 中文停用词（与 ragServiceV2 一致）：这些词不作为检索关键词
+const STOP_WORDS = new Set([
+  "什么", "怎么", "如何", "为什么", "哪里", "哪个", "哪些", "可以",
+  "能够", "应该", "需要", "是否", "吗", "呢", "吧", "啊", "的", "了",
+  "在", "是", "有", "和", "与", "或", "及", "等", "用", "来", "去",
+  "功效", "作用", "效果", "用途", "功能", "好处", "调理", "调理方法",
+  "补药", "药材", "中药", "中医药", "配方", "方剂", "问题", "方法",
+  "请问", "问一下", "想知道", "了解", "介绍", "说明", "讲解"
+]);
+
+// 清洗检索词：去掉停用词、包含停用词的 n-gram 噪声片段、过短/过长词
+function cleanTerms(terms, limit) {
+  const cleaned = [];
+  const seen = new Set();
+  for (const t of terms || []) {
+    if (!t || t.length < 2 || t.length > 10) continue;
+    if (seen.has(t)) continue;
+    let isStop = false;
+    for (const sw of STOP_WORDS) {
+      if (t.includes(sw)) { isStop = true; break; }
+    }
+    if (isStop) continue;
+    seen.add(t);
+    cleaned.push(t);
+    if (cleaned.length >= limit) break;
+  }
+  return cleaned;
+}
+
 class HybridSearchService {
   constructor() {
     this.indexName = "herb_fulltext";
@@ -55,8 +84,7 @@ class HybridSearchService {
     if (!ok) return [];
     const session = neo4jManager.getSession();
     try {
-      const terms = [query, ...(keywords || [])].filter(t => t && t.length >= 2);
-      const uniqueTerms = [...new Set(terms)].slice(0, 5);
+      const uniqueTerms = cleanTerms([query, ...(keywords || [])], 5);
       if (uniqueTerms.length === 0) return [];
 
       // Lucene 加权查询：名称命中权重最高，其次是拼音、功效、描述
@@ -101,8 +129,7 @@ class HybridSearchService {
   async searchGraph(query, keywords = []) {
     const session = neo4jManager.getSession();
     try {
-      const terms = [query, ...(keywords || [])].filter(t => t && t.length >= 2);
-      const uniqueTerms = [...new Set(terms)].slice(0, 8);
+      const uniqueTerms = cleanTerms([query, ...(keywords || [])], 8);
       if (uniqueTerms.length === 0) return [];
       const results = [];
       const seen = new Set();
