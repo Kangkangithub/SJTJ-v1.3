@@ -77,15 +77,29 @@ async function callDeepSeek(messages, temperature = 0.3, maxTokens = 800) {
 // =============================================
 const searchHerbsTool = {
   name: "search_herbs",
-  description: "检索与问题相关的药材，使用三路混合检索（BM25全文 + 向量语义 + 知识图谱）+ RRF 融合，返回排序后的药材名列表",
+  description: "检索与问题相关的药材，使用三路混合检索（BM25全文 + 向量语义 + 知识图谱）+ RRF 融合，并做 1-2 跳图遍历返回性味归经/功效/方剂/配伍等完整图谱上下文，返回排序后的药材名列表与图谱证据",
   parameters: { question: "检索问题或关键词，如“补气药材有哪些”" },
   async run(args) {
     const q = args.question || args.q || "";
     if (!q) return { text: "缺少检索问题", herbs: [] };
+    // 1) 三路混合检索拿药材名
     const hybrid = await hybridSearchService.hybridSearch(q, []);
-    const herbs = hybrid.ranked.slice(0, 10).map(r => r.name);
-    if (herbs.length === 0) return { text: "未检索到相关药材", herbs: [] };
-    return { text: "检索到药材：" + herbs.join("、"), herbs: herbs };
+    const rankedNames = hybrid.ranked.slice(0, 10).map(r => r.name);
+    if (rankedNames.length === 0) return { text: "未检索到相关药材", herbs: [] };
+
+    // 2) 按名取图谱详情
+    const herbs = await ragServiceV2.searchNeo4jByNames(rankedNames);
+    // 3) 1-2 跳图遍历：性味/归经/功效/方剂/配伍冲突
+    const enriched = await ragServiceV2.enrichWithGraphTraversal({ herbs, formulas: [] });
+    // 4) 构建结构化图谱上下文
+    const contextText = ragServiceV2.buildContextText(enriched);
+
+    const text = "三路混合检索命中 " + enriched.herbs.length + " 味药材、" + enriched.formulas.length + " 首方剂，图谱上下文如下：\n" + contextText;
+    return {
+      text,
+      herbs: enriched.herbs.map(h => h.name),
+      formulas: enriched.formulas.map(f => f.name)
+    };
   }
 };
 

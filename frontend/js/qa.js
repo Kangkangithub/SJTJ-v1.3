@@ -818,8 +818,6 @@ async function doSend() {
   if (_busy) return;
   var ta = document.getElementById("qaTextarea");
   var btn = document.getElementById("qaSendBtn");
-  var streamToggle = document.getElementById("qaStreamToggle");
-  var agentToggle = document.getElementById("qaAgentToggle");
   if (!ta || !btn) return;
   var input = (ta.value || "").trim();
   if (!input) { toast("请输入问题", "warning"); return; }
@@ -831,13 +829,12 @@ async function doSend() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 生成中...';
   var loadingSteps = [
-    "关键词提取：分析用户问题...",
-    "Neo4j 图检索：查询图谱相关节点...",
-    "向量检索：语义匹配证型与功效...",
-    "关联知识扩展：补充性味、归经、功效、配伍...",
-    "LLM 知识增强：融合图谱上下文...",
-    "上下文构建：整理证据与候选知识...",
-    "DeepSeek-V3 生成：输出最终答案..."
+    "理解问题：分析用户意图...",
+    "Agent 决策：自主选择工具...",
+    "三路混合检索：BM25 + 向量 + 图检索...",
+    "图遍历：扩展性味、归经、功效、方剂...",
+    "整理证据：汇总图谱上下文...",
+    "Model 生成：输出最终答案..."
   ];
   var loadingIndex = 0;
   var loadingTimer = null;
@@ -864,19 +861,10 @@ async function doSend() {
     }
 
     var result;
-    var agentMode = agentToggle ? agentToggle.checked : true;
-    if (agentMode) {
-      result = await askAgent(input);
-      var mcA = aiDiv ? aiDiv.querySelector(".message-content") : null;
-      if (mcA) mcA.innerHTML = buildAnswerHtml(result);
-    } else if (streamToggle && streamToggle.checked) {
-      result = await askRagStream(input, aiDiv);
-      if (!result.answer) throw new Error("STREAM_EMPTY");
-    } else {
-      result = await askRag(input);
-      var mc1 = aiDiv ? aiDiv.querySelector(".message-content") : null;
-      if (mc1) mc1.innerHTML = buildAnswerHtml(result);
-    }
+    // 统一走 Agent：LLM 自主决策调用工具，经典 RAG 仅在后端 agent-fallback 兜底
+    result = await askAgent(input);
+    var mcA = aiDiv ? aiDiv.querySelector(".message-content") : null;
+    if (mcA) mcA.innerHTML = buildAnswerHtml(result);
 
     if (window.hljs && aiDiv) {
       try { aiDiv.querySelectorAll("pre code").forEach(function(b){ hljs.highlightElement(b); }); } catch(e) {}
@@ -897,7 +885,7 @@ async function doSend() {
       markAnswerInterrupted(aiDiv);
     } else {
       if (mc) mc.innerHTML = '<div class="rag-error"><i class="fas fa-exclamation-triangle"></i> 回答生成失败，请稍后重试</div>';
-      toast(streamToggle && streamToggle.checked ? "流式回答失败，请稍后重试" : "回答生成失败，请稍后重试", "error");
+      toast("回答生成失败，请稍后重试", "error");
     }
   } finally {
     if (loadingTimer) clearInterval(loadingTimer);
