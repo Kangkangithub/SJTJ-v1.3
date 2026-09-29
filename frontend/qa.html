@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/css/atom-one-dark.min.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/herb-app.css">
-    <link rel="stylesheet" href="css/qa.css?v=20260817agent3">
+    <link rel="stylesheet" href="css/qa.css?v=20260817agent4">
 </head>
 <body class="qa-page">
     <div class="page-shell">
@@ -156,10 +156,15 @@
         <footer class="footer"><div><strong>神农AI</strong><div>中药药材知识图谱系统</div></div></footer>
     </div>
 
+    <div id="mediaLightbox" class="media-lightbox" role="dialog" aria-label="图片预览" onclick="closeMediaLightbox()">
+        <button class="media-lightbox-close" type="button" aria-label="关闭" onclick="event.stopPropagation(); closeMediaLightbox();"><i class="fas fa-times"></i></button>
+        <img class="media-lightbox-img" id="mediaLightboxImg" src="" alt="图片预览">
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/common.js"></script>
-    <script src="js/qa.js?v=20260817agent3"></script>
+    <script src="js/qa.js?v=20260817agent4"></script>
 </body>
 </html>

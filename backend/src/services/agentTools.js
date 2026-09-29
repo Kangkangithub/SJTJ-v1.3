@@ -160,7 +160,7 @@ const enrichHerbTool = {
 // =============================================
 const herbMediaTool = {
   name: "herb_media",
-  description: "仅当用户明确询问某一味具体药材的图片/视频/长相/外观时使用，返回该药材的图片和视频链接。宽泛问题（如推荐多味药材）不要调用",
+  description: "当用户询问某一味具体药材的信息、图片、视频、长相或外观时使用，返回该药材的图片和视频链接。宽泛问题（如推荐多味药材）不要调用",
   parameters: { herb: "单一药材名，如“人参”" },
   async run(args) {
     const name = String(args.herb || args.name || "").trim();

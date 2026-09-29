@@ -277,7 +277,7 @@ function formatMedia(media) {
   html += '<div class="rag-media-list">';
   images.forEach(function(m){
     var src = (API_BASE || "") + (m.url || "");
-    html += '<img class="rag-media-image" src="' + escA(src) + '" alt="' + esc(m.name || "药材图片") + '" loading="lazy">';
+    html += '<img class="rag-media-image" src="' + escA(src) + '" alt="' + esc(m.name || "药材图片") + '" loading="lazy" onclick="openMediaLightbox(this.src)" title="点击查看大图">';
   });
   videos.forEach(function(m){
     var src = (API_BASE || "") + (m.url || "");
@@ -1054,6 +1054,19 @@ function toggleTechStack() {
   var collapsed = items.classList.toggle("collapsed");
   btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
 }
+function openMediaLightbox(src) {
+  var lb = document.getElementById("mediaLightbox");
+  var img = document.getElementById("mediaLightboxImg");
+  if (!lb || !img || !src) return;
+  img.src = src;
+  lb.classList.add("open");
+}
+
+function closeMediaLightbox() {
+  var lb = document.getElementById("mediaLightbox");
+  if (lb) lb.classList.remove("open");
+}
+
 
 async function openHerbPanel(name) {
   var panel = document.getElementById("herbSidePanel");
@@ -1162,6 +1175,8 @@ function closeHerbPanel() {
 
 window.togglePL = togglePL;
 window.toggleTechStack = toggleTechStack;
+window.openMediaLightbox = openMediaLightbox;
+window.closeMediaLightbox = closeMediaLightbox;
 window.toggleAgentChain = toggleAgentChain;
 window.openHerbPanel = openHerbPanel;
 window.closeHerbPanel = closeHerbPanel;

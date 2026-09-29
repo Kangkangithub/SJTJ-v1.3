@@ -2287,3 +2287,25 @@ button.rag-source-tag {
 }
 .tech-stack-items .tech-badge-item i { color: var(--primary-dark); }
 .tech-stack-items .tech-arrow { color: rgba(47, 118, 81, 0.4); }
+
+/* 技术栈条流程居中 */
+.tech-stack-toggle { justify-content: center; }
+.tech-stack-items { justify-content: center; }
+
+/* AI 图片可点击放大 */
+.rag-media-image { cursor: zoom-in; transition: opacity 0.2s; }
+.rag-media-image:hover { opacity: 0.9; }
+.media-lightbox {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0, 0, 0, 0.82);
+  display: none; align-items: center; justify-content: center;
+  cursor: zoom-out;
+}
+.media-lightbox.open { display: flex; }
+.media-lightbox-img { max-width: 92vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.media-lightbox-close {
+  position: absolute; top: 20px; right: 24px;
+  background: rgba(255, 255, 255, 0.16); color: #fff; border: none;
+  width: 42px; height: 42px; border-radius: 50%; font-size: 18px; cursor: pointer;
+}
+.media-lightbox-close:hover { background: rgba(255, 255, 255, 0.32); }
