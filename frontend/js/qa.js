@@ -268,6 +268,24 @@ function formatFormulas(formulas) {
   html += '</div>';
   return html;
 }
+function formatMedia(media) {
+  if (!media || !media.length) return "";
+  var images = media.filter(function(m){ return m.type === "image"; });
+  var videos = media.filter(function(m){ return m.type === "video"; });
+  var html = '<div class="rag-media-bar">';
+  html += '<div class="rag-media-hint"><i class="fas fa-images"></i> Agent 调用 <strong>herb_media</strong> 从数据库提取出：</div>';
+  html += '<div class="rag-media-list">';
+  images.forEach(function(m){
+    var src = (API_BASE || "") + (m.url || "");
+    html += '<img class="rag-media-image" src="' + escA(src) + '" alt="' + esc(m.name || "药材图片") + '" loading="lazy">';
+  });
+  videos.forEach(function(m){
+    var src = (API_BASE || "") + (m.url || "");
+    html += '<video class="rag-media-video" src="' + escA(src) + '" controls preload="metadata"></video>';
+  });
+  html += '</div></div>';
+  return html;
+}
 
 function buildRagModeBadge(mode) {
   if (mode === "cypher-chain") {
@@ -369,6 +387,7 @@ function buildAnswerHtml(result) {
   html += '<div class="rag-answer-body">' + renderMarkdown(finalAnswer) + '</div>';
   html += formatSources(r.sources || []);
   html += formatFormulas(r.formulas || []);
+  html += formatMedia(r.media || []);
   return html;
 }
 
@@ -1027,6 +1046,15 @@ function toggleAgentChain(el) {
   }
 }
 
+function toggleTechStack() {
+  var bar = document.getElementById("techStackBar");
+  var items = document.getElementById("techStackItems");
+  var btn = bar ? bar.querySelector(".tech-stack-toggle") : null;
+  if (!items || !btn) return;
+  var collapsed = items.classList.toggle("collapsed");
+  btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+}
+
 async function openHerbPanel(name) {
   var panel = document.getElementById("herbSidePanel");
   var stage = document.querySelector(".qa-stage");
@@ -1133,6 +1161,7 @@ function closeHerbPanel() {
 }
 
 window.togglePL = togglePL;
+window.toggleTechStack = toggleTechStack;
 window.toggleAgentChain = toggleAgentChain;
 window.openHerbPanel = openHerbPanel;
 window.closeHerbPanel = closeHerbPanel;

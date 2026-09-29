@@ -2256,3 +2256,34 @@ button.rag-source-tag {
   }
 }
 
+
+
+/* Agent 多媒体展示（图片/视频） */
+.rag-media-bar { margin: 10px 0; }
+.rag-media-hint { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.rag-media-hint i { color: var(--primary); margin-right: 4px; }
+.rag-media-hint strong { color: var(--primary-dark); }
+.rag-media-list { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+.rag-media-image { max-width: 220px; max-height: 180px; border-radius: 8px; border: 1px solid var(--line); object-fit: cover; display: block; }
+.rag-media-video { max-width: 280px; max-height: 200px; border-radius: 8px; border: 1px solid var(--line); display: block; background: #000; }
+
+/* 技术栈条：可折叠 + 统一绿色风格 */
+.tech-stack-bar { flex-direction: column; align-items: stretch; }
+.tech-stack-toggle {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; background: transparent; border: none; padding: 0;
+  color: var(--primary-dark); font-weight: 700; font-size: 13px; cursor: pointer;
+  text-align: left;
+}
+.tech-stack-toggle .tech-stack-toggle-title { display: inline-flex; align-items: center; gap: 8px; }
+.tech-stack-toggle .tech-stack-chevron { transition: transform 0.25s; color: var(--primary-dark); }
+.tech-stack-toggle[aria-expanded="false"] .tech-stack-chevron { transform: rotate(-90deg); }
+.tech-stack-items { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.tech-stack-items.collapsed { display: none; }
+.tech-stack-items .tech-badge-item {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  border: 1px solid rgba(47, 118, 81, 0.22);
+}
+.tech-stack-items .tech-badge-item i { color: var(--primary-dark); }
+.tech-stack-items .tech-arrow { color: rgba(47, 118, 81, 0.4); }

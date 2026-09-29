@@ -201,7 +201,8 @@ router.post("/agent", async (req, res) => {
           mode: result.mode,
           steps: result.steps,
           sources: result.sources || [],
-          formulas: []
+          formulas: result.formulas || [],
+          media: result.media || []
         }
       });
     }
@@ -218,7 +219,8 @@ router.post("/agent", async (req, res) => {
         steps: result.steps,
         sources: fallback.sources || [],
         formulas: fallback.formulas || [],
-        pipelineSteps: fallback.pipelineSteps || []
+        pipelineSteps: fallback.pipelineSteps || [],
+        media: []
       }
     });
   } catch (error) {

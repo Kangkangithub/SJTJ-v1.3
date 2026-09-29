@@ -56,7 +56,10 @@ Final Answer: 最终答案（完整、专业、面向用户）
 1. 每次只输出「Thought + Action + Action Input」三步，然后立即停止，等待系统返回 Observation
 2. 绝对不要自己编造 Observation，Observation 只能由系统提供
 3. 绝对不要在一次输出里完成整个循环，不要提前输出 Final Answer
-4. 只有收到足够的 Observation 后，才在下一步单独输出 Final Answer`;
+4. 只有收到足够的 Observation 后，才在下一步单独输出 Final Answer
+5. herb_media 仅在用户明确询问某一味具体药材的图片/视频/长相/外观时调用；宽泛问题（如“推荐几味补气药”）不要调用
+6. 优先调用工具获取知识库证据，再基于 Observation 生成回答，不要凭空编造
+`;
 }
 
 // =============================================
@@ -115,6 +118,8 @@ async function runAgent(question) {
 
   const steps = []; // 思维链
   const collectedHerbs = []; // 收集检索到的药材，用于“参考药材”chip
+  const collectedFormulas = []; // 收集检索到的方剂，用于“关联方剂”chip
+  const collectedMedia = []; // 收集多媒体（图片/视频），用于回答区展示
   const messages = [
     { role: "system", content: buildSystemPrompt() },
     { role: "user", content: question }
@@ -135,7 +140,7 @@ async function runAgent(question) {
     // 有最终答案 → 结束
     if (parsed.finalAnswer) {
       steps.push({ type: "answer", content: parsed.finalAnswer });
-      return { answer: parsed.finalAnswer, steps, error: null, sources: collectedHerbs };
+      return { answer: parsed.finalAnswer, steps, error: null, sources: collectedHerbs, formulas: collectedFormulas, media: collectedMedia };
     }
 
     // 有工具调用 → 执行工具
@@ -154,11 +159,15 @@ async function runAgent(question) {
 
       let resultText;
       let resultHerbs = [];
+      let resultFormulas = [];
+      let resultMedia = [];
       try {
         const raw = await tool.run(parsed.actionInput || {});
         if (raw && typeof raw === "object") {
           resultText = raw.text || JSON.stringify(raw);
           if (Array.isArray(raw.herbs)) resultHerbs = raw.herbs;
+          if (Array.isArray(raw.formulas)) resultFormulas = raw.formulas;
+          if (Array.isArray(raw.media)) resultMedia = raw.media;
         } else {
           resultText = String(raw || "");
         }
@@ -168,7 +177,13 @@ async function runAgent(question) {
       if (resultHerbs.length) {
         resultHerbs.forEach(function(h) { if (collectedHerbs.indexOf(h) === -1) collectedHerbs.push(h); });
       }
-      steps.push({ type: "tool_result", content: resultText, herbs: resultHerbs });
+      if (resultFormulas.length) {
+        resultFormulas.forEach(function(f) { if (collectedFormulas.indexOf(f) === -1) collectedFormulas.push(f); });
+      }
+      if (resultMedia.length) {
+        resultMedia.forEach(function(m) { if (!collectedMedia.some(function(x){ return x.url === m.url; })) collectedMedia.push(m); });
+      }
+      steps.push({ type: "tool_result", content: resultText, herbs: resultHerbs, formulas: resultFormulas, media: resultMedia });
 
       messages.push({ role: "assistant", content: response });
       messages.push({ role: "user", content: "Observation: " + resultText });
@@ -179,7 +194,7 @@ async function runAgent(question) {
     }
   }
 
-  return { answer: "", steps, error: "达到最大迭代次数仍未得到答案", sources: collectedHerbs };
+  return { answer: "", steps, error: "达到最大迭代次数仍未得到答案", sources: collectedHerbs, formulas: collectedFormulas, media: collectedMedia };
 }
 
 // =============================================
@@ -189,10 +204,10 @@ async function answerWithAgent(question) {
   try {
     const result = await runAgent(question);
     if (result.answer) {
-      return { answer: result.answer, steps: result.steps, mode: "agent", sources: result.sources || [] };
+      return { answer: result.answer, steps: result.steps, mode: "agent", sources: result.sources || [], formulas: result.formulas || [], media: result.media || [] };
     }
     // Agent 未得到答案，返回空（由调用方兜底）
-    return { answer: "", steps: result.steps, mode: "agent-failed", error: result.error, sources: result.sources || [] };
+    return { answer: "", steps: result.steps, mode: "agent-failed", error: result.error, sources: result.sources || [], formulas: result.formulas || [], media: result.media || [] };
   } catch (e) {
     console.error("[Agent] Agent 执行失败:", e.message);
     return { answer: "", steps: [], mode: "agent-error", error: e.message };
