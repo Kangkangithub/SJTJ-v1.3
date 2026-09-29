@@ -58,7 +58,7 @@
 ### 3. GraphRAG 智能问答
 
 - 页面：`qa.html`
-- 技术链：三路混合检索（BM25 + 向量 + 知识图谱）+ RRF 融合 → 图遍历 → LLM 增强 → DeepSeek-V3
+- 技术链：Agent + Tool Calling（默认）→ 三路混合检索（BM25 + 向量 + 知识图谱）+ RRF 融合 → 图遍历 → DeepSeek 生成
 - 支持药材功效、产地、用法、注意事项、方剂组成等问题
 - 答案附带引用来源、可点击药材节点、D3 迷你知识图谱
 - 展示完整 GraphRAG 检索过程（含向量检索环节）
@@ -94,36 +94,55 @@
 
 </div>
 
-以下是架构的文字版流程：
+当前 AI 问答采用「**Agent 主路径 + 经典 RAG 兜底**」架构：用户提问后**默认走 Agent**，由大模型自主决定调用哪些工具；仅当 Agent 未能产出答案时，才自动回退到经典 RAG 固定管线。
 
 ```
-浏览器前端
+浏览器前端（qa.html）
    │
-   │  HTTP /api/ai-engine/rag
+   │  HTTP POST /api/ai-engine/agent（默认主路径）
    ▼
 Node.js + Express 后端
    │
-   ├── ragServiceV2.js（GraphRAG 核心）
-   │     ├── 本地 n-gram 关键词提取
-   │     ├── 三路混合检索（hybridSearchService）
-   │     │     ├── BM25 全文检索（Neo4j cjk 全文索引）
-   │     │     ├── 向量语义检索（text-embedding-v3）
-   │     │     ├── 知识图谱检索（Cypher CONTAINS）
-   │     │     └── RRF 融合重排
-   │     ├── 1-2 跳图遍历
-   │     ├── LLM 知识增强（受控并发）
-   │     ├── 上下文构建
-   │     └── DeepSeek 答案生成
+   ├── agentService.js（Agent 编排：ReAct + Tool Calling）
+   │     └─ Thought → Action → 执行工具 → Observation → 迭代 → Final Answer
    │
-   ├── hybridSearchService.js（三路混合检索 + RRF）
+   ├── agentTools.js（可调用工具集）
+   │     ├─ search_herbs           三路混合检索 + 1-2 跳图遍历
+   │     ├─ search_formulas        方剂检索
+   │     ├─ enrich_herb            单味药材 LLM 知识增强
+   │     ├─ herb_media             返回药材图片 / 视频
+   │     └─ check_compatibility    十八反十九畏配伍检测
+   │
+   ├── hybridSearchService.js（三路混合检索 + RRF 融合）
    ├── embeddingService.js（向量检索 + SQLite 持久化）
+   ├── ragServiceV2.js（经典 RAG 固定管线，Agent 失败时兜底）
    ├── neo4j-simple.js（Neo4j 单例连接）
    │
    ▼
-Neo4j AuraDB 云图数据库
+Neo4j AuraDB + SQLite + DeepSeek
 ```
 
-### GraphRAG 七步管线
+### 主路径：Agent 模式（ReAct + Tool Calling）
+
+Agent 不再按固定流程执行，而是由大模型「边思考、边调用工具、边观察结果」，多步迭代后生成答案，并在前端展示完整思维链。
+
+```
+用户问题
+   ↓
+① 思考（Thought）：这个问题需要检索什么？
+   ↓
+② 调用工具（Action）：search_herbs / search_formulas / enrich_herb / herb_media / check_compatibility
+   ↓
+③ 观察结果（Observation）：把工具返回的图谱证据喂回模型
+   ↓
+④ 继续思考 → 决定是否再调工具（最多 8 轮）
+   ↓
+⑤ 最终答案（Final Answer）：基于观察结果生成可溯源回答
+```
+
+### 兜底路径：经典 RAG 七步管线
+
+当 Agent 未能得到答案（如模型输出异常、达到最大轮次）时，后端自动调用 `ragServiceV2.answer()` 回退到固定管线：
 
 ```
 用户问题
@@ -143,29 +162,39 @@ Neo4j AuraDB 云图数据库
    ↓
 ⑥ 上下文构建：将图谱数据与增强知识格式化为结构化提示
    ↓
-⑦ DeepSeek-V3 生成：基于增强上下文生成带引用来源的答案
+⑦ DeepSeek 生成：基于增强上下文生成带引用来源的答案
 ```
+
+### 三路混合检索 + RRF
+
+`search_herbs` 工具内部复用了同一套三路混合检索，保证 Agent 模式下回答同样可溯源：
+
+| 检索路 | 技术 | 说明 |
+| --- | --- | --- |
+| BM25 全文检索 | Neo4j cjk 全文索引 | 字面精确匹配，字段加权 name^3 > pinyin^2 > 功效/描述 |
+| 向量语义检索 | text-embedding-v3（1024 维） | 余弦相似度匹配「证型 ↔ 功效」语义 |
+| 知识图谱检索 | Cypher CONTAINS | 图谱节点属性字面匹配 |
+
+三路结果经 **RRF（Reciprocal Rank Fusion，倒数排名融合）** 重排：`score = Σ 1/(k + rank)`，多路命中的药材得分更高、排更前。
+
+### GraphCypherQAChain 的角色
+
+项目引入了 LangChain.js 的 `GraphCypherQAChain`，但由于 AuraDB Free 实例的路由表限制以及连接池统一管理需要，当前未作为生产主路径，仅作备用 / 技术展示。
+
+| 模式 | 流程 | 当前状态 |
+| --- | --- | --- |
+| Agent + Tool Calling | 大模型自主规划 → 调用工具 → 多步推理 → 生成答案 | ✅ 当前主路径 |
+| 手动增强检索 | 关键词 → 三路检索 → 图遍历 → 知识增强 → 生成答案 | 兜底路径（agent-fallback） |
+| GraphCypherQAChain | LLM 自动生成 Cypher → 执行 → LLM 回答 | 备用 / 技术展示 |
 
 详细教学请阅读：
 
-- `docs/AI_ENGINE_RAG_TEACHING.md`
+- `docs/AI_ASSISTANT_AGENT_GUIDE.md`（Agent 编排 + Tool Calling + 工具集 + 三路混合检索全解析）
 - `docs/三路混合检索技术方案.md`（三路混合检索 + RRF 融合）
 - `docs/EMBEDDING_VECTOR_SEARCH.md`（向量检索专项）
 - `docs/RAG_PERFORMANCE_OPTIMIZATION.md`（性能优化专项）
 
-### GraphCypherQAChain 的角色
-
-项目引入了 LangChain.js 的 `GraphCypherQAChain`，但由于 AuraDB Free 实例的路由表限制以及连接池统一管理需要，当前生产主路径使用更稳定的“手动增强图检索 + LLM 知识增强”模式。
-
-两种模式分别是：
-
-| 模式 | 流程 | 当前状态 |
-| --- | --- | --- |
-| GraphCypherQAChain | LLM 自动生成 Cypher → 执行 → LLM 回答 | 备用/技术展示 |
-| 手动增强检索 | 关键词 → Cypher → 图遍历 → 知识增强 → 生成答案 | 当前主路径 |
-
 ---
-
 ## 🚀 快速开始
 
 ### 环境要求
@@ -291,6 +320,7 @@ http://localhost:3001
 
 | 方法 | 接口 | 说明 |
 | --- | --- | --- |
+| `POST` | `/api/ai-engine/agent` | Agent 智能问答（默认，Tool Calling + 思维链） |
 | `POST` | `/api/ai-engine/rag` | GraphRAG 智能问答 |
 | `POST` | `/api/ai-engine/rag-stream` | RAG 流式问答 |
 | `POST` | `/api/ai-engine/compatibility` | 配伍冲突检测 |
@@ -351,7 +381,10 @@ Herb-v1.3（神农AI）
 │     │  ├─ herbs-manage.js      # 药材管理 API
 │     │  └─ ...
 │     └─ services/               # 业务服务
-│        ├─ ragServiceV2.js      # GraphRAG 核心
+│        ├─ agentService.js      # Agent 编排（ReAct + Tool Calling）
+│        ├─ agentTools.js        # 工具集（search_herbs 等 5 个工具）
+│        ├─ ragServiceV2.js      # 经典 RAG 管线（Agent 兜底）
+│        ├─ hybridSearchService.js # 三路混合检索 + RRF
 │        ├─ embeddingService.js  # 向量检索
 │        └─ ...
 │
@@ -422,15 +455,13 @@ quality        品质
 }
 ```
 
-### 后端处理
+### 后端处理（默认走 Agent）
 
-1. 本地 n-gram 提取关键词：`["人参", "功效", ...]`
-2. Neo4j 精确匹配到 `人参` 节点
-3. 向量检索语义补充（如「补气」语义命中「黄芪」等）
-4. 图遍历获取性味、归经、功效、相关方剂
-5. DeepSeek 对前 N 味药材做受控并发知识增强
-6. 构建上下文
-7. DeepSeek 生成带参考来源的答案
+1. 前端调用 `POST /api/ai-engine/agent`
+2. Agent 思考后调用 `search_herbs` 工具
+3. 工具内部执行「三路混合检索 + 1-2 跳图遍历」，返回完整图谱上下文
+4. Agent 观察结果后，可能继续调用 `enrich_herb` / `herb_media` 等工具
+5. 生成最终答案，前端展示思维链 + 参考药材 + 方剂 + 图片视频
 
 ### 返回结构
 
@@ -440,17 +471,20 @@ quality        品质
   "data": {
     "question": "人参有什么功效？",
     "answer": "……",
-    "mode": "manual-enhanced",
+    "mode": "agent",
+    "steps": [
+      { "type": "thought", "content": "需要检索人参" },
+      { "type": "tool_call", "tool": "search_herbs", "args": { "question": "人参有什么功效？" } },
+      { "type": "tool_result", "content": "检索到人参..." }
+    ],
     "sources": ["人参"],
     "formulas": ["四君子汤"],
-    "cypher": null,
-    "fromCache": false
+    "media": [ { "type": "image", "url": "/uploads/herbs/人参.png" } ]
   }
 }
 ```
 
 ---
-
 ## 🔒 安全设计
 
 - Neo4j 密码、DeepSeek API Key 只存在于 `backend/.env`
@@ -467,6 +501,7 @@ quality        品质
 | --- | --- |
 | `README.md` | 项目总览 |
 | `docs/AI_ENGINE_RAG_TEACHING.md` | GraphRAG 智能问答改造教学 |
+| `docs/AI_ASSISTANT_AGENT_GUIDE.md` | Agent 编排 + Tool Calling + 工具集 + 三路混合检索全解析 |
 | `docs/EMBEDDING_VECTOR_SEARCH.md` | 向量检索（Embedding 语义检索）实现详解 |
 | `docs/RAG_PERFORMANCE_OPTIMIZATION.md` | 问答性能优化详解 |
 | `backend/API.md` | 后端 API 详细说明 |
@@ -486,7 +521,7 @@ quality        品质
 | 图数据库 | Neo4j AuraDB |
 | 图驱动 | `neo4j-driver` |
 | AI 框架 | LangChain.js |
-| LLM | DeepSeek-V3（`deepseek-chat`） |
+| LLM | DeepSeek（`deepseek-chat`） |
 | 向量模型 | 阿里云百炼 `text-embedding-v3`（1024 维） |
 | 关系型数据库 | SQLite（用户、认证、对话历史、向量存储） |
 
@@ -553,7 +588,7 @@ GraphRAG 会先从 Neo4j 检索真实图数据，再交给 DeepSeek 生成答案
 
 ## 🔭 未来展望
 
-- ✅ **智能体（Agent）化**：引入 Agent / Tool Call / AI Workflow，让 LLM 自主分解问题，按需调用图谱查询、药材识别、配伍检测等工具，实现多步推理与工具编排。
+- ✅ **智能体（Agent）化（已上线）**：已落地 Agent / Tool Calling，大模型自主分解问题、按需调用检索 / 方剂 / 增强 / 多媒体 / 配伍检测等工具，并展示思维链；后续继续扩展更多工具与 AI Workflow。
 - ✅ **智能推荐与处方审查**：基于用户的浏览与问答历史构建个性化画像，实现方剂智能推荐与处方安全审查。
 - ✅ **数据规模扩充**：药材从 275 味扩充至 1000+，补全图片视频等可视化素材，并引入古籍与临床数据。
 - ✅ **自研图像识别模型**：训练 YOLO 医药图像模型，支持药材饮片拍照识别并直达知识图谱节点。
