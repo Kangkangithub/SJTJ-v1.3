@@ -1,6 +1,6 @@
 /* 智能问答页面样式 - 中医药主题 */
 
-/* Agent 思维链步骤 */
+/* Agent 思维链步骤（浅色主题，深色文字保证可读） */
 .agent-chain-log { padding: 8px 0; }
 .agent-chain-step {
   display: flex;
@@ -10,11 +10,11 @@
   padding: 9px 12px;
   margin: 4px 0;
   border-radius: 8px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(47, 118, 81, 0.04);
   font-size: 13px;
   line-height: 1.65;
-  color: rgba(255,255,255,0.82);
-  border-left: 3px solid rgba(255,255,255,0.12);
+  color: var(--text, #16241d);
+  border-left: 3px solid rgba(22, 36, 29, 0.14);
 }
 .agent-chain-step .agent-step-icon { flex-shrink: 0; font-size: 15px; }
 .agent-chain-step .agent-step-label {
@@ -22,7 +22,7 @@
   font-weight: 700;
   font-size: 12px;
   color: #20563b;
-  background: rgba(39,174,96,0.14);
+  background: rgba(47, 118, 81, 0.14);
   border-radius: 4px;
   padding: 1px 8px;
   margin-top: 1px;
@@ -31,8 +31,8 @@
   flex-shrink: 0;
   width: 20px; height: 20px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.65);
+  background: rgba(22, 36, 29, 0.08);
+  color: var(--muted, #627069);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,33 +43,35 @@
 .agent-chain-step .agent-step-body {
   flex-basis: 100%;
   padding-left: 26px;
-  color: rgba(255,255,255,0.78);
+  color: var(--text, #16241d);
   word-break: break-word;
   white-space: pre-wrap;
 }
-.agent-chain-step .agent-step-body.agent-answer-note { color: rgba(255,255,255,0.6); }
+.agent-chain-step .agent-step-body.agent-answer-note { color: var(--muted, #627069); }
 .agent-chain-step .agent-step-body pre {
   margin: 6px 0 0 0;
   padding: 8px 10px;
-  background: rgba(0,0,0,0.25);
+  background: rgba(22, 36, 29, 0.04);
+  border: 1px solid rgba(22, 36, 29, 0.08);
   border-radius: 6px;
   font-size: 12px;
   overflow-x: auto;
   white-space: pre-wrap;
+  color: var(--text, #16241d);
 }
-.agent-chain-step .agent-step-body pre code { background: transparent; }
-.agent-chain-step.agent-thought { border-left-color: #3498db; background: rgba(52,152,219,0.06); }
-.agent-chain-step.agent-thought .agent-step-label { color: #3498db; background: rgba(52,152,219,0.15); }
-.agent-chain-step.agent-tool { border-left-color: #9b59b6; background: rgba(155,89,182,0.07); }
-.agent-chain-step.agent-tool .agent-step-label { color: #a78bfa; background: rgba(155,89,182,0.18); }
-.agent-chain-step.agent-result { border-left-color: #f39c12; background: rgba(243,156,18,0.06); }
-.agent-chain-step.agent-result .agent-step-label { color: #f39c12; background: rgba(243,156,18,0.16); }
-.agent-chain-step.agent-answer { border-left-color: #27ae60; background: rgba(39,174,96,0.07); }
-.agent-chain-step.agent-answer .agent-step-label { color: #27ae60; background: rgba(39,174,96,0.18); }
-.agent-chain-step.agent-error { border-left-color: #e74c3c; background: rgba(231,76,60,0.07); }
-.agent-chain-step.agent-error .agent-step-label { color: #e74c3c; background: rgba(231,76,60,0.18); }
-.rag-badge-agent { background: rgba(52,152,219,0.18); color: #5dade2; border: 1px solid rgba(52,152,219,0.35); }
-.rag-badge-agent-fallback { background: rgba(241,196,15,0.16); color: #f1c40f; border: 1px solid rgba(241,196,15,0.35); }
+.agent-chain-step .agent-step-body pre code { background: transparent; color: inherit; }
+.agent-chain-step.agent-thought { border-left-color: #3498db; background: rgba(52, 152, 219, 0.06); }
+.agent-chain-step.agent-thought .agent-step-label { color: #2471a3; background: rgba(52, 152, 219, 0.14); }
+.agent-chain-step.agent-tool { border-left-color: #8e44ad; background: rgba(142, 68, 173, 0.06); }
+.agent-chain-step.agent-tool .agent-step-label { color: #7d3c98; background: rgba(142, 68, 173, 0.14); }
+.agent-chain-step.agent-result { border-left-color: #c67517; background: rgba(198, 117, 23, 0.06); }
+.agent-chain-step.agent-result .agent-step-label { color: #a85f0d; background: rgba(198, 117, 23, 0.15); }
+.agent-chain-step.agent-answer { border-left-color: #27ae60; background: rgba(39, 174, 96, 0.07); }
+.agent-chain-step.agent-answer .agent-step-label { color: #1e8c4c; background: rgba(39, 174, 96, 0.16); }
+.agent-chain-step.agent-error { border-left-color: #c0392b; background: rgba(192, 57, 43, 0.06); }
+.agent-chain-step.agent-error .agent-step-label { color: #a93226; background: rgba(192, 57, 43, 0.14); }
+.rag-badge-agent { background: rgba(52, 152, 219, 0.14); color: #2471a3; border: 1px solid rgba(52, 152, 219, 0.3); }
+.rag-badge-agent-fallback { background: rgba(198, 117, 23, 0.14); color: #a85f0d; border: 1px solid rgba(198, 117, 23, 0.3); }
 
 /* =============================================
    Q&A 容器

@@ -110,10 +110,11 @@ async function callLLM(messages) {
 async function runAgent(question) {
   const model = initializeLLM();
   if (!model) {
-    return { answer: "", steps: [], error: "LLM 未初始化" };
+    return { answer: "", steps: [], error: "LLM 未初始化", sources: [] };
   }
 
   const steps = []; // 思维链
+  const collectedHerbs = []; // 收集检索到的药材，用于“参考药材”chip
   const messages = [
     { role: "system", content: buildSystemPrompt() },
     { role: "user", content: question }
@@ -134,7 +135,7 @@ async function runAgent(question) {
     // 有最终答案 → 结束
     if (parsed.finalAnswer) {
       steps.push({ type: "answer", content: parsed.finalAnswer });
-      return { answer: parsed.finalAnswer, steps, error: null };
+      return { answer: parsed.finalAnswer, steps, error: null, sources: collectedHerbs };
     }
 
     // 有工具调用 → 执行工具
@@ -151,16 +152,26 @@ async function runAgent(question) {
       steps.push({ type: "thought", content: parsed.thought || "" });
       steps.push({ type: "tool_call", tool: parsed.action, args: parsed.actionInput || {} });
 
-      let result;
+      let resultText;
+      let resultHerbs = [];
       try {
-        result = await tool.run(parsed.actionInput || {});
+        const raw = await tool.run(parsed.actionInput || {});
+        if (raw && typeof raw === "object") {
+          resultText = raw.text || JSON.stringify(raw);
+          if (Array.isArray(raw.herbs)) resultHerbs = raw.herbs;
+        } else {
+          resultText = String(raw || "");
+        }
       } catch (e) {
-        result = "工具调用失败：" + e.message;
+        resultText = "工具调用失败：" + e.message;
       }
-      steps.push({ type: "tool_result", content: result });
+      if (resultHerbs.length) {
+        resultHerbs.forEach(function(h) { if (collectedHerbs.indexOf(h) === -1) collectedHerbs.push(h); });
+      }
+      steps.push({ type: "tool_result", content: resultText, herbs: resultHerbs });
 
       messages.push({ role: "assistant", content: response });
-      messages.push({ role: "user", content: "Observation: " + result });
+      messages.push({ role: "user", content: "Observation: " + resultText });
     } else {
       // 既无 Final Answer 也无 Action，结束循环
       steps.push({ type: "error", content: "Agent 输出格式异常，无法继续" });
@@ -168,7 +179,7 @@ async function runAgent(question) {
     }
   }
 
-  return { answer: "", steps, error: "达到最大迭代次数仍未得到答案" };
+  return { answer: "", steps, error: "达到最大迭代次数仍未得到答案", sources: collectedHerbs };
 }
 
 // =============================================
@@ -178,10 +189,10 @@ async function answerWithAgent(question) {
   try {
     const result = await runAgent(question);
     if (result.answer) {
-      return { answer: result.answer, steps: result.steps, mode: "agent" };
+      return { answer: result.answer, steps: result.steps, mode: "agent", sources: result.sources || [] };
     }
     // Agent 未得到答案，返回空（由调用方兜底）
-    return { answer: "", steps: result.steps, mode: "agent-failed", error: result.error };
+    return { answer: "", steps: result.steps, mode: "agent-failed", error: result.error, sources: result.sources || [] };
   } catch (e) {
     console.error("[Agent] Agent 执行失败:", e.message);
     return { answer: "", steps: [], mode: "agent-error", error: e.message };

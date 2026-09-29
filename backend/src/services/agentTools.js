@@ -39,11 +39,11 @@ const searchHerbsTool = {
   parameters: { question: "检索问题或关键词，如“补气药材有哪些”" },
   async run(args) {
     const q = args.question || args.q || "";
-    if (!q) return "缺少检索问题";
+    if (!q) return { text: "缺少检索问题", herbs: [] };
     const hybrid = await hybridSearchService.hybridSearch(q, []);
     const herbs = hybrid.ranked.slice(0, 10).map(r => r.name);
-    if (herbs.length === 0) return "未检索到相关药材";
-    return "检索到药材：" + herbs.join("、");
+    if (herbs.length === 0) return { text: "未检索到相关药材", herbs: [] };
+    return { text: "检索到药材：" + herbs.join("、"), herbs: herbs };
   }
 };
 

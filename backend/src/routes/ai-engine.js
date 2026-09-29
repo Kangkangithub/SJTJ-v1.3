@@ -200,7 +200,7 @@ router.post("/agent", async (req, res) => {
           answer: result.answer,
           mode: result.mode,
           steps: result.steps,
-          sources: [],
+          sources: result.sources || [],
           formulas: []
         }
       });
