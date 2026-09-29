@@ -1,4 +1,4 @@
-﻿# 神农AI — 中医药知识图谱与 GraphRAG 智能问答系统
+﻿# 神农AI — 中医药知识图谱与 Agentic RAG 智能问答系统
 
 <a id="top"></a>
 
@@ -6,7 +6,7 @@
 
 <img src="frontend/assets/Alogo.png" alt="神农AI Logo" width="140">
 
-**基于 Neo4j AuraDB 知识图谱的中医药数据可视化、药材管理与 GraphRAG 智能问答系统**
+**基于 Neo4j AuraDB 知识图谱的中医药数据可视化、药材管理与 Agentic RAG 智能问答系统**
 
 [项目简介](#-项目简介) · [核心功能](#-核心功能) · [AI 引擎](#-ai-引擎) · [快速开始](#-快速开始) · [环境变量](#-环境变量) · [API 接口](#-api-接口) · [项目结构](#-项目结构) · [Neo4j 数据模型](#-neo4j-数据模型) · [文档索引](#-文档索引)
 
@@ -20,7 +20,7 @@
 
 - 药材管理系统（增删查改）
 - 药材详情与关联图谱展示
-- GraphRAG 智能问答（含向量语义检索）
+- Agentic RAG 智能问答（含向量语义检索）
 - 向量语义检索：`text-embedding-v3` 语义匹配「证型 ↔ 功效」
 - 配伍冲突检测
 - 古籍知识自动抽取
@@ -55,13 +55,13 @@
 
 > **新增药材说明**：通过药材管理面板正常新增即可，后端自动完成 Neo4j 写入、全文索引更新、向量更新。若用脚本**批量导入 Neo4j**（不走 herbs-manage API），导入后需手动执行 `embeddingService.syncAll()` 补齐向量。
 
-### 3. GraphRAG 智能问答
+### 3. Agentic RAG 智能问答
 
 - 页面：`qa.html`
 - 技术链：Agent + Tool Calling（默认）→ 三路混合检索（BM25 + 向量 + 知识图谱）+ RRF 融合 → 图遍历 → DeepSeek 生成
 - 支持药材功效、产地、用法、注意事项、方剂组成等问题
 - 答案附带引用来源、可点击药材节点、D3 迷你知识图谱
-- 展示完整 GraphRAG 检索过程（含向量检索环节）
+- 展示完整 Agent 思维链与检索过程（含三路混合检索环节）
 
 ### 4. AI 引擎模块
 
@@ -69,7 +69,7 @@
 
 | 模块 | 说明 |
 | --- | --- |
-| RAG 智能问答 | GraphRAG 核心能力 |
+| Agentic RAG 智能问答 | Agent 编排 + 工具调用核心能力 |
 | 流式问答 | SSE 流式返回答案 |
 | 配伍冲突检测 | 十八反十九畏 + Neo4j 图推理 |
 | 古籍知识抽取 | 从古籍文本中抽取三元组并写入 Neo4j |
@@ -90,7 +90,7 @@
 
 <div align="center">
 
-![神农AI Neo4j GraphRAG 智能问答系统总体架构图](<docs/RAG Structure.png>)
+![神农AI Neo4j Agentic RAG 智能问答系统总体架构图](<docs/RAG Structure.png>)
 
 </div>
 
@@ -253,7 +253,7 @@ http://localhost:3001
 | 页面 | 地址 |
 | --- | --- |
 | 知识图谱可视化 | `http://localhost:3001/knowledge-graph.html` |
-| GraphRAG 智能问答 | `http://localhost:3001/qa.html` |
+| Agentic RAG 智能问答 | `http://localhost:3001/qa.html` |
 | 系统首页 | `http://localhost:3001/index.html` |
 
 ---
@@ -321,7 +321,7 @@ http://localhost:3001
 | 方法 | 接口 | 说明 |
 | --- | --- | --- |
 | `POST` | `/api/ai-engine/agent` | Agent 智能问答（默认，Tool Calling + 思维链） |
-| `POST` | `/api/ai-engine/rag` | GraphRAG 智能问答 |
+| `POST` | `/api/ai-engine/rag` | 经典 RAG 智能问答（兜底） |
 | `POST` | `/api/ai-engine/rag-stream` | RAG 流式问答 |
 | `POST` | `/api/ai-engine/compatibility` | 配伍冲突检测 |
 | `POST` | `/api/ai-engine/extract` | 古籍知识抽取 |
@@ -350,7 +350,7 @@ Herb-v1.3（神农AI）
 ├─ frontend                      # 前端三件套
 │  ├─ index.html                 # 系统首页
 │  ├─ knowledge-graph.html       # 知识图谱可视化 + 药材管理
-│  ├─ qa.html                    # GraphRAG 智能问答
+│  ├─ qa.html                    # Agentic RAG 智能问答
 │  ├─ herb-search.html           # 药材查询
 │  ├─ formula-library.html       # 方剂库
 │  ├─ recommendation.html        # 方剂推荐
@@ -361,7 +361,7 @@ Herb-v1.3（神农AI）
 │  ├─ css/                       # 样式（原 styles/）
 │  ├─ js/                        # 脚本（原 scripts/）
 │  │  ├─ herb-pages.js           # 核心渲染器
-│  │  ├─ qa.js                   # GraphRAG 问答前端
+│  │  ├─ qa.js                   # Agentic RAG 问答前端
 │  │  ├─ herb-manage.js          # 药材管理
 │  │  ├─ world-map-visualization.js
 │  │  └─ vendor/echarts.min.js
@@ -500,7 +500,7 @@ quality        品质
 | 文档 | 说明 |
 | --- | --- |
 | `README.md` | 项目总览 |
-| `docs/AI_ENGINE_RAG_TEACHING.md` | GraphRAG 智能问答改造教学 |
+| `docs/AI_ENGINE_RAG_TEACHING.md` | Agentic RAG 智能问答改造教学 |
 | `docs/AI_ASSISTANT_AGENT_GUIDE.md` | Agent 编排 + Tool Calling + 工具集 + 三路混合检索全解析 |
 | `docs/EMBEDDING_VECTOR_SEARCH.md` | 向量检索（Embedding 语义检索）实现详解 |
 | `docs/RAG_PERFORMANCE_OPTIMIZATION.md` | 问答性能优化详解 |
@@ -529,48 +529,26 @@ quality        品质
 
 ## 📱 移动端适配
 
-系统采用「桌面优先 + 断点降级」的响应式策略，通过 CSS 媒体查询（`@media`）针对不同屏幕宽度调整布局：
+系统采用「桌面优先 + 断点降级」响应式策略，通过 CSS `@media` 适配平板 / 手机：
 
-| 断点 | 目标设备 |
-| --- | --- |
-| `max-width: 980px` | 平板 / 窄屏 |
-| `max-width: 768px` | 手机 |
-| `max-width: 720px` | 小屏手机 |
+- **导航与侧边栏**：汉堡抽屉导航、历史对话抽屉。
+- **图谱与地图**：节点加大、支持双指缩放；省份详情以底部抽屉（bottom sheet）展示。
+- **AI 问答**：回答消息铺满整行、问答窗格内部滚动。
+- **药材查询**：分页（手机端每页 5 味、桌面端每页 26 味）。
+- **药材识别**：摄像头支持 `playsinline` + `muted` + 后置摄像头 + `capture`。
 
-### 核心适配项
-
-1. **导航汉堡菜单**：手机端导航收起为左侧抽屉，点击汉堡按钮滑出，配半透明遮罩，点导航项或遮罩自动关闭；抽屉底部展示品牌信息（logo + 名称 + 副标题）。
-2. **历史对话侧边栏**：AI 问答页历史对话常驻左侧，手机端变为可滑出的抽屉。
-3. **药材详情面板**：点击药材节点后，药材详情从右侧平滑滑入（桌面端挤压式、手机端覆盖式），面板样式与整体医药主题一致。
-4. **AI 问答手机端布局**：问答窗格固定高度、内部滚动翻阅对话；AI 回答消息铺满整行（隐藏头像、无气泡背景），参考主流 AI 助手（ChatGPT）手机端设计，每行显示更多内容。
-5. **图谱触屏优化**：移动端图谱节点加大、触屏按压有反馈，支持双指缩放画布。
-6. **地图省份详情窗口式**：手机端点击省份后，详情面板以底部抽屉（bottom sheet）形式滑入，占满屏幕宽度；桌面端改为右侧挤压式面板，默认大地图居中，点击省份后地图左移、面板滑出。
-7. **地图药材跳转图谱**：省份详情里的药材卡片可点击，跳转到对应药材的知识图谱视图（手机端、桌面端均支持）。
-8. **药材查询分页**：手机端每页 5 味、桌面端每页 26 味，统一使用页码分页。
-9. **顶部栏紧凑化**：手机端 topbar 改为「汉堡 + 品牌」一行、个人中心一行，紧凑显示。
-10. **药材识别移动端适配**：摄像头预览支持 iOS 内联播放（`playsinline` + `muted`），默认调用后置摄像头（`facingMode: environment`），上传图片直接唤起摄像头（`capture`）。
-
-### 触控与可访问性
-
-- 触控目标最小 44px，方便手指点击
-- 输入框字号 16px，避免 iOS 聚焦时页面自动放大
-- 长文本自动换行，避免溢出
-- 移除移动端点击默认高亮底色
-- 个人中心按钮左右一行排布，适配窄屏操作
-
-> 注意：摄像头功能在部署到公网时必须使用 HTTPS（浏览器安全策略要求）。
+> 注意：摄像头功能部署到公网时必须使用 HTTPS。
 
 ---
-
 ## ✅ 常见问题
 
 ### 1. 为什么前端不直接连接 Neo4j？
 
 直连会把数据库密码暴露在浏览器里。当前采用后端代理，密码只保存在 `.env`。
 
-### 2. GraphRAG 和普通大模型问答有什么区别？
+### 2. Agentic RAG 和普通大模型问答有什么区别？
 
-GraphRAG 会先从 Neo4j 检索真实图数据，再交给 DeepSeek 生成答案，答案可溯源、更可靠。
+Agentic RAG 会先从 Neo4j 检索真实图数据，再交给 DeepSeek 生成答案，答案可溯源、更可靠。
 
 ### 3. 问症状类问题能查图吗？
 
