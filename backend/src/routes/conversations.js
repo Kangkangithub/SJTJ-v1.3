@@ -146,7 +146,7 @@ router.get("/:id", requireConversationAuth, async (req, res) => {
     // 获取所有消息
     const messages = await new Promise((resolve, reject) => {
       db.all(
-        "SELECT id, role, content, sources, mode, created_at FROM messages " +
+        "SELECT id, role, content, sources, mode, formulas, media, steps, created_at FROM messages " +
         "WHERE conversation_id = ? ORDER BY created_at ASC",
         [conversationId],
         (err, rows) => err ? reject(err) : resolve(rows || [])
@@ -177,7 +177,7 @@ router.post("/:id/messages", requireConversationAuth, async (req, res) => {
       return res.status(400).json({ success: false, message: "无效的对话ID" });
     }
 
-    const { role, content, sources, mode } = req.body;
+    const { role, content, sources, mode, formulas, media, steps } = req.body;
 
     if (!role || !["user", "assistant"].includes(role)) {
       return res.status(400).json({ success: false, message: "role 必须是 user 或 assistant" });
@@ -204,8 +204,8 @@ router.post("/:id/messages", requireConversationAuth, async (req, res) => {
     // 插入消息
     const result = await new Promise((resolve, reject) => {
       db.run(
-        "INSERT INTO messages (conversation_id, role, content, sources, mode) VALUES (?, ?, ?, ?, ?)",
-        [conversationId, role, content, JSON.stringify(sources || []), mode || ""],
+        "INSERT INTO messages (conversation_id, role, content, sources, mode, formulas, media, steps) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [conversationId, role, content, JSON.stringify(sources || []), mode || "", JSON.stringify(formulas || []), JSON.stringify(media || []), JSON.stringify(steps || [])],
         function(err) { err ? reject(err) : resolve(this); }
       );
     });

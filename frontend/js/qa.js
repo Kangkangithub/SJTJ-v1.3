@@ -577,6 +577,9 @@ async function saveCloudMessage(role, content, meta) {
       role: role === "user" ? "user" : "assistant",
       content: content,
       sources: meta && meta.sources ? meta.sources : [],
+      formulas: meta && meta.formulas ? meta.formulas : [],
+      media: meta && meta.media ? meta.media : [],
+      steps: meta && meta.steps ? meta.steps : [],
       mode: meta && meta.mode ? meta.mode : ""
     })
   });
@@ -596,7 +599,7 @@ async function loadConversation(id) {
       if (m.role === "user") {
         appendMsg("user", m.content || "", m.created_at);
       } else {
-        appendMsg("ai", buildAnswerHtml({ answer: m.content || "", sources: parseSources(m.sources), formulas: [] }), m.created_at);
+        appendMsg("ai", buildAnswerHtml({ answer: m.content || "", sources: parseSources(m.sources), formulas: parseJsonField(m.formulas), media: parseJsonField(m.media), steps: parseJsonField(m.steps), mode: m.mode || "" }), m.created_at);
       }
     });
     if (!messages.length) clearChatToWelcome();
@@ -606,6 +609,14 @@ async function loadConversation(id) {
     toast("历史对话加载失败，请稍后重试", "error");
   }
 }
+function parseJsonField(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === "string") {
+    try { var arr = JSON.parse(value); return Array.isArray(arr) ? arr : []; } catch (e) { return []; }
+  }
+  return [];
+}
+
 function parseSources(value) {
   if (Array.isArray(value)) return value;
   if (!value) return [];
@@ -871,7 +882,7 @@ async function doSend() {
     }
     if (cloudHistoryEnabled && currentConversationId) {
       try {
-        await saveCloudMessage("assistant", result.answer || "", { sources: result.sources || [], mode: result.mode || "rag" });
+        await saveCloudMessage("assistant", result.answer || "", { sources: result.sources || [], mode: result.mode || "rag", formulas: result.formulas || [], media: result.media || [], steps: result.steps || [] });
         await refreshConversations();
       } catch (e) {
         toast("对话记录保存失败", "warning");

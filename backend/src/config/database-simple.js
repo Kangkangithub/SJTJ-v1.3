@@ -300,6 +300,9 @@ class SimpleDatabaseManager {
           content TEXT NOT NULL,
           sources TEXT DEFAULT '[]',
           mode TEXT DEFAULT '',
+          formulas TEXT DEFAULT '[]',
+          media TEXT DEFAULT '[]',
+          steps TEXT DEFAULT '[]',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
         )`,
@@ -342,6 +345,12 @@ class SimpleDatabaseManager {
       phone: 'phone TEXT',
       bio: 'bio TEXT',
       avatar: 'avatar TEXT'
+    });
+
+    await this.ensureColumns('messages', {
+      formulas: "formulas TEXT DEFAULT '[]'",
+      media: "media TEXT DEFAULT '[]'",
+      steps: "steps TEXT DEFAULT '[]'"
     });
 
     return new Promise((resolve, reject) => {
