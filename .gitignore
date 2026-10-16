@@ -21,3 +21,7 @@ logs/
 .bevel/do_not_share
 # === 上传资源（图片/视频过大，不入库） ===
 backend/uploads/
+
+# === 工具输出与本地工作目录（不入库） ===
+outputs/
+.workbudy/

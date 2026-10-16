@@ -1,0 +1,723 @@
+/* ============================================================
+   神农AI · 液态玻璃登录页（Liquid Glass）
+   文件：css/login-glass.css
+   作用域：body.glass-login 下的所有元素（不污染其他页面）
+   ============================================================ */
+
+:root {
+  --glass-green-deep: #163829;
+  --glass-green-brand: #1f5240;
+  --glass-green-emerald: #2ea36f;
+  --glass-green-bright: #34d399;
+  --glass-mint: #a7f3d0;
+  --glass-teal: #2dd4bf;
+  --ink: #12291f;
+  --ink-soft: #4a6357;
+  --page-bg: #eef4f0;
+
+  --card-radius: 28px;
+  --field-radius: 14px;
+
+  --font-stack: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+}
+
+/* ---------- 页面基底 ---------- */
+body.glass-login {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-stack);
+  color: var(--ink);
+  background-color: var(--page-bg);
+  background-image:
+    radial-gradient(1200px 800px at 85% -10%, rgba(167, 243, 208, 0.35), transparent 60%),
+    radial-gradient(1000px 700px at -10% 100%, rgba(45, 212, 191, 0.18), transparent 55%);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 背景光斑（三个异步漂浮） ---------- */
+.orb-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform, filter;
+  opacity: 0.95;
+}
+
+.orb-1 {
+  width: 560px;
+  height: 560px;
+  top: -140px;
+  left: -100px;
+  background: radial-gradient(circle at 35% 35%, rgba(52, 211, 153, 0.62), rgba(52, 211, 153, 0.14) 60%, transparent 72%);
+  animation: orb-drift-1 12s ease-in-out infinite alternate;
+}
+
+.orb-2 {
+  width: 640px;
+  height: 640px;
+  right: -160px;
+  top: 22%;
+  background: radial-gradient(circle at 60% 40%, rgba(45, 212, 191, 0.52), rgba(45, 212, 191, 0.12) 58%, transparent 70%);
+  animation: orb-drift-2 15s ease-in-out infinite alternate;
+}
+
+.orb-3 {
+  width: 500px;
+  height: 500px;
+  left: 30%;
+  bottom: -180px;
+  background: radial-gradient(circle at 45% 55%, rgba(167, 243, 208, 0.72), rgba(167, 243, 208, 0.12) 55%, transparent 68%);
+  animation: orb-drift-3 18s ease-in-out infinite alternate;
+}
+
+/* 加大位移与缩放幅度，并叠加 hue-rotate 让色相也微变 —— 动起来更明显 */
+@keyframes orb-drift-1 {
+  from { transform: translate3d(0, 0, 0) scale(1);    filter: blur(70px) hue-rotate(0deg); }
+  to   { transform: translate3d(200px, 130px, 0) scale(1.28); filter: blur(70px) hue-rotate(22deg); }
+}
+
+@keyframes orb-drift-2 {
+  from { transform: translate3d(0, 0, 0) scale(1.12) rotate(0deg);   filter: blur(70px) hue-rotate(0deg); }
+  to   { transform: translate3d(-180px, -140px, 0) scale(0.88) rotate(36deg); filter: blur(70px) hue-rotate(-18deg); }
+}
+
+@keyframes orb-drift-3 {
+  from { transform: translate3d(0, 0, 0) scale(0.92); filter: blur(70px) hue-rotate(0deg); }
+  to   { transform: translate3d(-200px, -110px, 0) scale(1.32); filter: blur(70px) hue-rotate(28deg); }
+}
+
+/* ---------- 舞台居中 ---------- */
+.login-stage {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+/* ---------- 液态玻璃卡片 ---------- */
+.glass-card {
+  position: relative;
+  width: min(960px, 100%);
+  border-radius: var(--card-radius);
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.38) 0%,
+    rgba(255, 255, 255, 0.16) 45%,
+    rgba(255, 255, 255, 0.30) 100%);
+  backdrop-filter: blur(24px) saturate(185%);
+  -webkit-backdrop-filter: blur(24px) saturate(185%);
+  box-shadow:
+    0 36px 90px rgba(22, 56, 41, 0.28),
+    0 8px 28px rgba(22, 56, 41, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  animation: card-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(28px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 渐变折射描边（玻璃厚边） */
+.glass-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.10) 28%,
+    rgba(255, 255, 255, 0.04) 55%,
+    rgba(167, 243, 208, 0.35) 78%,
+    rgba(255, 255, 255, 0.55) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* 左上角镜面高光（表面反光膜，静态） */
+.sheen-static {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 58%;
+  height: 46%;
+  border-radius: var(--card-radius) 0 60px 0;
+  background: linear-gradient(122deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.12) 38%,
+    transparent 62%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 周期性扫光（沿玻璃表面掠过） */
+.sheen-sweep {
+  position: absolute;
+  top: -12%;
+  left: -35%;
+  width: 42%;
+  height: 124%;
+  background: linear-gradient(100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.10) 30%,
+    rgba(255, 255, 255, 0.32) 50%,
+    rgba(255, 255, 255, 0.08) 70%,
+    transparent 100%);
+  transform: skewX(-14deg);
+  border-radius: 40px;
+  pointer-events: none;
+  z-index: 2;
+  animation: sheen-sweep 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+@keyframes sheen-sweep {
+  0%, 64%  { left: -45%; opacity: 0; }
+  68%      { opacity: 1; }
+  100%     { left: 118%; opacity: 0; }
+}
+
+/* ---------- 卡片内部左右两栏 ---------- */
+.card-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  min-height: 580px;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+/* 防止 grid 子项被长文本撑破容器（移动端溢出根因） */
+.card-grid > * { min-width: 0; }
+.glass-card { max-width: 100%; }
+
+/* ---------- 左栏：深绿玻璃品牌区 ---------- */
+.brand-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 52px 44px 40px;
+  color: #f2fbf6;
+  background: linear-gradient(165deg,
+    rgba(22, 56, 41, 0.92) 0%,
+    rgba(31, 82, 64, 0.78) 55%,
+    rgba(24, 66, 50, 0.86) 100%);
+  overflow: hidden;
+}
+
+/* 品牌区内的柔光装饰（透过玻璃的内部光晕） */
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  top: -90px;
+  right: -110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.38), transparent 68%);
+  filter: blur(46px);
+  pointer-events: none;
+}
+
+.brand-panel::after {
+  content: '';
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  bottom: -70px;
+  left: -90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.22), transparent 66%);
+  filter: blur(42px);
+  pointer-events: none;
+}
+
+.brand-head {
+  position: relative;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.brand-logo .logo-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.06));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 18px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.brand-logo .logo-mark svg {
+  width: 24px;
+  height: 24px;
+}
+
+.brand-en {
+  display: block;
+  margin-top: 6px;
+  margin-left: 0;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  white-space: normal;
+  word-break: break-word;
+  color: rgba(242, 251, 246, 0.62);
+}
+
+.brand-title {
+  margin: 20px 0 0;
+  font-size: 34px;
+  line-height: 1.32;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.18);
+}
+
+.brand-sub {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 1.85;
+  color: rgba(242, 251, 246, 0.82);
+}
+
+/* 卖点列表 */
+.brand-features {
+  position: relative;
+  list-style: none;
+  margin: 34px 0;
+  padding: 0;
+  display: grid;
+  gap: 22px;
+}
+
+.brand-features li {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.feature-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.feature-title {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.feature-desc {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: rgba(242, 251, 246, 0.66);
+}
+
+.brand-foot {
+  position: relative;
+  margin: 0;
+  font-size: 12px;
+  color: rgba(242, 251, 246, 0.5);
+}
+
+/* ---------- 右栏：白纱磨砂表单区 ---------- */
+.form-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 56px 60px 44px;
+  background: linear-gradient(150deg,
+    rgba(255, 255, 255, 0.46) 0%,
+    rgba(255, 255, 255, 0.24) 100%);
+}
+
+.form-head {
+  margin-bottom: 30px;
+}
+
+.form-head h1 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: linear-gradient(120deg, #14352a 20%, #2ea36f 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.form-head p {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+/* 返回首页 */
+.back-home {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: all 0.25s ease;
+}
+
+.back-home:hover {
+  color: var(--glass-green-emerald);
+  background: rgba(255, 255, 255, 0.62);
+  transform: translateY(-1px);
+}
+
+/* ---------- 表单控件 ---------- */
+#loginForm {
+  display: grid;
+  gap: 20px;
+}
+
+.form-group {
+  display: grid;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.4px;
+}
+
+.form-group input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 18px;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: var(--field-radius);
+  box-shadow: inset 0 1px 2px rgba(22, 56, 41, 0.06), 0 1px 0 rgba(255, 255, 255, 0.5);
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.form-group input::placeholder {
+  color: #9ab3a7;
+}
+
+.form-group input:hover {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.form-group input:focus {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(46, 163, 111, 0.55);
+  box-shadow:
+    0 0 0 4px rgba(46, 163, 111, 0.14),
+    inset 0 1px 2px rgba(22, 56, 41, 0.05);
+}
+
+/* 消息提示 */
+.auth-message {
+  min-height: 20px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.auth-message.error {
+  color: #c0392b;
+  animation: msg-shake 0.4s ease;
+}
+
+.auth-message.success {
+  color: #1e8e5a;
+}
+
+@keyframes msg-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* ---------- 登录按钮（玻璃渐变按钮） ---------- */
+.auth-btn {
+  position: relative;
+  overflow: hidden;
+  padding: 15px 20px;
+  font-size: 15.5px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 6px;
+  text-indent: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--field-radius);
+  background: linear-gradient(135deg, #1e6b4f 0%, #2ea36f 60%, #35b87d 100%);
+  box-shadow:
+    0 12px 28px rgba(30, 107, 79, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+}
+
+.auth-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 45%;
+  border-radius: var(--field-radius) var(--field-radius) 50% 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent);
+  pointer-events: none;
+}
+
+.auth-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 16px 34px rgba(30, 107, 79, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.auth-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+.auth-btn:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.6) brightness(0.92);
+}
+
+/* ---------- 演示账号一键填充 ---------- */
+.demo-row {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px dashed rgba(22, 56, 41, 0.18);
+}
+
+.demo-hint {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.demo-hint code {
+  padding: 2px 8px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  color: #1e6b4f;
+  background: rgba(46, 163, 111, 0.10);
+  border: 1px solid rgba(46, 163, 111, 0.22);
+  border-radius: 6px;
+}
+
+.demo-fill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #1e6b4f;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1.5px dashed rgba(46, 163, 111, 0.45);
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+.demo-fill-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.demo-fill-btn:hover {
+  background: rgba(255, 255, 255, 0.72);
+  border-style: solid;
+  border-color: rgba(46, 163, 111, 0.65);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(46, 163, 111, 0.18);
+}
+
+.demo-fill-btn:active {
+  transform: scale(0.97);
+}
+
+/* 注册链接 */
+.auth-links {
+  margin: 24px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.auth-links a {
+  color: #1e6b4f;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(46, 163, 111, 0.35);
+  padding-bottom: 1px;
+  transition: all 0.2s ease;
+}
+
+.auth-links a:hover {
+  color: #2ea36f;
+  border-bottom-color: #2ea36f;
+}
+
+/* ---------- 无障碍：跳转链接 ---------- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 99;
+  padding: 10px 18px;
+  background: #163829;
+  color: #fff;
+  border-radius: 0 0 10px 0;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* ---------- 移动端简版品牌头（桌面隐藏） ---------- */
+.mobile-brand {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.mobile-brand .mb-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, rgba(22, 56, 41, 0.92), rgba(31, 82, 64, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 12px rgba(22, 56, 41, 0.18);
+}
+
+.mobile-brand .mb-mark svg { width: 20px; height: 20px; }
+
+.mobile-brand .mb-name {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: linear-gradient(120deg, #14352a 20%, #2ea36f 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mobile-brand .mb-sub {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--ink-soft);
+  -webkit-text-fill-color: var(--ink-soft);
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 920px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+    min-height: unset;
+  }
+
+  /* 移动端：隐藏左栏品牌区，只显示表单 + 简版品牌头 */
+  .brand-panel { display: none; }
+
+  .mobile-brand { display: flex; }
+
+  .form-panel {
+    padding: 36px 32px 32px;
+    border-top: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .login-stage { padding: 20px 14px; }
+
+  .glass-card { border-radius: 22px; }
+
+  .form-panel { padding: 28px 22px 24px; }
+
+  .form-head h1 { font-size: 23px; }
+
+  .auth-btn { letter-spacing: 4px; text-indent: 4px; }
+
+  .mobile-brand .mb-name { font-size: 21px; }
+  .mobile-brand .mb-mark { width: 34px; height: 34px; }
+}
+
+/* ---------- 动效偏好降级（无障碍） ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .sheen-sweep,
+  .glass-card { animation: none; }
+}
+
+/* ---------- 旧浏览器降级：不支持 backdrop-filter ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-card { background: rgba(255, 255, 255, 0.88); }
+  .form-panel { background: rgba(255, 255, 255, 0.8); }
+  .brand-panel { background: linear-gradient(165deg, #163829, #1f5240); }
+}

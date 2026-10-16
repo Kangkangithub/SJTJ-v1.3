@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 神农AI</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/login-glass.css">
+</head>
+<body class="glass-login">
+    <a class="skip-link" href="#loginForm">跳到主内容</a>
+
+    <!-- 背景光斑：三个异步漂浮的渐变光球 -->
+    <div class="orb-field" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <main class="login-stage">
+        <!-- 液态玻璃卡片 -->
+        <section class="glass-card" aria-label="神农AI 登录">
+            <span class="glass-border" aria-hidden="true"></span>
+            <span class="sheen-static" aria-hidden="true"></span>
+            <span class="sheen-sweep" aria-hidden="true"></span>
+
+            <div class="card-grid">
+                <!-- 左栏：深绿玻璃品牌区 -->
+                <div class="brand-panel">
+                    <div class="brand-head">
+                        <div class="brand-logo">
+                            <span class="logo-mark" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 21c-4.5-1.6-7.5-5-7.5-9.4C4.5 7 7.5 4 12 3c4.5 1 7.5 4 7.5 8.6 0 4.4-3 7.8-7.5 9.4z"/>
+                                    <path d="M12 21V9"/>
+                                    <path d="M12 13c2-2.5 4-3.5 6-3.6M12 16.5c-2-2.5-4-3.3-6-3.4"/>
+                                </svg>
+                            </span>
+                            <span>神农AI</span>
+                        </div>
+                        <span class="brand-en">Shennong AI · Agentic RAG</span>
+                        <h2 class="brand-title">中医药知识<br>智能问答平台</h2>
+                        <p class="brand-sub">融合多路向量检索、BM25 全文检索与知识图谱推理，基于典籍文献与企业知识库，给出有据可查的专业回答。</p>
+                    </div>
+
+                    <ul class="brand-features">
+                        <li>
+                            <span class="feature-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="7"/>
+                                    <path d="m21 21-4.3-4.3"/>
+                                    <path d="M11 8v3l2 2"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="feature-title">三路混合检索</p>
+                                <p class="feature-desc">BM25 × 向量语义 × 知识图谱，RRF 倒数排名融合排序</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="feature-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h6l3 6-3 6H3"/>
+                                    <path d="M21 6h-4l-1.5 3"/>
+                                    <path d="m16 14 2 2 4-4"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="feature-title">Cross-Encoder 精排</p>
+                                <p class="feature-desc">候选文档语义精排，检索精度与问答质量双重提升</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="feature-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="5" cy="6" r="2.5"/>
+                                    <circle cx="19" cy="6" r="2.5"/>
+                                    <circle cx="12" cy="18" r="2.5"/>
+                                    <path d="M7.2 7.2 10.6 16M16.8 7.2 13.4 16M7.5 6h9"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="feature-title">来源可溯</p>
+                                <p class="feature-desc">答案附带图谱证据链与检索步骤，可解释的 RAG</p>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <p class="brand-foot">© 2026 赫尔本队 · 神农AI 中医药知识图谱系统</p>
+                </div>
+
+                <!-- 右栏：白纱磨砂表单区 -->
+                <div class="form-panel">
+                    <a class="back-home" href="index.html">返回首页</a>
+
+                    <!-- 移动端简版品牌头（桌面隐藏） -->
+                    <div class="mobile-brand">
+                        <span class="mb-mark" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 21c-4.5-1.6-7.5-5-7.5-9.4C4.5 7 7.5 4 12 3c4.5 1 7.5 4 7.5 8.6 0 4.4-3 7.8-7.5 9.4z"/>
+                                <path d="M12 21V9"/>
+                                <path d="M12 13c2-2.5 4-3.5 6-3.6M12 16.5c-2-2.5-4-3.3-6-3.4"/>
+                            </svg>
+                        </span>
+                        <div>
+                            <div class="mb-name">神农AI</div>
+                            <span class="mb-sub">SHENNONG AI</span>
+                        </div>
+                    </div>
+
+                    <div class="form-head">
+                        <h1>欢迎回来</h1>
+                        <p>登录后进入个人中心管理账户资料</p>
+                    </div>
+
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="username">用户名或邮箱</label>
+                            <input type="text" id="username" name="username" placeholder="请输入用户名或邮箱" autocomplete="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">密码</label>
+                            <input type="password" id="password" name="password" placeholder="请输入密码" autocomplete="current-password" required>
+                        </div>
+                        <div id="loginMessage" class="auth-message" role="status" aria-live="polite"></div>
+                        <button type="submit" class="auth-btn">登 录</button>
+                    </form>
+
+                    <div class="demo-row">
+                        <p class="demo-hint">暂无账号？可使用演示账号 <code>JunkangShen</code> 快速体验系统</p>
+                        <button type="button" class="demo-fill-btn" id="demoFillBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/>
+                            </svg>
+                            一键填充演示账号
+                        </button>
+                    </div>
+
+                    <p class="auth-links">还没有账号？<a href="register.html">立即注册</a></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        const loginForm = document.getElementById('loginForm');
+        const loginMessage = document.getElementById('loginMessage');
+        const DEMO_ACCOUNT = { username: 'JunkangShen', password: 'kk20050318' };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (localStorage.getItem('authToken')) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function showMessage(text, type) {
+            loginMessage.textContent = text;
+            loginMessage.className = `auth-message ${type || ''}`.trim();
+        }
+
+        /* 演示账号一键填充 */
+        document.getElementById('demoFillBtn').addEventListener('click', function () {
+            document.getElementById('username').value = DEMO_ACCOUNT.username;
+            document.getElementById('password').value = DEMO_ACCOUNT.password;
+            showMessage('演示账号已填充，点击登录即可体验。', 'success');
+            document.getElementById('username').focus();
+        });
+
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const submitBtn = loginForm.querySelector('.auth-btn');
+            const originalText = submitBtn.textContent;
+
+            if (!username || !password) {
+                showMessage('请输入用户名和密码。', 'error');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '登录中';
+                showMessage('', '');
+
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || '登录失败，请稍后重试。');
+                }
+
+                localStorage.setItem('authToken', data.data.token);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    ...data.data.user,
+                    isLoggedIn: true,
+                    loginTime: new Date().toISOString()
+                }));
+
+                showMessage('登录成功，正在返回首页。', 'success');
+                window.location.href = 'index.html';
+            } catch (error) {
+                showMessage(error.message || '登录失败，请稍后重试。', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

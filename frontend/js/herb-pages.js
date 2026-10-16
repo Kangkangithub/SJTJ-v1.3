@@ -314,7 +314,7 @@
             </div>
           </a>
           <div class="user-entry">
-            <a class="btn ${isAuthenticated ? 'btn-secondary' : 'btn-primary'}" href="${isAuthenticated ? 'profile.html' : 'login.html'}" aria-label="${isAuthenticated ? '打开个人中心' : '登录'}">${isAuthenticated ? userAvatarHtml : '<i class="fa-solid fa-right-to-bracket"></i>'} ${isAuthenticated ? escapeHtml(userLabel) : '登录'}</a>
+            <a class="btn ${isAuthenticated ? 'btn-secondary' : 'btn-primary'}" href="${isAuthenticated ? 'profile.html' : 'login-glass.html'}" aria-label="${isAuthenticated ? '打开个人中心' : '登录'}">${isAuthenticated ? userAvatarHtml : '<i class="fa-solid fa-right-to-bracket"></i>'} ${isAuthenticated ? escapeHtml(userLabel) : '登录'}</a>
           </div>
         </div>
         <nav class="nav">
