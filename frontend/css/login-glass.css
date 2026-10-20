@@ -216,9 +216,9 @@ body.glass-login {
   padding: 52px 44px 40px;
   color: #f2fbf6;
   background: linear-gradient(165deg,
-    rgba(22, 56, 41, 0.92) 0%,
-    rgba(31, 82, 64, 0.78) 55%,
-    rgba(24, 66, 50, 0.86) 100%);
+    rgba(22, 56, 41, 0.95) 0%,
+    rgba(31, 82, 64, 0.87) 55%,
+    rgba(24, 66, 50, 0.93) 100%);
   overflow: hidden;
 }
 
@@ -263,21 +263,23 @@ body.glass-login {
 }
 
 .brand-logo .logo-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
   display: grid;
   place-items: center;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.06));
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 18px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: 5px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.82));
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 6px 18px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
 }
 
-.brand-logo .logo-mark svg {
-  width: 24px;
-  height: 24px;
+.brand-logo .logo-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .brand-en {
@@ -373,8 +375,8 @@ body.glass-login {
   justify-content: center;
   padding: 56px 60px 44px;
   background: linear-gradient(150deg,
-    rgba(255, 255, 255, 0.46) 0%,
-    rgba(255, 255, 255, 0.24) 100%);
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.44) 100%);
 }
 
 .form-head {
@@ -645,17 +647,24 @@ body.glass-login {
 }
 
 .mobile-brand .mb-mark {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
   display: grid;
   place-items: center;
-  background: linear-gradient(140deg, rgba(22, 56, 41, 0.92), rgba(31, 82, 64, 0.78));
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 12px rgba(22, 56, 41, 0.18);
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid rgba(22, 56, 41, 0.10);
+  box-shadow: 0 4px 12px rgba(22, 56, 41, 0.14);
+  overflow: hidden;
 }
 
-.mobile-brand .mb-mark svg { width: 20px; height: 20px; }
+.mobile-brand .mb-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
 
 .mobile-brand .mb-name {
   font-size: 24px;
@@ -690,6 +699,9 @@ body.glass-login {
   .form-panel {
     padding: 36px 32px 32px;
     border-top: none;
+    background: linear-gradient(150deg,
+      rgba(255, 255, 255, 0.80) 0%,
+      rgba(255, 255, 255, 0.68) 100%);
   }
 }
 
