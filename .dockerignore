@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# 依赖（构建阶段用 npm ci 重新安装）
+**/node_modules
+
+# 密钥（绝不进镜像）
+**/.env
+**/.env.*
+
+# 本地数据与上传资源（用数据卷挂载，不打进镜像）
+backend/data
+backend/uploads
+
+# 文档 / 截图 / 工具输出（不入镜像）
+docs
+pics
+outputs
+.workbuddy
+.claude
+.qoder
+.vscode
+cline_mcp_settings.json
+
+# 日志
+**/logs
+**/*.log
+
+# 本地启动脚本（容器内用 Dockerfile CMD 启动）
+start.bat
+start.sh
+start.js
+kill-3001.bat
