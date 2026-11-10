@@ -31,7 +31,10 @@ body.glass-login {
   background-color: var(--page-bg);
   background-image:
     radial-gradient(1200px 800px at 85% -10%, rgba(167, 243, 208, 0.35), transparent 60%),
-    radial-gradient(1000px 700px at -10% 100%, rgba(45, 212, 191, 0.18), transparent 55%);
+    radial-gradient(1000px 700px at -10% 100%, rgba(45, 212, 191, 0.18), transparent 55%),
+    radial-gradient(900px 600px at 50% 120%, rgba(52, 211, 153, 0.12), transparent 62%);
+  background-attachment: fixed;
+  isolation: isolate;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -43,14 +46,76 @@ body.glass-login {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  --mx: 0;
+  --my: 0;
+  --px: 50vw;
+  --py: 50vh;
 }
+
+.orb-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 42%, transparent 38%, rgba(18, 41, 31, 0.08) 100%);
+  pointer-events: none;
+}
+
+.orb-lane {
+  position: absolute;
+  inset: 0;
+  /* 视差（--mx/--my × 深度）+ 近距引力（--ax/--ay）叠加 */
+  transform: translate3d(
+    calc(var(--mx, 0) * var(--depth, 0px) + var(--ax, 0px)),
+    calc(var(--my, 0) * var(--depth, 0px) + var(--ay, 0px)),
+    0);
+  will-change: transform;
+}
+
+.lane-1 { --depth: 30px; }
+.lane-2 { --depth: 55px; }
+.lane-3 { --depth: 85px; }
+.lane-4 { --depth: 110px; }
+
+.pointer-aura {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.20) 0%, rgba(167, 243, 208, 0.12) 32%, transparent 68%);
+  filter: blur(22px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: translate3d(calc(var(--px, 50vw) - 260px), calc(var(--py, 50vh) - 260px), 0);
+  transition: opacity 0.45s ease;
+  will-change: transform, opacity;
+}
+
+body.is-pointer-active .pointer-aura { opacity: 0.62; }
 
 .orb {
   position: absolute;
   border-radius: 50%;
   filter: blur(70px);
   will-change: transform, filter;
-  opacity: 0.95;
+  opacity: 0.9;
+  transform: translateZ(0);
+}
+
+.orb::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 26%, rgba(255, 255, 255, 0.24) 36%, transparent 48% 100%);
+  filter: blur(18px);
+  opacity: 0.38;
+  animation: orb-rotate 22s linear infinite;
+}
+
+@keyframes orb-rotate {
+  to { transform: rotate(360deg); }
 }
 
 .orb-1 {
@@ -59,7 +124,7 @@ body.glass-login {
   top: -140px;
   left: -100px;
   background: radial-gradient(circle at 35% 35%, rgba(52, 211, 153, 0.62), rgba(52, 211, 153, 0.14) 60%, transparent 72%);
-  animation: orb-drift-1 12s ease-in-out infinite alternate;
+  animation: orb-drift-1 12s ease-in-out infinite;
 }
 
 .orb-2 {
@@ -68,7 +133,7 @@ body.glass-login {
   right: -160px;
   top: 22%;
   background: radial-gradient(circle at 60% 40%, rgba(45, 212, 191, 0.52), rgba(45, 212, 191, 0.12) 58%, transparent 70%);
-  animation: orb-drift-2 15s ease-in-out infinite alternate;
+  animation: orb-drift-2 15s ease-in-out infinite;
 }
 
 .orb-3 {
@@ -77,23 +142,56 @@ body.glass-login {
   left: 30%;
   bottom: -180px;
   background: radial-gradient(circle at 45% 55%, rgba(167, 243, 208, 0.72), rgba(167, 243, 208, 0.12) 55%, transparent 68%);
-  animation: orb-drift-3 18s ease-in-out infinite alternate;
+  animation: orb-drift-3 18s ease-in-out infinite;
 }
 
-/* 加大位移与缩放幅度，并叠加 hue-rotate 让色相也微变 —— 动起来更明显 */
+/* 第 4 个强调光斑：小尺寸 + 浅模糊 + screen 混合，提供可追踪的运动轮廓 */
+.orb-4 {
+  width: 260px;
+  height: 260px;
+  right: 16%;
+  bottom: 14%;
+  background: radial-gradient(circle at 42% 40%,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(167, 243, 208, 0.55) 42%,
+    rgba(45, 212, 191, 0.18) 62%,
+    transparent 74%);
+  filter: blur(36px);
+  opacity: 0.85;
+  mix-blend-mode: screen;
+  animation: orb-drift-4 9s ease-in-out infinite;
+}
+
+/* 多路径点单向循环：消除 alternate 往返两端的"停顿感"；只动 transform，不动滤镜 */
 @keyframes orb-drift-1 {
-  from { transform: translate3d(0, 0, 0) scale(1);    filter: blur(70px) hue-rotate(0deg); }
-  to   { transform: translate3d(200px, 130px, 0) scale(1.28); filter: blur(70px) hue-rotate(22deg); }
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  25%  { transform: translate3d(180px, 90px, 0) scale(1.16); }
+  50%  { transform: translate3d(290px, 170px, 0) scale(1.3); }
+  75%  { transform: translate3d(120px, 220px, 0) scale(1.1); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 
 @keyframes orb-drift-2 {
-  from { transform: translate3d(0, 0, 0) scale(1.12) rotate(0deg);   filter: blur(70px) hue-rotate(0deg); }
-  to   { transform: translate3d(-180px, -140px, 0) scale(0.88) rotate(36deg); filter: blur(70px) hue-rotate(-18deg); }
+  0%   { transform: translate3d(0, 0, 0) scale(1.1) rotate(0deg); }
+  30%  { transform: translate3d(-150px, -120px, 0) scale(0.96) rotate(20deg); }
+  55%  { transform: translate3d(-250px, -190px, 0) scale(0.9) rotate(46deg); }
+  80%  { transform: translate3d(-90px, -60px, 0) scale(1.04) rotate(18deg); }
+  100% { transform: translate3d(0, 0, 0) scale(1.1) rotate(0deg); }
 }
 
 @keyframes orb-drift-3 {
-  from { transform: translate3d(0, 0, 0) scale(0.92); filter: blur(70px) hue-rotate(0deg); }
-  to   { transform: translate3d(-200px, -110px, 0) scale(1.32); filter: blur(70px) hue-rotate(28deg); }
+  0%   { transform: translate3d(0, 0, 0) scale(0.92); }
+  28%  { transform: translate3d(-140px, -70px, 0) scale(1.12); }
+  52%  { transform: translate3d(-270px, -150px, 0) scale(1.34); }
+  78%  { transform: translate3d(-100px, -190px, 0) scale(1.08); }
+  100% { transform: translate3d(0, 0, 0) scale(0.92); }
+}
+
+@keyframes orb-drift-4 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(-190px, -140px, 0) scale(1.22); }
+  66%  { transform: translate3d(-70px, 90px, 0) scale(0.86); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 
 /* ---------- 舞台居中 ---------- */
@@ -105,6 +203,7 @@ body.glass-login {
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
+  perspective: 1400px;
 }
 
 /* ---------- 液态玻璃卡片 ---------- */
@@ -116,14 +215,47 @@ body.glass-login {
     rgba(255, 255, 255, 0.38) 0%,
     rgba(255, 255, 255, 0.16) 45%,
     rgba(255, 255, 255, 0.30) 100%);
-  backdrop-filter: blur(24px) saturate(185%);
-  -webkit-backdrop-filter: blur(24px) saturate(185%);
+  backdrop-filter: blur(34px) saturate(205%);
+  -webkit-backdrop-filter: blur(34px) saturate(205%);
   box-shadow:
     0 36px 90px rgba(22, 56, 41, 0.28),
     0 8px 28px rgba(22, 56, 41, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  animation: card-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  isolation: isolate;
+  transition: box-shadow 0.45s ease;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  animation: card-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
+
+/* 胶片噪点：消除大面积模糊带来的塑料感（Apple 式 film grain） */
+.glass-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+}
+
+/* 跟随鼠标的镜面反射，落在玻璃表面而不是内容上 */
+.glass-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: radial-gradient(360px circle at var(--card-x, 30%) var(--card-y, 20%), rgba(255, 255, 255, 0.30), transparent 66%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+body.is-pointer-active .glass-glow { opacity: 0.45; }
+.glass-card:hover .glass-glow { opacity: 0.9; }
 
 @keyframes card-enter {
   from { opacity: 0; transform: translateY(28px) scale(0.985); }
@@ -171,19 +303,20 @@ body.glass-login {
   position: absolute;
   top: -12%;
   left: -35%;
-  width: 42%;
+  width: 46%;
   height: 124%;
   background: linear-gradient(100deg,
     transparent 0%,
     rgba(255, 255, 255, 0.10) 30%,
-    rgba(255, 255, 255, 0.32) 50%,
+    rgba(255, 255, 255, 0.38) 50%,
     rgba(255, 255, 255, 0.08) 70%,
     transparent 100%);
   transform: skewX(-14deg);
   border-radius: 40px;
+  filter: blur(1px);
   pointer-events: none;
   z-index: 2;
-  animation: sheen-sweep 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  animation: sheen-sweep 11s cubic-bezier(0.45, 0, 0.25, 1) infinite;
 }
 
 @keyframes sheen-sweep {
@@ -216,9 +349,12 @@ body.glass-login {
   padding: 52px 44px 40px;
   color: #f2fbf6;
   background: linear-gradient(165deg,
-    rgba(22, 56, 41, 0.95) 0%,
-    rgba(31, 82, 64, 0.87) 55%,
-    rgba(24, 66, 50, 0.93) 100%);
+    rgba(13, 39, 28, 0.88) 0%,
+    rgba(31, 82, 64, 0.74) 55%,
+    rgba(20, 58, 43, 0.84) 100%);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
 }
 
@@ -375,8 +511,10 @@ body.glass-login {
   justify-content: center;
   padding: 56px 60px 44px;
   background: linear-gradient(150deg,
-    rgba(255, 255, 255, 0.62) 0%,
-    rgba(255, 255, 255, 0.44) 100%);
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.50) 100%);
+  backdrop-filter: blur(12px) saturate(125%);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
 }
 
 .form-head {
@@ -468,6 +606,14 @@ body.glass-login {
   box-shadow:
     0 0 0 4px rgba(46, 163, 111, 0.14),
     inset 0 1px 2px rgba(22, 56, 41, 0.05);
+}
+
+.auth-btn:focus-visible,
+.demo-fill-btn:focus-visible,
+.back-home:focus-visible,
+.auth-links a:focus-visible {
+  outline: 3px solid rgba(46, 163, 111, 0.35);
+  outline-offset: 3px;
 }
 
 /* 消息提示 */
@@ -725,6 +871,14 @@ body.glass-login {
   .orb,
   .sheen-sweep,
   .glass-card { animation: none; }
+  .orb-lane,
+  .pointer-aura,
+  .glass-glow { animation: none; transition: none; }
+  .pointer-aura { display: none; }
+}
+
+@media (hover: none), (max-width: 920px) {
+  .pointer-aura { display: none; }
 }
 
 /* ---------- 旧浏览器降级：不支持 backdrop-filter ---------- */

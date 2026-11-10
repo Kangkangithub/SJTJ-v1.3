@@ -12,9 +12,11 @@
 
     <!-- 背景光斑：三个异步漂浮的渐变光球 -->
     <div class="orb-field" aria-hidden="true">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+        <div class="orb-lane lane-1"><div class="orb orb-1"></div></div>
+        <div class="orb-lane lane-2"><div class="orb orb-2"></div></div>
+        <div class="orb-lane lane-3"><div class="orb orb-3"></div></div>
+        <div class="orb-lane lane-4"><div class="orb orb-4"></div></div>
+        <div class="pointer-aura"></div>
     </div>
 
     <main class="login-stage">
@@ -23,6 +25,7 @@
             <span class="glass-border" aria-hidden="true"></span>
             <span class="sheen-static" aria-hidden="true"></span>
             <span class="sheen-sweep" aria-hidden="true"></span>
+            <span class="glass-glow" aria-hidden="true"></span>
 
             <div class="card-grid">
                 <!-- 左栏：深绿玻璃品牌区 -->
@@ -135,7 +138,7 @@
     </main>
 
     <script>
-        const API_BASE = 'http://localhost:3001/api';
+        const API_BASE = '/api';
         const loginForm = document.getElementById('loginForm');
         const loginMessage = document.getElementById('loginMessage');
         const DEMO_ACCOUNT = { username: 'JunkangShen', password: 'kk20050318' };
@@ -202,6 +205,104 @@
                 submitBtn.textContent = originalText;
             }
         });
+    </script>
+    <script>
+        /* 鼠标交互三层：视差 + 光斑近距引力 + 卡片 spring 倾斜。只写 CSS 变量，不阻塞表单。 */
+        (function () {
+            const field = document.querySelector('.orb-field');
+            const card = document.querySelector('.glass-card');
+            const lanes = Array.from(document.querySelectorAll('.orb-lane'));
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+            const coarsePointer = window.matchMedia('(hover: none)');
+            if (!field || !card || reduceMotion.matches || coarsePointer.matches) return;
+
+            /* 各光斑的引力系数与最大拉扯距离（近者强、锐者强） */
+            const ATTRACT = [0.050, 0.034, 0.058, 0.095];
+            const MAX_PULL = [26, 20, 32, 48];
+
+            let targetX = 0, targetY = 0;
+            let currentX = 0, currentY = 0;
+            let targetPx = window.innerWidth / 2, targetPy = window.innerHeight / 2;
+            let currentPx = targetPx, currentPy = targetPy;
+            let targetRx = 0, targetRy = 0, rx = 0, ry = 0;
+
+            /* 光斑中心低频采样（避免 transform 反馈造成抖动） */
+            let centers = [];
+            function measureCenters() {
+                centers = lanes.map(function (lane) {
+                    const orb = lane.querySelector('.orb');
+                    if (!orb) return null;
+                    const r = orb.getBoundingClientRect();
+                    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+                });
+            }
+            measureCenters();
+            window.setInterval(measureCenters, 400);
+            window.addEventListener('resize', measureCenters, { passive: true });
+
+            const pull = lanes.map(function () { return { x: 0, y: 0, tx: 0, ty: 0 }; });
+
+            function frame() {
+                /* 弹簧跟随：位移用较慢阻尼，倾斜稍快，制造"液体滞后感" */
+                currentX += (targetX - currentX) * 0.075;
+                currentY += (targetY - currentY) * 0.075;
+                currentPx += (targetPx - currentPx) * 0.12;
+                currentPy += (targetPy - currentPy) * 0.12;
+                rx += (targetRx - rx) * 0.09;
+                ry += (targetRy - ry) * 0.09;
+
+                field.style.setProperty('--mx', currentX.toFixed(4));
+                field.style.setProperty('--my', currentY.toFixed(4));
+                field.style.setProperty('--px', currentPx.toFixed(1) + 'px');
+                field.style.setProperty('--py', currentPy.toFixed(1) + 'px');
+                card.style.setProperty('--card-x', (currentPx / window.innerWidth * 100).toFixed(2) + '%');
+                card.style.setProperty('--card-y', (currentPy / window.innerHeight * 100).toFixed(2) + '%');
+                card.style.setProperty('--rx', rx.toFixed(3) + 'deg');
+                card.style.setProperty('--ry', ry.toFixed(3) + 'deg');
+
+                lanes.forEach(function (lane, i) {
+                    const p = pull[i];
+                    const c = centers[i];
+                    if (c) {
+                        const m = MAX_PULL[i];
+                        p.tx = Math.max(-m, Math.min(m, (currentPx - c.x) * ATTRACT[i]));
+                        p.ty = Math.max(-m, Math.min(m, (currentPy - c.y) * ATTRACT[i]));
+                    }
+                    p.x += (p.tx - p.x) * 0.06;
+                    p.y += (p.ty - p.y) * 0.06;
+                    lane.style.setProperty('--ax', p.x.toFixed(1) + 'px');
+                    lane.style.setProperty('--ay', p.y.toFixed(1) + 'px');
+                });
+
+                requestAnimationFrame(frame);
+            }
+
+            window.addEventListener('pointermove', function (event) {
+                targetX = (event.clientX / window.innerWidth) * 2 - 1;
+                targetY = (event.clientY / window.innerHeight) * 2 - 1;
+                targetPx = event.clientX;
+                targetPy = event.clientY;
+                /* 卡片微倾斜：±2.6° / ±3.2°，Apple 式克制 */
+                targetRx = -targetY * 2.6;
+                targetRy = targetX * 3.2;
+                document.body.classList.add('is-pointer-active');
+            }, { passive: true });
+
+            function resetPointer() {
+                targetX = 0;
+                targetY = 0;
+                targetPx = window.innerWidth / 2;
+                targetPy = window.innerHeight / 2;
+                targetRx = 0;
+                targetRy = 0;
+                pull.forEach(function (p) { p.tx = 0; p.ty = 0; });
+                document.body.classList.remove('is-pointer-active');
+            }
+
+            document.addEventListener('pointerleave', resetPointer, { passive: true });
+            window.addEventListener('blur', resetPointer);
+            requestAnimationFrame(frame);
+        })();
     </script>
 </body>
 </html>
