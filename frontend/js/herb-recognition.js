@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const API_BASE = 'http://localhost:3001/api';
+  const API_BASE = '/api';
 
   const uploadArea = document.getElementById('uploadArea');
   const fileInput = document.getElementById('fileInput');
+  const videoInput = document.getElementById('videoInput');
+  const uploadHint = document.getElementById('uploadHint');
   const imagePreview = document.getElementById('imagePreview');
   const videoPreview = document.getElementById('videoPreview');
   const uploadButton = document.getElementById('uploadButton');
@@ -73,7 +75,22 @@ document.addEventListener('DOMContentLoaded', function() {
     fileInput?.click();
   });
   videoButton?.addEventListener('click', function() {
-    showStatus('基础版仅支持图片识别，视频识别暂未开放。');
+    videoInput?.click();
+  });
+
+  videoInput?.addEventListener('change', async function() {
+    const file = this.files && this.files[0];
+    if (!file) return;
+    setUploadHint('正在从视频中截取画面...');
+    try {
+      const frame = await extractVideoFrame(file);
+      handleFile(frame);
+      setUploadHint('已从视频截取一帧画面，点击「开始识别」即可。');
+    } catch (error) {
+      setUploadHint(error.message || '视频处理失败，请换一个视频，或直接上传图片。');
+    } finally {
+      this.value = '';
+    }
   });
   cameraButton?.addEventListener('click', openCameraModal);
   recognizeButton?.addEventListener('click', startRecognition);
@@ -91,6 +108,84 @@ document.addEventListener('DOMContentLoaded', function() {
       window.location.href = `knowledge-graph.html?herb=${encodeURIComponent(recognizedHerb.name)}`;
     }
   });
+
+  function setUploadHint(message) {
+    if (!uploadHint) return;
+    uploadHint.textContent = message || '';
+    uploadHint.hidden = !message;
+  }
+
+  function extractVideoFrame(file) {
+    return new Promise(function(resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var video = document.createElement('video');
+      var settled = false;
+      video.preload = 'auto';
+      video.muted = true;
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.style.position = 'fixed';
+      video.style.left = '-9999px';
+      video.style.top = '0';
+      video.style.width = '2px';
+      video.style.height = '2px';
+      document.body.appendChild(video);
+
+      function cleanup() {
+        try { video.pause(); } catch (e) {}
+        video.removeAttribute('src');
+        try { video.load(); } catch (e) {}
+        if (video.parentNode) video.parentNode.removeChild(video);
+        URL.revokeObjectURL(url);
+      }
+
+      function finish(error, result) {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (error) reject(error); else resolve(result);
+      }
+
+      function capture() {
+        try {
+          var w = video.videoWidth || 0;
+          var h = video.videoHeight || 0;
+          if (!w || !h) return finish(new Error('无法读取视频画面，请换一个视频。'));
+          var maxSide = 1280;
+          var scale = Math.min(1, maxSide / Math.max(w, h));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(w * scale));
+          canvas.height = Math.max(1, Math.round(h * scale));
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(function(blob) {
+            if (!blob) return finish(new Error('视频帧提取失败，请重试。'));
+            finish(null, new File([blob], 'video-frame.jpg', { type: 'image/jpeg' }));
+          }, 'image/jpeg', 0.92);
+        } catch (e) {
+          finish(new Error('视频帧提取失败，请重试。'));
+        }
+      }
+
+      video.onloadedmetadata = function() {
+        var duration = isFinite(video.duration) ? video.duration : 0;
+        var target = duration > 0 ? Math.min(Math.max(duration * 0.25, 0.3), 3) : 0;
+        try {
+          video.currentTime = target;
+        } catch (e) {
+          capture();
+        }
+      };
+      video.onseeked = capture;
+      video.onerror = function() {
+        finish(new Error('无法读取该视频，请换一个格式（推荐 MP4）。'));
+      };
+      setTimeout(function() {
+        if (!settled) capture();
+      }, 10000);
+      video.src = url;
+      try { video.load(); } catch (e) {}
+    });
+  }
 
   function handleFile(file) {
     hideResults();
@@ -294,14 +389,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function absoluteAssetUrl(value) {
     if (!value) return '';
-    const url = String(value);
+    // 线上同源部署：统一用相对路径；兼容数据库里残留的 localhost 绝对地址
+    const url = String(value).replace(/^https?:\/\/(localhost|127\.0\.0\.1):3001/i, '');
     if (/^https?:\/\//i.test(url)) return url;
-    const path = url.startsWith('/') ? url : `/${url}`;
-    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-      const host = window.location.host;
-      if (host === 'localhost:3001' || host === '127.0.0.1:3001') return path;
-    }
-    return `http://localhost:3001${path}`;
+    return url.startsWith('/') ? url : `/${url}`;
   }
 
   function hideResults() {

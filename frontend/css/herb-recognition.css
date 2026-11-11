@@ -407,3 +407,13 @@
 #mainContent .intro p {
   margin: 6px 0 0;
 }
+
+.upload-hint {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--primary-soft, #eef6ef);
+  color: var(--text-secondary, #4b5b4d);
+  font-size: 13px;
+  line-height: 1.5;
+}

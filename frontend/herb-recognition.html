@@ -59,8 +59,9 @@
           <div class="upload-area" id="uploadArea" tabindex="0" role="button" aria-label="选择或拖放药材图片">
             <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
             <p>点击或拖放图片到此处</p>
-            <p>支持 JPG、PNG 等常见图片格式</p>
-            <input type="file" id="fileInput" accept="image/*" capture="environment" hidden>
+            <p>支持 JPG/PNG 图片，或 MP4/MOV 视频（自动截取一帧识别）</p>
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <input type="file" id="videoInput" accept="video/*" hidden>
             <img id="imagePreview" alt="上传图片预览" hidden>
             <video id="videoPreview" controls preload="metadata" playsinline hidden></video>
           </div>
@@ -70,6 +71,7 @@
             <button id="cameraButton" class="action-button" type="button"><i class="fas fa-camera"></i> 使用摄像头</button>
             <button id="recognizeButton" class="action-button" type="button" disabled><i class="fas fa-search"></i> 开始识别</button>
           </div>
+          <p id="uploadHint" class="upload-hint" role="status" hidden></p>
         </section>
 
         <section class="result-section" aria-labelledby="resultTitle" aria-live="polite">
