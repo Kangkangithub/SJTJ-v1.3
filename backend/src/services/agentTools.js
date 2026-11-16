@@ -104,11 +104,24 @@ const searchHerbsTool = {
       ? "\n\n媒体可用性（来自媒体库）：" + mediaHints.map(m => m.name + "（" + [m.hasVideo ? "视频" : "", m.hasImage ? "图片" : ""].filter(Boolean).join("/") + "）").join("、")
       : "";
 
-    const text = "三路混合检索命中 " + enriched.herbs.length + " 味药材、" + enriched.formulas.length + " 首方剂，图谱上下文如下：\n" + contextText + mediaNote;
+    let media = [];
+    if (enriched.herbs.length === 1) {
+      const singleName = enriched.herbs[0].name;
+      const imageExt = IMAGE_EXTENSIONS.find(ext => fs.existsSync(path.join(HERB_IMAGE_DIR, singleName + ext)));
+      if (imageExt) media.push({ type: "image", url: "/uploads/herbs/" + singleName + imageExt, name: singleName });
+      const videoExt = VIDEO_EXTENSIONS.find(ext => fs.existsSync(path.join(HERB_VIDEO_DIR, singleName + ext)));
+      if (videoExt) media.push({ type: "video", url: "/uploads/videos/" + singleName + videoExt, name: singleName });
+    }
+    const mediaText = media.length
+      ? "\n\n媒体库已附带该药材的 " + media.map(m => m.type === "video" ? "视频" : "图片").join("、") + "，前端会自动展示。"
+      : "";
+
+    const text = "三路混合检索命中 " + enriched.herbs.length + " 味药材、" + enriched.formulas.length + " 首方剂，图谱上下文如下：\n" + contextText + mediaNote + mediaText;
     return {
       text,
       herbs: enriched.herbs.map(h => h.name),
-      formulas: enriched.formulas.map(f => f.name)
+      formulas: enriched.formulas.map(f => f.name),
+      media
     };
   }
 };

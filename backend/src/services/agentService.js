@@ -57,7 +57,7 @@ Final Answer: 最终答案（完整、专业、面向用户）
 2. 绝对不要自己编造 Observation，Observation 只能由系统提供
 3. 绝对不要在一次输出里完成整个循环，不要提前输出 Final Answer
 4. 只有收到足够的 Observation 后，才在下一步单独输出 Final Answer
-5. 药材信息与媒体：询问某一味具体药材的信息、介绍、功效详情、图片、视频、长相或外观时，应同时调用 search_herbs（取知识）和 herb_media（取图片/视频）；只问图片/视频时可只调 herb_media；询问“数据库里有哪些药材视频/图片”这类清单问题，必须调用 list_herb_media；宽泛推荐问题不要调用媒体工具
+5. 药材信息与媒体：询问某一味具体药材的信息、介绍、功效详情、图片、视频、长相或外观时，应同时调用 search_herbs（取知识）和 herb_media（取图片/视频）；只要最终回答围绕某一味具体药材展开，就必须至少调用一次 herb_media（即使 search_herbs 已返回知识）；只问图片/视频时可只调 herb_media；询问“数据库里有哪些药材视频/图片”这类清单问题，必须调用 list_herb_media；宽泛推荐问题不要调用媒体工具
 6. 优先调用工具获取知识库证据，再基于 Observation 生成回答，不要凭空编造
 `;
 }
