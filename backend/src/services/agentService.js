@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Agent 服务（多 Agent 编排 + Tool Calling 核心）
  *
  * @description 用 ReAct 模式实现 Agent 循环：
@@ -57,7 +57,7 @@ Final Answer: 最终答案（完整、专业、面向用户）
 2. 绝对不要自己编造 Observation，Observation 只能由系统提供
 3. 绝对不要在一次输出里完成整个循环，不要提前输出 Final Answer
 4. 只有收到足够的 Observation 后，才在下一步单独输出 Final Answer
-5. 当用户询问某一味具体药材（如“人参的信息”“人参长什么样”）时，可调用 herb_media 展示该药材图片/视频；宽泛问题（如“推荐几味补气药”）不要调用
+5. 媒体类问题要区分：询问某一味具体药材的图片/视频（如“有人参的视频吗”“人参长什么样”）调用 herb_media；询问“数据库里有哪些药材视频/图片”“有哪些媒体可以看”这类清单问题，必须调用 list_herb_media，不要用 search_herbs 代替；宽泛推荐问题不要调用媒体工具
 6. 优先调用工具获取知识库证据，再基于 Observation 生成回答，不要凭空编造
 `;
 }

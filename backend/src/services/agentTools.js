@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Agent 工具集（Tool Calling）
  *
  * @description 把神农AI 的多个 AI 能力封装为 Agent 可调用的「工具」，
@@ -94,7 +94,17 @@ const searchHerbsTool = {
     // 4) 构建结构化图谱上下文
     const contextText = ragServiceV2.buildContextText(enriched);
 
-    const text = "三路混合检索命中 " + enriched.herbs.length + " 味药材、" + enriched.formulas.length + " 首方剂，图谱上下文如下：\n" + contextText;
+    const mediaHints = enriched.herbs.map(h => {
+      const name = h.name;
+      const hasVideo = VIDEO_EXTENSIONS.some(ext => fs.existsSync(path.join(HERB_VIDEO_DIR, name + ext)));
+      const hasImage = IMAGE_EXTENSIONS.some(ext => fs.existsSync(path.join(HERB_IMAGE_DIR, name + ext)));
+      return { name, hasVideo, hasImage };
+    }).filter(x => x.hasVideo || x.hasImage);
+    const mediaNote = mediaHints.length
+      ? "\n\n媒体可用性（来自媒体库）：" + mediaHints.map(m => m.name + "（" + [m.hasVideo ? "视频" : "", m.hasImage ? "图片" : ""].filter(Boolean).join("/") + "）").join("、")
+      : "";
+
+    const text = "三路混合检索命中 " + enriched.herbs.length + " 味药材、" + enriched.formulas.length + " 首方剂，图谱上下文如下：\n" + contextText + mediaNote;
     return {
       text,
       herbs: enriched.herbs.map(h => h.name),
@@ -174,7 +184,7 @@ const enrichHerbTool = {
 // =============================================
 const herbMediaTool = {
   name: "herb_media",
-  description: "当用户询问某一味具体药材的信息、图片、视频、长相或外观时使用，返回该药材的图片和视频链接。宽泛问题（如推荐多味药材）不要调用",
+  description: "仅用于询问某一味具体药材（如“人参长什么样”“有人参的视频吗”），返回该药材的图片和视频链接。若用户询问“数据库里有哪些视频/图片”这类清单问题，请改用 list_herb_media；宽泛推荐问题不要调用",
   parameters: { herb: "单一药材名，如“人参”" },
   async run(args) {
     const name = String(args.herb || args.name || "").trim();
@@ -200,6 +210,54 @@ const herbMediaTool = {
     return {
       text: "药材【" + name + "】找到 " + imgCount + " 张图片、 " + vidCount + " 个视频",
       media
+    };
+  }
+};
+
+// =============================================
+// 工具4.1：list_herb_media —— 媒体清单（全部视频/图片）
+// =============================================
+const listHerbMediaTool = {
+  name: "list_herb_media",
+  description: "当用户询问数据库里有哪些药材视频、哪些药材有图片、有哪些媒体可以看等清单类问题时使用，扫描媒体库并返回可用的视频/图片列表",
+  parameters: { type: "media 类型：video | image | all，默认 video", limit: "最多返回条数，默认 20" },
+  async run(args) {
+    const type = String(args.type || args.media_type || "video").toLowerCase();
+    const limit = Math.min(Math.max(Number(args.limit) || 20, 1), 50);
+    const wantVideo = type !== "image";
+    const wantImage = type !== "video";
+    const items = [];
+
+    const collect = (dir, extensions, mediaType, urlPrefix) => {
+      if (!fs.existsSync(dir)) return;
+      for (const file of fs.readdirSync(dir)) {
+        const ext = path.extname(file).toLowerCase();
+        if (!extensions.includes(ext)) continue;
+        const name = path.basename(file, ext);
+        const full = path.join(dir, file);
+        let size = 0;
+        try { size = fs.statSync(full).size; } catch (e) { size = 0; }
+        items.push({ type: mediaType, name, filename: file, url: urlPrefix + encodeURIComponent(file), size });
+      }
+    };
+
+    if (wantVideo) collect(HERB_VIDEO_DIR, VIDEO_EXTENSIONS, "video", "/uploads/videos/");
+    if (wantImage) collect(HERB_IMAGE_DIR, IMAGE_EXTENSIONS, "image", "/uploads/herbs/");
+
+    items.sort((a, b) => a.type === b.type ? a.name.localeCompare(b.name, "zh") : (a.type === "video" ? -1 : 1));
+    if (items.length === 0) {
+      return { text: "媒体库中暂无可用的" + (wantVideo ? "药材视频" : "药材图片"), media: [] };
+    }
+
+    const shown = items.slice(0, limit);
+    const lines = shown.map((m, i) => {
+      const sizeText = m.size > 0 ? "，" + (m.size / 1024 / 1024).toFixed(1) + "MB" : "";
+      return (i + 1) + ". " + m.name + "（" + (m.type === "video" ? "视频" : "图片") + sizeText + "）";
+    });
+    const tail = items.length > shown.length ? "\n（共 " + items.length + " 条，仅展示前 " + shown.length + " 条）" : "";
+    return {
+      text: "媒体库中可用的药材媒体共 " + items.length + " 条：\n" + lines.join("\n") + tail,
+      media: shown
     };
   }
 };
@@ -250,7 +308,7 @@ const checkCompatibilityTool = {
 // =============================================
 // 工具注册表
 // =============================================
-const agentTools = [searchHerbsTool, searchFormulasTool, enrichHerbTool, herbMediaTool, checkCompatibilityTool];
+const agentTools = [searchHerbsTool, searchFormulasTool, enrichHerbTool, herbMediaTool, listHerbMediaTool, checkCompatibilityTool];
 
 function getTool(name) {
   return agentTools.find(t => t.name === name);
