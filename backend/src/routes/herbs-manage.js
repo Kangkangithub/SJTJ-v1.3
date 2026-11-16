@@ -8,6 +8,7 @@ const express = require("express");
 const neo4jManager = require("../config/neo4j-simple");
 const neo4j = require("neo4j-driver");
 const embeddingService = require("../services/embeddingService");
+const databaseManager = require("../config/database-simple");
 const router = express.Router();
 
 // ==================== 辅助函数 ====================
@@ -196,6 +197,145 @@ router.get("/:name", async (req, res) => {
   }
 });
 
+// =============================================
+// Neo4j -> SQLite 同步（供列表/搜索/详情使用）
+// =============================================
+function sqliteRun(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) { err ? reject(err) : resolve(this); });
+  });
+}
+
+function sqliteGet(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => { err ? reject(err) : resolve(row); });
+  });
+}
+
+async function ensureLookupId(db, table, name, extra = {}) {
+  const cols = ["name", ...Object.keys(extra)];
+  const values = [name, ...Object.values(extra)];
+  await sqliteRun(
+    db,
+    `INSERT OR IGNORE INTO ${table} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`,
+    values
+  );
+  const row = await sqliteGet(db, `SELECT id FROM ${table} WHERE name = ?`, [name]);
+  return row ? row.id : null;
+}
+
+async function syncHerbFromNeo4j(name) {
+  const session = neo4jManager.getSession();
+  let data;
+  try {
+    const result = await session.run(
+      `MATCH (h:Herb {name: $name})
+       OPTIONAL MATCH (h)-[:BELONGS_TO_CATEGORY]->(c:Category)
+       OPTIONAL MATCH (h)-[:FROM_REGION]->(r:Region)
+       OPTIONAL MATCH (h)-[:HAS_PROPERTY]->(p:Property)
+       OPTIONAL MATCH (h)-[:MERIDIAN_AFFINITY]->(m:Meridian)
+       OPTIONAL MATCH (h)-[:HAS_EFFICACY]->(e:Efficacy)
+       RETURN h {.*} AS herb,
+              collect(DISTINCT c.name) AS categories,
+              collect(DISTINCT r.name) AS regions,
+              collect(DISTINCT {name: p.name, type: p.type}) AS properties,
+              collect(DISTINCT m.name) AS meridians,
+              collect(DISTINCT e.name) AS efficacies`,
+      { name }
+    );
+    if (!result.records.length) return null;
+    const rec = result.records[0];
+    data = {
+      herb: rec.get("herb"),
+      category: rec.get("categories").filter(Boolean)[0] || null,
+      region: rec.get("regions").filter(Boolean)[0] || null,
+      properties: rec.get("properties").filter((p) => p && p.name),
+      meridians: rec.get("meridians").filter(Boolean),
+      efficacies: rec.get("efficacies").filter(Boolean)
+    };
+  } finally {
+    await session.close();
+  }
+
+  const db = databaseManager.getDatabase();
+  const categoryId = data.category ? await ensureLookupId(db, "herb_categories", data.category) : null;
+  const regionId = data.region ? await ensureLookupId(db, "herb_regions", data.region) : null;
+
+  await sqliteRun(
+    db,
+    `INSERT INTO herbs (name, pinyin, latin_name, alias, category_id, region_id, description, efficacy, usage_dosage, caution, is_common, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+     ON CONFLICT(name) DO UPDATE SET
+       pinyin = excluded.pinyin,
+       latin_name = excluded.latin_name,
+       alias = excluded.alias,
+       category_id = excluded.category_id,
+       region_id = excluded.region_id,
+       description = excluded.description,
+       usage_dosage = excluded.usage_dosage,
+       caution = excluded.caution,
+       is_common = excluded.is_common,
+       updated_at = datetime('now')`,
+    [
+      data.herb.name, data.herb.pinyin || null, data.herb.latin_name || null, data.herb.alias || null,
+      categoryId, regionId, data.herb.description || "", data.herb.efficacy || null,
+      data.herb.usage_dosage || null, data.herb.caution || null, data.herb.is_common ? 1 : 0
+    ]
+  );
+  const herbRow = await sqliteGet(db, "SELECT id FROM herbs WHERE name = ?", [data.herb.name]);
+  const herbId = herbRow.id;
+
+  await sqliteRun(db, "DELETE FROM herb_properties WHERE herb_id = ?", [herbId]);
+  await sqliteRun(db, "DELETE FROM herb_meridians WHERE herb_id = ?", [herbId]);
+  await sqliteRun(db, "DELETE FROM herb_efficacies WHERE herb_id = ?", [herbId]);
+
+  for (const p of data.properties) {
+    const pid = await ensureLookupId(db, "properties", p.name, { type: p.type || "flavor" });
+    if (pid) await sqliteRun(db, "INSERT OR IGNORE INTO herb_properties (herb_id, property_id, intensity) VALUES (?, ?, ?)", [herbId, pid, "normal"]);
+  }
+  for (const m of data.meridians) {
+    const mid = await ensureLookupId(db, "meridians", m);
+    if (mid) await sqliteRun(db, "INSERT OR IGNORE INTO herb_meridians (herb_id, meridian_id) VALUES (?, ?)", [herbId, mid]);
+  }
+  for (const e of data.efficacies) {
+    const eid = await ensureLookupId(db, "efficacies", e);
+    if (eid) await sqliteRun(db, "INSERT OR IGNORE INTO herb_efficacies (herb_id, efficacy_id) VALUES (?, ?)", [herbId, eid]);
+  }
+
+  return {
+    name: data.herb.name,
+    id: herbId,
+    properties: data.properties.length,
+    meridians: data.meridians.length,
+    efficacies: data.efficacies.length
+  };
+}
+
+router.post("/sync-sqlite", async (req, res) => {
+  try {
+    if (req.headers["x-admin-user"] !== "JunkangShen") {
+      return res.status(403).json({ success: false, message: "无权限执行同步" });
+    }
+    const names = Array.isArray(req.body.names) ? req.body.names.filter(Boolean) : [];
+    if (!names.length) {
+      return res.status(400).json({ success: false, message: "请提供 names 数组" });
+    }
+    const synced = [];
+    const failed = [];
+    for (const name of names) {
+      try {
+        const result = await syncHerbFromNeo4j(name);
+        if (result) synced.push(result);
+        else failed.push({ name, reason: "Neo4j 中不存在该药材" });
+      } catch (error) {
+        failed.push({ name, reason: error.message });
+      }
+    }
+    res.json({ success: true, data: { synced, failed } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 /**
  * POST /api/herbs-manage
  * @description 新增药材（事务内 MERGE 关系节点）
