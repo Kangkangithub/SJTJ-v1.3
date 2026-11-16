@@ -1,78 +1,128 @@
 /* 智能问答页面样式 - 中医药主题 */
 
-/* Agent 思维链步骤（浅色主题，深色文字保证可读） */
-.agent-chain-log { padding: 8px 0; }
+/* Agent 思维链：时间线式展示（对齐药材详情亮色风格） */
+.agent-chain-log {
+  position: relative;
+  margin: 8px 0 4px;
+  padding: 4px 0 0 30px;
+}
+
+.agent-chain-log::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 10px;
+  bottom: 12px;
+  width: 1px;
+  background: var(--line);
+}
+
 .agent-chain-step {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: flex-start;
-  padding: 9px 12px;
-  margin: 4px 0;
-  border-radius: 8px;
-  background: rgba(47, 118, 81, 0.04);
+  position: relative;
+  display: block;
+  margin: 0 0 18px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   font-size: 13px;
-  line-height: 1.65;
-  color: var(--text, #16241d);
-  border-left: 3px solid rgba(22, 36, 29, 0.14);
+  line-height: 1.7;
+  color: var(--text);
 }
-.agent-chain-step .agent-step-icon { flex-shrink: 0; font-size: 15px; }
-.agent-chain-step .agent-step-label {
-  flex-shrink: 0;
-  font-weight: 700;
-  font-size: 12px;
-  color: #20563b;
-  background: rgba(47, 118, 81, 0.14);
-  border-radius: 4px;
-  padding: 1px 8px;
-  margin-top: 1px;
-}
+
+.agent-chain-step:last-child { margin-bottom: 2px; }
+
 .agent-chain-step .agent-step-num {
-  flex-shrink: 0;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: rgba(22, 36, 29, 0.08);
-  color: var(--muted, #627069);
+  position: absolute;
+  left: -30px;
+  top: 1px;
+  width: 20px;
+  height: 20px;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  z-index: 1;
 }
+
+.agent-chain-step .agent-step-icon {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 12px;
+  color: var(--primary);
+  opacity: 0.9;
+}
+
+.agent-chain-step .agent-step-label {
+  display: inline-block;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
 .agent-chain-step .agent-step-body {
-  flex-basis: 100%;
-  padding-left: 26px;
-  color: var(--text, #16241d);
+  margin-top: 4px;
+  padding: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.75;
   word-break: break-word;
   white-space: pre-wrap;
 }
-.agent-chain-step .agent-step-body.agent-answer-note { color: var(--muted, #627069); }
-.agent-chain-step .agent-step-body pre {
-  margin: 6px 0 0 0;
-  padding: 8px 10px;
-  background: rgba(22, 36, 29, 0.04);
-  border: 1px solid rgba(22, 36, 29, 0.08);
+
+.agent-chain-step .agent-step-body.agent-answer-note { color: var(--muted); }
+
+.ai-message .agent-chain-step .agent-step-body pre {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
   border-radius: 6px;
   font-size: 12px;
+  line-height: 1.6;
   overflow-x: auto;
   white-space: pre-wrap;
-  color: var(--text, #16241d);
+  color: var(--text);
 }
-.agent-chain-step .agent-step-body pre code { background: transparent; color: inherit; }
-.agent-chain-step.agent-thought { border-left-color: #3498db; background: rgba(52, 152, 219, 0.06); }
-.agent-chain-step.agent-thought .agent-step-label { color: #2471a3; background: rgba(52, 152, 219, 0.14); }
-.agent-chain-step.agent-tool { border-left-color: #8e44ad; background: rgba(142, 68, 173, 0.06); }
-.agent-chain-step.agent-tool .agent-step-label { color: #7d3c98; background: rgba(142, 68, 173, 0.14); }
-.agent-chain-step.agent-result { border-left-color: #c67517; background: rgba(198, 117, 23, 0.06); }
-.agent-chain-step.agent-result .agent-step-label { color: #a85f0d; background: rgba(198, 117, 23, 0.15); }
-.agent-chain-step.agent-answer { border-left-color: #27ae60; background: rgba(39, 174, 96, 0.07); }
-.agent-chain-step.agent-answer .agent-step-label { color: #1e8c4c; background: rgba(39, 174, 96, 0.16); }
-.agent-chain-step.agent-error { border-left-color: #c0392b; background: rgba(192, 57, 43, 0.06); }
-.agent-chain-step.agent-error .agent-step-label { color: #a93226; background: rgba(192, 57, 43, 0.14); }
-.rag-badge-agent { background: rgba(52, 152, 219, 0.14); color: #2471a3; border: 1px solid rgba(52, 152, 219, 0.3); }
-.rag-badge-agent-fallback { background: rgba(198, 117, 23, 0.14); color: #a85f0d; border: 1px solid rgba(198, 117, 23, 0.3); }
 
+.ai-message .agent-chain-step .agent-step-body pre code {
+  background: transparent;
+  color: inherit;
+}
+
+/* 类型只做轻微强调，不再使用彩色卡片 */
+.agent-chain-step.agent-answer .agent-step-num {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: #ffffff;
+}
+
+.agent-chain-step.agent-answer .agent-step-label { color: var(--primary-dark); }
+
+.agent-chain-step.agent-error .agent-step-num {
+  border-color: rgba(179, 38, 30, 0.55);
+  color: #b3261e;
+}
+
+.agent-chain-step.agent-error .agent-step-label { color: #b3261e; }
+.agent-chain-step.agent-error .agent-step-icon { color: #b3261e; }
+
+.agent-chain-toggle {
+  border-radius: 8px;
+  border-color: var(--line);
+}
+
+.agent-chain-toggle .rag-toggle-title { font-weight: 600; }
 /* =============================================
    Q&A 容器
    ============================================= */
@@ -2309,3 +2359,207 @@ button.rag-source-tag {
   width: 42px; height: 42px; border-radius: 50%; font-size: 18px; cursor: pointer;
 }
 .media-lightbox-close:hover { background: rgba(255, 255, 255, 0.32); }
+
+/* ==================== 问答页宽屏布局 ==================== */
+.qa-page .container {
+    width: min(100%, 1500px);
+}
+
+.qa-page .qa-page-header,
+.qa-page .tech-stack-bar {
+    max-width: 1440px;
+}
+
+.qa-stage {
+    max-width: 1440px;
+}
+
+.qa-stage.panel-open {
+    max-width: 1452px;
+}
+
+@media (min-width: 769px) {
+    .qa-wrapper {
+        height: min(80vh, 900px);
+        min-height: 620px;
+    }
+}
+
+.message {
+    width: min(90%, 980px);
+}
+
+/* ==================== 历史对话折叠 ==================== */
+.qa-history-sidebar {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease,
+                border-width 0.3s ease,
+                padding 0.3s ease;
+}
+
+.qa-history-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.qa-history-collapse-btn {
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+@media (min-width: 769px) {
+    .qa-wrapper.history-collapsed .qa-history-sidebar {
+        width: 0;
+        min-width: 0;
+        padding: 0;
+        border-width: 0;
+        opacity: 0;
+        overflow: hidden;
+    }
+
+    #qaHistoryBtn { display: none; }
+    .qa-wrapper.history-collapsed #qaHistoryBtn { display: inline-flex; }
+}
+
+/* ==================== 宽屏修正：解除 wrapper 限宽、放大消息、收窄内边距 ==================== */
+.qa-page .qa-wrapper {
+    max-width: 1440px;
+}
+
+.qa-page .chat-window {
+    padding-left: clamp(20px, 2.5vw, 36px);
+    padding-right: clamp(20px, 2.5vw, 36px);
+}
+
+.qa-page .message {
+    width: min(92%, 1040px);
+}
+
+.qa-page .user-message {
+    width: min(78%, 860px);
+}
+
+/* ==================== 标题旁 AI 技术栈问号弹层 ==================== */
+.qa-title-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.qa-title-help {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.qa-help-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.qa-help-btn:hover,
+.qa-help-btn[aria-expanded="true"] {
+    color: var(--primary-dark);
+    border-color: rgba(47, 118, 81, 0.45);
+    background: var(--primary-soft);
+}
+
+.qa-tech-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: -8px;
+    z-index: 80;
+    width: 420px;
+    max-width: calc(100vw - 48px);
+    padding: 14px 16px 16px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(22, 36, 29, 0.14);
+}
+
+.qa-tech-popover[hidden] { display: none; }
+
+.qa-tech-popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.qa-tech-close {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.qa-tech-close:hover {
+    color: var(--text);
+    background: var(--surface-muted);
+}
+
+.qa-tech-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.qa-tech-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.qa-tech-item > i {
+    width: 18px;
+    margin-top: 2px;
+    text-align: center;
+    color: var(--primary);
+    font-size: 13px;
+}
+
+.qa-tech-item strong {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.qa-tech-item p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+@media (max-width: 720px) {
+    .qa-tech-popover {
+        left: 0;
+        width: min(92vw, 380px);
+    }
+}

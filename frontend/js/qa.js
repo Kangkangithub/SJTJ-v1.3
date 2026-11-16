@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 神农AI 问答页
  * 只展示真实后端接口结果；未登录时仅保留当前浏览器临时对话。
  */
@@ -349,17 +349,17 @@ function buildAgentStepsHtml(result) {
     var type = step && step.type ? String(step.type) : "thought";
     var num = index + 1;
     if (type === "thought") {
-      html += '<div class="agent-chain-step agent-thought"><span class="agent-step-icon">💭</span><span class="agent-step-label">思考</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(step.content || "") + '</div></div>';
+      html += '<div class="agent-chain-step agent-thought"><span class="agent-step-icon"><i class="fas fa-lightbulb"></i></span><span class="agent-step-label">思考</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(step.content || "") + '</div></div>';
     } else if (type === "tool_call") {
       var argsJson = "";
       try { argsJson = JSON.stringify(step.args || {}, null, 2); } catch (e) { argsJson = String(step.args || ""); }
-      html += '<div class="agent-chain-step agent-tool"><span class="agent-step-icon">🔧</span><span class="agent-step-label">调用工具</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body"><strong>' + esc(step.tool || "未知工具") + '</strong><pre><code>' + esc(argsJson) + '</code></pre></div></div>';
+      html += '<div class="agent-chain-step agent-tool"><span class="agent-step-icon"><i class="fas fa-wrench"></i></span><span class="agent-step-label">调用工具</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body"><strong>' + esc(step.tool || "未知工具") + '</strong><pre><code>' + esc(argsJson) + '</code></pre></div></div>';
     } else if (type === "tool_result") {
-      html += '<div class="agent-chain-step agent-result"><span class="agent-step-icon">📋</span><span class="agent-step-label">工具结果</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(String(step.content || "")) + '</div></div>';
+      html += '<div class="agent-chain-step agent-result"><span class="agent-step-icon"><i class="fas fa-clipboard-list"></i></span><span class="agent-step-label">工具结果</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(String(step.content || "")) + '</div></div>';
     } else if (type === "answer") {
-      html += '<div class="agent-chain-step agent-answer"><span class="agent-step-icon">✅</span><span class="agent-step-label">最终答案</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body agent-answer-note">Agent 已生成最终答案（见下方回答正文）</div></div>';
+      html += '<div class="agent-chain-step agent-answer"><span class="agent-step-icon"><i class="fas fa-circle-check"></i></span><span class="agent-step-label">最终答案</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body agent-answer-note">Agent 已生成最终答案（见下方回答正文）</div></div>';
     } else {
-      html += '<div class="agent-chain-step agent-error"><span class="agent-step-icon">⚠️</span><span class="agent-step-label">提示</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(String(step.content || step.error || "")) + '</div></div>';
+      html += '<div class="agent-chain-step agent-error"><span class="agent-step-icon"><i class="fas fa-triangle-exclamation"></i></span><span class="agent-step-label">提示</span><span class="agent-step-num">' + num + '</span><div class="agent-step-body">' + esc(String(step.content || step.error || "")) + '</div></div>';
     }
   });
   html += '</div>';
@@ -638,11 +638,73 @@ async function deleteConversation(id) {
   }
 }
 
+function wireTechStackPopover() {
+  var btn = document.getElementById("qaTechStackBtn");
+  var pop = document.getElementById("qaTechStackPopover");
+  var closeBtn = document.getElementById("qaTechStackClose");
+  if (!btn || !pop) return;
+
+  function setOpen(open) {
+    if (open) pop.removeAttribute("hidden");
+    else pop.setAttribute("hidden", "");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    setOpen(pop.hasAttribute("hidden"));
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      setOpen(false);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    if (pop.hasAttribute("hidden")) return;
+    if (pop.contains(e.target) || btn.contains(e.target)) return;
+    setOpen(false);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") setOpen(false);
+  });
+}
+
 function wireHistoryControls() {
   var btn = document.getElementById("qaHistoryBtn");
   var sidebar = document.getElementById("convSidebar");
   var panel = document.getElementById("qaHistoryPanel");
   var newBtn = document.getElementById("qaNewChatBtn");
+
+  var collapseBtn = document.getElementById("qaHistoryCollapseBtn");
+  var wrapper = document.querySelector(".qa-wrapper");
+
+  function isDesktop() {
+    return window.matchMedia("(min-width: 769px)").matches;
+  }
+
+  function setHistoryCollapsed(collapsed) {
+    if (!wrapper) return;
+    wrapper.classList.toggle("history-collapsed", collapsed);
+    if (btn) btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    try { localStorage.setItem("qa_history_collapsed", collapsed ? "1" : "0"); } catch (e) {}
+  }
+
+  if (collapseBtn) {
+    collapseBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      setHistoryCollapsed(true);
+    });
+  }
+
+  try {
+    if (isDesktop() && localStorage.getItem("qa_history_collapsed") === "1") {
+      setHistoryCollapsed(true);
+    }
+  } catch (e) {}
 
   // 关闭侧边栏（移动端覆盖式显示用）
   function closeHistoryPanel() {
@@ -653,6 +715,10 @@ function wireHistoryControls() {
   if (btn && sidebar) {
     btn.addEventListener("click", function(e){
       e.stopPropagation();
+      if (isDesktop()) {
+        setHistoryCollapsed(false);
+        return;
+      }
       sidebar.classList.toggle("open");
       btn.setAttribute("aria-expanded", sidebar.classList.contains("open") ? "true" : "false");
     });
@@ -726,6 +792,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   wireSuggestionChips();
   wireHistoryControls();
+  wireTechStackPopover();
   clearChatToWelcome();
   refreshConversations().then(function(){
     if (!cloudHistoryEnabled) {

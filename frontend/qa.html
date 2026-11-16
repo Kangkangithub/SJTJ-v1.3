@@ -52,57 +52,41 @@
         <main>
             <section class="qa-page-header">
             <div class="qa-title-row">
-                <h1><i class="fas fa-comments" aria-hidden="true"></i>AI 问答</h1>
+                <div class="qa-title-main">
+                    <h1><i class="fas fa-comments" aria-hidden="true"></i>AI 问答</h1>
+                    <div class="qa-title-help">
+                        <button id="qaTechStackBtn" class="qa-help-btn" type="button" aria-label="查看 AI 技术栈" aria-expanded="false" aria-controls="qaTechStackPopover">?</button>
+                        <div class="qa-tech-popover" id="qaTechStackPopover" role="dialog" aria-label="AI 技术栈" hidden>
+                            <div class="qa-tech-popover-header">
+                                <span><i class="fas fa-layer-group"></i> AI 技术栈</span>
+                                <button type="button" class="qa-tech-close" id="qaTechStackClose" aria-label="关闭">✕</button>
+                            </div>
+                            <div class="qa-tech-list">
+                                <div class="qa-tech-item"><i class="fas fa-database"></i><div><strong>Neo4j AuraDB</strong><p>全托管云图数据库，中医药知识以节点 + 关系存储，支持复杂图查询与多跳遍历。</p></div></div>
+                                <div class="qa-tech-item"><i class="fas fa-vector-square"></i><div><strong>向量检索</strong><p>阿里云百炼 text-embedding-v3 将药材文本向量化（1024 维），按余弦相似度匹配「证型 ↔ 功效」语义。</p></div></div>
+                                <div class="qa-tech-item"><i class="fas fa-filter"></i><div><strong>三路混合检索</strong><p>BM25 全文 + 向量语义 + Neo4j 图检索三路并行，经 RRF 倒数排名融合重排。</p></div></div>
+                                <div class="qa-tech-item"><i class="fas fa-robot"></i><div><strong>Agent 编排</strong><p>ReAct 循环驱动：LLM 自主分解问题，按需调用检索 / 配伍检测 / 知识增强 / 多媒体等工具，并展示思维链。</p></div></div>
+                                <div class="qa-tech-item"><i class="fas fa-link"></i><div><strong>LangChain.js</strong><p>Node.js 端 GraphRAG / Agent 编排框架，统一管理 LLM、工具与图查询链路。</p></div></div>
+                                <div class="qa-tech-item"><i class="fas fa-wand-magic-sparkles"></i><div><strong>Model（大语言模型）</strong><p>基于增强后的图谱上下文与工具结果生成可溯源回答。</p></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <a href="knowledge-graph.html" class="btn btn-secondary qa-back-link">
                     <i class="fas fa-arrow-left"></i> 返回知识图谱
                 </a>
             </div>
             </section>
 
-            <div class="tech-stack-bar" id="techStackBar" aria-label="AI 技术栈">
-                <button class="tech-stack-toggle" type="button" aria-expanded="true" aria-controls="techStackItems" onclick="toggleTechStack()">
-                    <span class="tech-stack-toggle-title"><i class="fas fa-layer-group"></i> AI 技术栈</span>
-                    <i class="fas fa-chevron-down tech-stack-chevron" aria-hidden="true"></i>
-                </button>
-                <div class="tech-stack-items" id="techStackItems">
-                    <span class="tech-badge-item">
-                        <i class="fas fa-database"></i> Neo4j AuraDB
-                        <span class="tech-tooltip"><strong>Neo4j AuraDB</strong><br>全托管云图数据库。中医药知识以节点+关系存储，支持复杂图查询与多跳遍历。</span>
-                    </span>
-                    <span class="tech-arrow">→</span>
-                    <span class="tech-badge-item">
-                        <i class="fas fa-vector-square"></i> 向量检索
-                        <span class="tech-tooltip"><strong>向量检索</strong><br>阿里云百炼 text-embedding-v3 将药材文本向量化（1024 维），以余弦相似度匹配「证型 ↔ 功效」语义。</span>
-                    </span>
-                    <span class="tech-arrow">→</span>
-                    <span class="tech-badge-item">
-                        <i class="fas fa-filter"></i> 三路混合检索
-                        <span class="tech-tooltip"><strong>三路混合检索 + RRF</strong><br>BM25 全文 + 向量语义 + Neo4j 图检索三路并行，经 RRF（倒数排名融合）重排，提升命中精度。</span>
-                    </span>
-                    <span class="tech-arrow">→</span>
-                    <span class="tech-badge-item">
-                        <i class="fas fa-robot"></i> Agent 编排
-                        <span class="tech-tooltip"><strong>Agent + Tool Calling</strong><br>ReAct 循环驱动：LLM 自主分解问题，按需调用检索/配伍检测/知识增强/多媒体等工具，并展示思维链。</span>
-                    </span>
-                    <span class="tech-arrow">→</span>
-                    <span class="tech-badge-item">
-                        <i class="fas fa-link"></i> LangChain.js
-                        <span class="tech-tooltip"><strong>LangChain.js</strong><br>Node.js 端 GraphRAG / Agent 编排框架，统一管理 LLM、工具与图查询链路。</span>
-                    </span>
-                    <span class="tech-arrow">→</span>
-                    <span class="tech-badge-item">
-                        <i class="fas fa-wand-magic-sparkles"></i> Model
-                        <span class="tech-tooltip"><strong>Model（大语言模型）</strong><br>基于增强后的图谱上下文与工具结果生成可溯源回答。</span>
-                    </span>
-                </div>
-            </div>
-
             <div class="qa-stage">
             <div class="qa-wrapper">
                 <aside class="qa-history-sidebar" id="convSidebar" aria-label="历史对话">
                     <div class="qa-history-sidebar-header">
                         <span class="qa-history-sidebar-title"><i class="fas fa-clock-rotate-left"></i> 历史对话</span>
-                        <button id="qaNewChatBtn" class="qa-tool-btn" type="button">新对话</button>
+                        <div class="qa-history-header-actions">
+                            <button id="qaNewChatBtn" class="qa-tool-btn" type="button">新对话</button>
+                            <button id="qaHistoryCollapseBtn" class="qa-tool-btn qa-history-collapse-btn" type="button" aria-label="收起历史对话" title="收起历史对话"><i class="fas fa-chevron-left"></i></button>
+                        </div>
                     </div>
                     <div class="qa-history-sidebar-list" id="qaHistoryPanel"></div>
                 </aside>
