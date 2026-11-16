@@ -184,7 +184,7 @@ const enrichHerbTool = {
 // =============================================
 const herbMediaTool = {
   name: "herb_media",
-  description: "仅用于询问某一味具体药材（如“人参长什么样”“有人参的视频吗”），返回该药材的图片和视频链接。若用户询问“数据库里有哪些视频/图片”这类清单问题，请改用 list_herb_media；宽泛推荐问题不要调用",
+  description: "当用户询问某一味具体药材的信息、介绍、功效详情、图片、视频、长相或外观时使用，返回该药材的图片和视频链接。询问单味药材信息时应与 search_herbs 配合调用（search_herbs 取知识，herb_media 取媒体）。若用户询问“数据库里有哪些视频/图片”这类清单问题，请改用 list_herb_media；宽泛推荐问题不要调用",
   parameters: { herb: "单一药材名，如“人参”" },
   async run(args) {
     const name = String(args.herb || args.name || "").trim();
