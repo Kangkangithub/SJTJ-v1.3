@@ -1,0 +1,126 @@
+/* 注册页：复用 login-glass.css 的玻璃视觉，仅补充表单细节 */
+
+#registerForm {
+    display: grid;
+    gap: 15px;
+}
+
+.field-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.field-hint {
+    font-size: 11.5px;
+    color: var(--ink-soft, #627069);
+    letter-spacing: 0.2px;
+}
+
+/* 密码可见切换 */
+.input-wrap {
+    position: relative;
+}
+
+.input-wrap input {
+    padding-right: 48px;
+}
+
+.pw-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #7c9a8c;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pw-toggle:hover {
+    background: rgba(46, 163, 111, 0.10);
+    color: #1e6b4f;
+}
+
+.pw-toggle svg {
+    width: 17px;
+    height: 17px;
+}
+
+.pw-toggle .icon-hide { display: none; }
+.pw-toggle.is-visible .icon-show { display: none; }
+.pw-toggle.is-visible .icon-hide { display: block; }
+
+/* 密码强度 */
+.pw-strength {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.pw-strength-bars {
+    flex: 1;
+    display: flex;
+    gap: 6px;
+}
+
+.pw-strength .bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(22, 56, 41, 0.10);
+    overflow: hidden;
+}
+
+.pw-strength .bar i {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.pw-strength[data-level="1"] .bar:nth-child(1) i { width: 100%; background: #de7a5f; }
+.pw-strength[data-level="2"] .bar:nth-child(1) i,
+.pw-strength[data-level="2"] .bar:nth-child(2) i { width: 100%; background: #e0b04f; }
+.pw-strength[data-level="3"] .bar i { width: 100%; background: #2ea36f; }
+
+.pw-strength-text {
+    min-width: 58px;
+    text-align: right;
+    font-size: 11.5px;
+    color: var(--ink-soft, #627069);
+    transition: color 0.2s ease;
+}
+
+.pw-strength[data-level="1"] .pw-strength-text { color: #c25b3f; }
+.pw-strength[data-level="2"] .pw-strength-text { color: #a97a1f; }
+.pw-strength[data-level="3"] .pw-strength-text { color: #1e8e5a; }
+
+/* 注册按钮字距略收 */
+#registerForm .auth-btn {
+    letter-spacing: 4px;
+    text-indent: 4px;
+}
+
+/* 4 个字段：表单区略紧凑，保证常见屏幕内完整展示 */
+.form-panel {
+    padding: 46px 54px 38px;
+}
+
+.auth-links {
+    margin-top: 18px;
+}
+
+@media (max-width: 860px) {
+    .form-panel { padding: 40px 28px 32px; }
+}

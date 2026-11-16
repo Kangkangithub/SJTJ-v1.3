@@ -1,69 +1,220 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册 - 神农AI</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="css/herb-app.css">
-    <link rel="stylesheet" href="css/common.css">
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/login-glass.css">
+    <link rel="stylesheet" href="css/register-glass.css">
 </head>
-<body>
+<body class="glass-login">
     <a class="skip-link" href="#registerForm">跳到主内容</a>
-    <div class="container">
-        <header class="auth-header">
-            <a class="auth-brand" href="index.html">
-                <span class="logo">神农AI</span>
-                <span>中药药材知识图谱系统</span>
-            </a>
-        </header>
-        <main class="content">
-            <div class="auth-card">
-                <h1>注册</h1>
-                <p class="auth-note">创建账户后可管理个人资料。</p>
-                <form id="registerForm">
-                    <div class="form-group">
-                        <label for="username">用户名</label>
-                        <input type="text" id="username" name="username" autocomplete="username" required>
+
+    <div class="orb-field" aria-hidden="true">
+        <div class="orb-lane lane-1"><div class="orb orb-1"></div></div>
+        <div class="orb-lane lane-2"><div class="orb orb-2"></div></div>
+        <div class="orb-lane lane-3"><div class="orb orb-3"></div></div>
+        <div class="orb-lane lane-4"><div class="orb orb-4"></div></div>
+        <div class="pointer-aura"></div>
+    </div>
+
+    <main class="login-stage">
+        <section class="glass-card" aria-label="神农AI 注册">
+            <span class="glass-border" aria-hidden="true"></span>
+            <span class="sheen-static" aria-hidden="true"></span>
+            <span class="sheen-sweep" aria-hidden="true"></span>
+            <span class="glass-glow" aria-hidden="true"></span>
+
+            <div class="card-grid">
+                <div class="brand-panel">
+                    <div class="brand-head">
+                        <div class="brand-logo">
+                            <span class="logo-mark" aria-hidden="true">
+                                <img src="img/logo-mark.png" alt="">
+                            </span>
+                            <span>神农AI</span>
+                        </div>
+                        <span class="brand-en">Shennong AI · Agentic RAG</span>
+                        <h2 class="brand-title">加入神农 AI<br>开启智能问答</h2>
+                        <p class="brand-sub">注册后可保存对话、收藏药材，获得结合知识图谱与个人偏好的专业回答。</p>
                     </div>
-                    <div class="form-group">
-                        <label for="email">电子邮箱</label>
-                        <input type="email" id="email" name="email" autocomplete="email" required>
+
+                    <ul class="brand-features">
+                        <li>
+                            <span class="feature-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="7"/>
+                                    <path d="m21 21-4.3-4.3"/>
+                                    <path d="M11 8v3l2 2"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="feature-title">三路混合检索</p>
+                                <p class="feature-desc">BM25 × 向量语义 × 知识图谱，RRF 倒数排名融合排序</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="feature-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h6l3 6-3 6H3"/>
+                                    <path d="M21 6h-4l-1.5 3"/>
+                                    <path d="m16 14 2 2 4-4"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="feature-title">来源可溯</p>
+                                <p class="feature-desc">答案附带图谱证据链与检索步骤，可解释的 RAG</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="feature-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 3a4 4 0 0 1 4 4v1a4 4 0 0 1 0 8v1a4 4 0 0 1-8 0v-1a4 4 0 0 1 0-8V7a4 4 0 0 1 4-4z"/>
+                                    <path d="M12 7v10"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="feature-title">个性化问答</p>
+                                <p class="feature-desc">保存对话与偏好，回答更贴合你的关注方向</p>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <p class="brand-foot">© 2026 赫尔本队 · 神农AI 中医药知识图谱系统</p>
+                </div>
+
+                <div class="form-panel">
+                    <a class="back-home" href="index.html">返回首页</a>
+
+                    <div class="mobile-brand">
+                        <span class="mb-mark" aria-hidden="true">
+                            <img src="img/logo-mark.png" alt="">
+                        </span>
+                        <div>
+                            <div class="mb-name">神农AI</div>
+                            <span class="mb-sub">SHENNONG AI</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="password">密码</label>
-                        <input type="password" id="password" name="password" autocomplete="new-password" required>
+
+                    <div class="form-head">
+                        <h1>创建账户</h1>
+                        <p>只需要几步，即可开始你的中医药智能问答</p>
                     </div>
-                    <div class="form-group">
-                        <label for="confirmPassword">确认密码</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required>
-                    </div>
-                    <div id="registerMessage" class="auth-message" role="status" aria-live="polite"></div>
-                    <button type="submit" class="auth-btn">注册</button>
-                </form>
-                <div class="auth-links">
-                    <p>已有账号？<a href="login.html">登录</a></p>
+
+                    <form id="registerForm" novalidate>
+                        <div class="form-group">
+                            <div class="field-head">
+                                <label for="username">用户名</label>
+                                <span class="field-hint">3–30 位字母或数字</span>
+                            </div>
+                            <input type="text" id="username" name="username" placeholder="设置一个用户名" autocomplete="username" required minlength="3" maxlength="30" pattern="[A-Za-z0-9]{3,30}">
+                        </div>
+
+                        <div class="form-group">
+                            <div class="field-head">
+                                <label for="email">电子邮箱</label>
+                            </div>
+                            <input type="email" id="email" name="email" placeholder="name@example.com" autocomplete="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="field-head">
+                                <label for="password">密码</label>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="password" id="password" name="password" placeholder="至少 6 位" autocomplete="new-password" required minlength="6">
+                                <button type="button" class="pw-toggle" data-target="password" aria-label="显示密码" aria-pressed="false">
+                                    <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A9.8 9.8 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-2.1 3.2"/><path d="M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.6"/></svg>
+                                </button>
+                            </div>
+                            <div class="pw-strength" id="pwStrength" data-level="0">
+                                <div class="pw-strength-bars">
+                                    <span class="bar"><i></i></span>
+                                    <span class="bar"><i></i></span>
+                                    <span class="bar"><i></i></span>
+                                </div>
+                                <span class="pw-strength-text" id="pwStrengthText">至少 6 位</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="field-head">
+                                <label for="confirmPassword">确认密码</label>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="再次输入密码" autocomplete="new-password" required>
+                                <button type="button" class="pw-toggle" data-target="confirmPassword" aria-label="显示密码" aria-pressed="false">
+                                    <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A9.8 9.8 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-2.1 3.2"/><path d="M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="registerMessage" class="auth-message" role="status" aria-live="polite"></div>
+                        <button type="submit" class="auth-btn">创建账户</button>
+                    </form>
+
+                    <p class="auth-links">已有账号？<a href="login-glass.html">返回登录</a></p>
                 </div>
             </div>
-        </main>
-    </div>
+        </section>
+    </main>
+
     <script>
-        const API_BASE = 'http://localhost:3001/api';
+        const API_BASE = '/api';
         const registerForm = document.getElementById('registerForm');
         const registerMessage = document.getElementById('registerMessage');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirmPassword');
+        const pwStrength = document.getElementById('pwStrength');
+        const pwStrengthText = document.getElementById('pwStrengthText');
 
         function showMessage(text, type) {
             registerMessage.textContent = text;
             registerMessage.className = `auth-message ${type || ''}`.trim();
         }
 
-        registerForm.addEventListener('submit', async function(e) {
+        function scorePassword(value) {
+            if (!value) return 0;
+            if (value.length < 6) return 1;
+            let score = 1;
+            const hasLetter = /[A-Za-z]/.test(value);
+            const hasDigit = /\d/.test(value);
+            const hasSymbol = /[^A-Za-z0-9]/.test(value);
+            if (value.length >= 10 && hasLetter && hasDigit) score = 2;
+            if (value.length >= 12 && hasSymbol && hasLetter) score = 3;
+            return Math.min(score, 3);
+        }
+
+        function renderStrength() {
+            const level = scorePassword(passwordInput.value);
+            pwStrength.dataset.level = String(level);
+            pwStrengthText.textContent = level === 0 ? '至少 6 位' : (level === 1 ? '较弱' : (level === 2 ? '中等' : '较强'));
+        }
+
+        passwordInput.addEventListener('input', renderStrength);
+
+        document.querySelectorAll('.pw-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(btn.dataset.target);
+                if (!input) return;
+                const visible = input.type === 'text';
+                input.type = visible ? 'password' : 'text';
+                btn.classList.toggle('is-visible', !visible);
+                btn.setAttribute('aria-pressed', String(!visible));
+                btn.setAttribute('aria-label', visible ? '显示密码' : '隐藏密码');
+                input.focus();
+            });
+        });
+
+        registerForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const username = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+            const password = passwordInput.value;
+            const confirmPassword = confirmInput.value;
             const submitBtn = registerForm.querySelector('.auth-btn');
             const originalText = submitBtn.textContent;
 
@@ -113,6 +264,101 @@
                 submitBtn.disabled = false;
             }
         });
+    </script>
+
+    <script>
+        /* 鼠标交互三层：视差 + 光斑近距引力 + 卡片 spring 倾斜。只写 CSS 变量，不阻塞表单。 */
+        (function () {
+            const field = document.querySelector('.orb-field');
+            const card = document.querySelector('.glass-card');
+            const lanes = Array.from(document.querySelectorAll('.orb-lane'));
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+            const coarsePointer = window.matchMedia('(hover: none)');
+            if (!field || !card || reduceMotion.matches || coarsePointer.matches) return;
+
+            const ATTRACT = [0.050, 0.034, 0.058, 0.095];
+            const MAX_PULL = [26, 20, 32, 48];
+
+            let targetX = 0, targetY = 0;
+            let currentX = 0, currentY = 0;
+            let targetPx = window.innerWidth / 2, targetPy = window.innerHeight / 2;
+            let currentPx = targetPx, currentPy = targetPy;
+            let targetRx = 0, targetRy = 0, rx = 0, ry = 0;
+
+            let centers = [];
+            function measureCenters() {
+                centers = lanes.map(function (lane) {
+                    const orb = lane.querySelector('.orb');
+                    if (!orb) return null;
+                    const r = orb.getBoundingClientRect();
+                    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+                });
+            }
+            measureCenters();
+            window.setInterval(measureCenters, 400);
+            window.addEventListener('resize', measureCenters, { passive: true });
+
+            const pull = lanes.map(function () { return { x: 0, y: 0, tx: 0, ty: 0 }; });
+
+            function frame() {
+                currentX += (targetX - currentX) * 0.075;
+                currentY += (targetY - currentY) * 0.075;
+                currentPx += (targetPx - currentPx) * 0.12;
+                currentPy += (targetPy - currentPy) * 0.12;
+                rx += (targetRx - rx) * 0.09;
+                ry += (targetRy - ry) * 0.09;
+
+                field.style.setProperty('--mx', currentX.toFixed(4));
+                field.style.setProperty('--my', currentY.toFixed(4));
+                field.style.setProperty('--px', currentPx.toFixed(1) + 'px');
+                field.style.setProperty('--py', currentPy.toFixed(1) + 'px');
+                card.style.setProperty('--card-x', (currentPx / window.innerWidth * 100).toFixed(2) + '%');
+                card.style.setProperty('--card-y', (currentPy / window.innerHeight * 100).toFixed(2) + '%');
+                card.style.setProperty('--rx', rx.toFixed(3) + 'deg');
+                card.style.setProperty('--ry', ry.toFixed(3) + 'deg');
+
+                lanes.forEach(function (lane, i) {
+                    const p = pull[i];
+                    const c = centers[i];
+                    if (c) {
+                        const m = MAX_PULL[i];
+                        p.tx = Math.max(-m, Math.min(m, (currentPx - c.x) * ATTRACT[i]));
+                        p.ty = Math.max(-m, Math.min(m, (currentPy - c.y) * ATTRACT[i]));
+                    }
+                    p.x += (p.tx - p.x) * 0.06;
+                    p.y += (p.ty - p.y) * 0.06;
+                    lane.style.setProperty('--ax', p.x.toFixed(1) + 'px');
+                    lane.style.setProperty('--ay', p.y.toFixed(1) + 'px');
+                });
+
+                requestAnimationFrame(frame);
+            }
+
+            window.addEventListener('pointermove', function (event) {
+                targetX = (event.clientX / window.innerWidth) * 2 - 1;
+                targetY = (event.clientY / window.innerHeight) * 2 - 1;
+                targetPx = event.clientX;
+                targetPy = event.clientY;
+                targetRx = -targetY * 2.6;
+                targetRy = targetX * 3.2;
+                document.body.classList.add('is-pointer-active');
+            }, { passive: true });
+
+            function resetPointer() {
+                targetX = 0;
+                targetY = 0;
+                targetPx = window.innerWidth / 2;
+                targetPy = window.innerHeight / 2;
+                targetRx = 0;
+                targetRy = 0;
+                pull.forEach(function (p) { p.tx = 0; p.ty = 0; });
+                document.body.classList.remove('is-pointer-active');
+            }
+
+            document.addEventListener('pointerleave', resetPointer, { passive: true });
+            window.addEventListener('blur', resetPointer);
+            requestAnimationFrame(frame);
+        })();
     </script>
 </body>
 </html>
