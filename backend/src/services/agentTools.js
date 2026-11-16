@@ -104,13 +104,16 @@ const searchHerbsTool = {
       ? "\n\n媒体可用性（来自媒体库）：" + mediaHints.map(m => m.name + "（" + [m.hasVideo ? "视频" : "", m.hasImage ? "图片" : ""].filter(Boolean).join("/") + "）").join("、")
       : "";
 
-    let media = [];
-    if (enriched.herbs.length === 1) {
-      const singleName = enriched.herbs[0].name;
-      const imageExt = IMAGE_EXTENSIONS.find(ext => fs.existsSync(path.join(HERB_IMAGE_DIR, singleName + ext)));
-      if (imageExt) media.push({ type: "image", url: "/uploads/herbs/" + singleName + imageExt, name: singleName });
-      const videoExt = VIDEO_EXTENSIONS.find(ext => fs.existsSync(path.join(HERB_VIDEO_DIR, singleName + ext)));
-      if (videoExt) media.push({ type: "video", url: "/uploads/videos/" + singleName + videoExt, name: singleName });
+    const mentionedNames = rankedNames.filter(name => q.includes(name));
+    const mediaTarget = mentionedNames.length === 1
+      ? mentionedNames[0]
+      : (mentionedNames.length === 0 && rankedNames.length === 1 ? rankedNames[0] : null);
+    const media = [];
+    if (mediaTarget) {
+      const imageExt = IMAGE_EXTENSIONS.find(ext => fs.existsSync(path.join(HERB_IMAGE_DIR, mediaTarget + ext)));
+      if (imageExt) media.push({ type: "image", url: "/uploads/herbs/" + mediaTarget + imageExt, name: mediaTarget });
+      const videoExt = VIDEO_EXTENSIONS.find(ext => fs.existsSync(path.join(HERB_VIDEO_DIR, mediaTarget + ext)));
+      if (videoExt) media.push({ type: "video", url: "/uploads/videos/" + mediaTarget + videoExt, name: mediaTarget });
     }
     const mediaText = media.length
       ? "\n\n媒体库已附带该药材的 " + media.map(m => m.type === "video" ? "视频" : "图片").join("、") + "，前端会自动展示。"
