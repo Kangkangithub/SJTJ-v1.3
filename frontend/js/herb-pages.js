@@ -1244,22 +1244,15 @@
 
   function absoluteAssetUrl(value) {
     if (!value) return '';
-    const url = String(value);
+    // 线上同源部署：统一用相对路径；兼容数据库里残留的 localhost 绝对地址
+    const url = String(value).replace(/^https?:\/\/(localhost|127\.0\.0\.1):3001/i, '');
     if (/^https?:\/\//i.test(url)) return url;
-    const path = url.startsWith('/') ? url : `/${url}`;
-    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-      const host = window.location.host;
-      if (host === 'localhost:3001' || host === '127.0.0.1:3001') return path;
-    }
-    return `http://localhost:3001${path}`;
+    return url.startsWith('/') ? url : `/${url}`;
   }
 
   function buildApiUrls(path) {
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    const urls = [cleanPath];
-    if (window.location.origin !== 'http://localhost:3001') urls.push(`http://localhost:3001${cleanPath}`);
-    if (window.location.origin !== 'http://127.0.0.1:3001') urls.push(`http://127.0.0.1:3001${cleanPath}`);
-    return [...new Set(urls)];
+    // 线上由 Express 同源托管前端，直接用相对路径，避免跨域和混合内容问题
+    return [path.startsWith('/') ? path : `/${path}`];
   }
 
   function normalizeHerbs(items) {

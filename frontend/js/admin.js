@@ -1,5 +1,5 @@
 (function() {
-  const API_BASE = 'http://localhost:3001/api';
+  const API_BASE = '/api';
   const PAGE_SIZE = 20;
   const state = {
     token: localStorage.getItem('authToken') || localStorage.getItem('token') || '',

@@ -3,11 +3,7 @@
  * 只展示真实后端接口结果；未登录时仅保留当前浏览器临时对话。
  */
 
-var API_BASE = (function(){
-  var h = window.location.hostname, p = window.location.port;
-  if ((h === "localhost" || h === "127.0.0.1") && p === "3001") return "";
-  return "http://localhost:3001";
-})();
+var API_BASE = "";
 
 var _busy = false;
 var _marked = null;

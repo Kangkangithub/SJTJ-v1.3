@@ -9,7 +9,7 @@
   'use strict';
 
   // API 基础地址（始终指向 Neo4j 后端端口，避免被 Codex 代理拦截）
-  const API_BASE = 'http://localhost:3001';
+  const API_BASE = '';
 
   // ==================== 状态管理 ====================
   const state = {
