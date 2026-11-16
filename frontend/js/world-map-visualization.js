@@ -10,6 +10,10 @@ class WorldMapVisualization {
         this.isInitialized = false;
         this.regionData = [];
         this.chinaMap = null;
+        this.outlineGeo = null;
+        this.coastline = [];
+        this.outlineLines = [];
+        this.insetChart = null;
         this.dataSourceStatus = '初始化中...';
     }
 
@@ -40,11 +44,16 @@ class WorldMapVisualization {
                 this.chart.dispose();
                 this.chart = null;
             }
+            if (this.insetChart) {
+                this.insetChart.dispose();
+                this.insetChart = null;
+            }
 
             // 清理容器（尺寸由 CSS .map-container/.map-visualization 控制，随地图卡片自适应）
             mapVisualizationElement.innerHTML = '';
             mapVisualizationElement.style.width = '100%';
             mapVisualizationElement.style.height = '100%';
+            this.ensureOverlayDom(mapContainerElement);
 
             // 地图已注册则跳过重复注册
             if (!this.chinaMap) {
@@ -60,6 +69,7 @@ class WorldMapVisualization {
             this.chartDom = mapVisualizationElement;
             this.chart = echarts.init(this.chartDom);
             this.renderChart();
+            this.renderInset();
             setTimeout(() => { if (this.chart) this.chart.resize(); }, 100);
 
             // 窗口尺寸变化时自适应（仅容器可见时）
@@ -67,6 +77,8 @@ class WorldMapVisualization {
                 const mapContainerElement = document.getElementById('map-container');
                 if (this.chart && mapContainerElement && mapContainerElement.style.display === 'block') {
                     this.chart.resize();
+                    if (this.insetChart) this.insetChart.resize();
+                    this.updateScaleBar();
                 }
             });
 
@@ -94,13 +106,35 @@ class WorldMapVisualization {
      */
     async loadChinaMap() {
         try {
-            const response = await fetch('/public/china.json');
+            const [response, outlineResponse, coastlineResponse] = await Promise.all([
+                fetch('/public/china.json'),
+                fetch('/public/china-outline.json').catch(() => null),
+                fetch('/public/china-coastline.json').catch(() => null)
+            ]);
             if (!response.ok) throw new Error('加载中国地图数据失败: HTTP ' + response.status);
             const geoJson = await response.json();
 
             // 注册到ECharts
             echarts.registerMap('china', geoJson);
             this.chinaMap = geoJson;
+
+            if (outlineResponse && outlineResponse.ok) {
+                try {
+                    const outline = await outlineResponse.json();
+                    this.outlineGeo = outline;
+                    this.outlineLines = this.geoJsonToPolylines(outline);
+                } catch (error) {
+                    console.warn('国界外轮廓加载失败:', error.message);
+                }
+            }
+            if (coastlineResponse && coastlineResponse.ok) {
+                try {
+                    const coastline = await coastlineResponse.json();
+                    this.coastline = Array.isArray(coastline) ? coastline : [];
+                } catch (error) {
+                    console.warn('海岸线数据加载失败:', error.message);
+                }
+            }
             console.log('中国地图注册成功，省份数:', geoJson.features.length);
         } catch (error) {
             console.error('加载中国地图失败:', error);
@@ -145,89 +179,93 @@ class WorldMapVisualization {
     renderChart() {
         if (!this.chart || !this.regionData) return;
 
-        // 将短省名（四川）映射为地图中的全名（四川省）
         const fullNameMap = {};
         if (this.chinaMap && this.chinaMap.features) {
             this.chinaMap.features.forEach(f => {
                 const full = f.properties.name || '';
-                // 生成短名用于匹配
-                let short = full.replace(/省$/, '').replace(/市$/, '')
-                    .replace(/壮族自治区$/, '').replace(/维吾尔自治区$/, '')
-                    .replace(/回族自治区$/, '').replace(/自治区$/, '');
-                fullNameMap[short] = full;
+                if (!full) return;
+                fullNameMap[this.normalizeProvinceName(full)] = full;
             });
         }
 
-        // 构建省份数据，使用地图中的完整省名
-        const mapData = this.regionData.map(r => {
-            const fullName = fullNameMap[r.name] || r.name;
-            return {
-                name: fullName,
-                value: r.herbCount,
-                description: r.description || ''
-            };
-        });
+        const mapData = this.regionData.map(r => ({
+            name: fullNameMap[r.name] || r.name,
+            value: r.herbCount,
+            description: r.description || ''
+        }));
 
-        // 给地图中所有省份补默认值（0），确保全部省份着色
-        const allProvinceData = [];
-        if (this.chinaMap && this.chinaMap.features) {
-            this.chinaMap.features.forEach(f => {
-                const full = f.properties.name || '';
-                const existing = mapData.find(m => m.name === full);
-                allProvinceData.push(existing || { name: full, value: 0 });
-            });
-        }
-
-        // 动态色阶上限（广东 32 最高，取数据最大值 + 缓冲）
         const maxValue = Math.max(...this.regionData.map(r => r.herbCount), 0);
         const visualMax = Math.max(30, maxValue + 2);
+        this.densityMax = visualMax;
+        this.densityRange = { min: 0, max: visualMax };
+
+        const regionValues = [];
+        if (this.chinaMap && this.chinaMap.features) {
+            this.chinaMap.features.forEach(f => {
+                const name = f.properties.name || '';
+                if (!name || name === '南海诸岛') return;
+                const item = mapData.find(m => m.name === name);
+                regionValues.push({ name: name, value: item ? item.value : 0 });
+            });
+        }
+        this.regionValues = regionValues;
+        const regionStyles = regionValues.map(r => ({
+            name: r.name,
+            itemStyle: { areaColor: this.densityColor(r.value) }
+        }));
+
+        const southSeaDashes = [];
+        if (this.chinaMap && this.chinaMap.features) {
+            this.chinaMap.features
+                .filter(f => f.properties && f.properties.name === '南海诸岛')
+                .forEach(f => {
+                    (f.geometry.coordinates || []).forEach(poly => {
+                        if (poly && poly[0]) southSeaDashes.push({ coords: poly[0] });
+                    });
+                });
+        }
+
+        const provincePoints = [];
+        if (this.chinaMap && this.chinaMap.features) {
+            this.chinaMap.features.forEach(f => {
+                const name = f.properties.name || '';
+                if (!name || name === '南海诸岛') return;
+                const center = f.properties.center || f.properties.centroid;
+                if (Array.isArray(center) && center.length === 2) {
+                    provincePoints.push({ name: name, value: center });
+                }
+            });
+        }
 
         const option = {
-            backgroundColor: '#e8f1ea',  // 水域浅蓝灰
+            backgroundColor: '#dbe7ef',
             tooltip: {
                 trigger: 'item',
                 backgroundColor: 'rgba(27,67,50,0.94)',
                 borderColor: 'rgba(176,137,104,0.45)',
                 textStyle: { color: '#F8F1E3', fontSize: 13 },
-                formatter: function(params) {
-                    if (params.data && params.data.value !== undefined) {
-                        return `<b>${params.name}</b><br/>药材数量：${params.data.value} 种`;
-                    }
-                    return params.name;
+                formatter: (params) => {
+                    if (!params || !params.name || params.name === '南海诸岛') return '';
+                    if (params.seriesName === '国界' || params.seriesName === '海岸线' || params.seriesName === '南海诸岛界线') return '';
+                    if (params.seriesName === '钓鱼岛') return '<b>' + params.name + '</b>';
+                    const shortName = this.normalizeProvinceName(params.name);
+                    const region = this.regionData.find(r => r.name === shortName);
+                    const count = region ? region.herbCount : 0;
+                    return '<b>' + shortName + '</b><br/>药材数量：' + count + ' 种';
                 }
             },
-            visualMap: {
-                type: 'continuous',
-                orient: 'vertical',
-                min: 0,
-                max: visualMax,
-                left: 16,
-                top: 'center',
-                text: ['多', '少'],
-                calculable: true,
-                itemWidth: 14,
-                itemHeight: 130,
-                inRange: {
-                    // 药材数量少→多：浅米 → 浅绿 → 中绿 → 深绿
-                    color: ['#f7f1e1', '#dfeccb', '#aed294', '#79b083', '#2f6a4f']
-                },
-                textStyle: { color: '#4a5d52', fontSize: 12 },
-                handleStyle: { color: '#40916C' }
-            },
-            series: [{
-                name: '药材产地',
-                type: 'map',
+            geo: {
                 map: 'china',
                 roam: true,
-                zoom: 1.2,
-                label: {
-                    show: true,
-                    fontSize: 11,
-                    color: '#3c4f46'
-                },
+                zoom: 1.15,
+                center: [104, 36],
+                scaleLimit: { min: 0.7, max: 10 },
+                label: { show: true, fontSize: 11, color: '#33473c' },
                 itemStyle: {
-                    borderColor: '#d5e3da',
-                    borderWidth: 1
+                    areaColor: '#efe6d2',
+                    borderColor: '#9fa9b3',
+                    borderWidth: 0.8,
+                    borderType: [4, 3]
                 },
                 emphasis: {
                     label: { color: '#1B4332', fontWeight: 'bold', fontSize: 12 },
@@ -237,23 +275,336 @@ class WorldMapVisualization {
                         shadowColor: 'rgba(27,67,50,0.35)'
                     }
                 },
-                data: allProvinceData
-            }]
+                select: { disabled: true },
+                regions: regionStyles
+            },
+            series: [
+                {
+                    name: '省份热区',
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    symbolSize: 18,
+                    itemStyle: { color: 'rgba(0,0,0,0)' },
+                    emphasis: { disabled: true },
+                    z: 5,
+                    data: provincePoints
+                },
+                {
+                    name: '国界',
+                    type: 'lines',
+                    coordinateSystem: 'geo',
+                    polyline: true,
+                    silent: true,
+                    z: 6,
+                    lineStyle: { color: '#8c2f1f', width: 2.2, opacity: 1 },
+                    data: (this.outlineLines || []).map(line => ({ coords: line }))
+                },
+                {
+                    name: '海岸线',
+                    type: 'lines',
+                    coordinateSystem: 'geo',
+                    polyline: true,
+                    silent: true,
+                    z: 7,
+                    lineStyle: { color: '#2f6fa3', width: 1.2, opacity: 0.95 },
+                    data: (this.coastline || []).map(line => ({ coords: line }))
+                },
+                {
+                    name: '南海诸岛界线',
+                    type: 'lines',
+                    coordinateSystem: 'geo',
+                    polyline: true,
+                    silent: true,
+                    z: 8,
+                    lineStyle: { color: '#8c2f1f', width: 1.8, type: 'dashed', opacity: 1 },
+                    data: southSeaDashes
+                },
+                {
+                    name: '钓鱼岛',
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    z: 9,
+                    symbolSize: 4,
+                    itemStyle: { color: '#8c2f1f', borderColor: '#ffffff', borderWidth: 1 },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{b}',
+                        fontSize: 9,
+                        color: '#5a2b20',
+                        distance: 3
+                    },
+                    data: [
+                        { name: '钓鱼岛', value: [123.48, 25.75] },
+                        { name: '赤尾屿', value: [124.56, 25.92] }
+                    ]
+                }
+            ]
         };
 
         this.chart.setOption(option);
+        this.updateDensityUI();
+        this.bindDensityHandles();
+        this.chart.off('georoam');
+        this.chart.on('georoam', () => this.updateScaleBar());
 
-        // 点击省份显示药材列表
+        this.chart.off('click');
         this.chart.on('click', (params) => {
-            if (params.name) {
+            if (params.name && params.name !== '南海诸岛') {
                 this.showRegionDetails(params.name);
             }
+        });
+
+        setTimeout(() => this.updateScaleBar(), 120);
+    }
+
+    geoJsonToPolylines(geo) {
+        const lines = [];
+        const push = (coords) => {
+            if (Array.isArray(coords) && coords.length > 1) lines.push(coords);
+        };
+        const walk = (geometry) => {
+            if (!geometry) return;
+            if (geometry.type === 'Polygon') geometry.coordinates.forEach(push);
+            else if (geometry.type === 'MultiPolygon') geometry.coordinates.forEach(poly => poly.forEach(push));
+            else if (geometry.type === 'LineString') push(geometry.coordinates);
+            else if (geometry.type === 'MultiLineString') geometry.coordinates.forEach(push);
+        };
+        if (geo.type === 'FeatureCollection') (geo.features || []).forEach(f => walk(f.geometry));
+        else if (geo.type === 'Feature') walk(geo.geometry);
+        else walk(geo);
+        return lines;
+    }
+
+    /**
+     * 注入地图下方的图例 / 比例尺 / 指北针 / 南海诸岛小图 / 编制信息
+     */
+    ensureOverlayDom(mapContainer) {
+        if (!mapContainer || mapContainer.querySelector('.map-inset-wrap')) return;
+
+        const inset = document.createElement('div');
+        inset.className = 'map-inset-wrap';
+        inset.innerHTML = `
+            <div class="map-inset-title">南海诸岛</div>
+            <div id="south-sea-inset" class="map-inset"></div>
+        `;
+        mapContainer.appendChild(inset);
+
+        const furniture = document.createElement('div');
+        furniture.className = 'map-furniture';
+        furniture.tabIndex = 0;
+        furniture.innerHTML = `
+            <div class="map-furniture-label">图例</div>
+            <div class="map-furniture-body">
+            <div class="map-key">
+                <div class="map-key-title">图例</div>
+                <div class="map-key-row"><span class="k-line k-border"></span>国界</div>
+                <div class="map-key-row"><span class="k-line k-coast"></span>海岸线</div>
+                <div class="map-key-row"><span class="k-line k-prov"></span>省界</div>
+            </div>
+            <div class="map-tools">
+                <div class="map-north"><span class="map-north-arrow">▲</span><span>N</span></div>
+                <div class="map-scale">
+                    <div class="map-scale-bar"><i id="map-scalebar-fill"></i></div>
+                    <div class="map-scale-labels"><span>0</span><span>1000 km</span></div>
+                </div>
+            </div>
+            </div>
+        `;
+        mapContainer.appendChild(furniture);
+
+        const credit = document.createElement('div');
+        credit.className = 'map-credit';
+        credit.innerHTML = `
+            <span>审图号：GS(20XX)XXXX号（待补充）</span>
+            <span>编制单位：神农AI项目组</span>
+            <span>资料来源：项目自建知识图谱；底图：阿里云 DataV 中国地图</span>
+        `;
+        mapContainer.appendChild(credit);
+
+        const density = document.createElement('div');
+        density.className = 'map-density';
+        density.innerHTML = `
+            <div class="map-density-title">药材数量</div>
+            <span class="map-density-label" id="map-density-top">多</span>
+            <div class="map-density-bar" id="map-density-bar">
+                <div class="map-density-handle" id="map-density-handle-max"></div>
+                <div class="map-density-handle" id="map-density-handle-min"></div>
+            </div>
+            <span class="map-density-label" id="map-density-bottom">少</span>
+        `;
+        mapContainer.appendChild(density);
+    }
+
+    /**
+     * 南海诸岛小图
+     */
+    renderInset() {
+        const el = document.getElementById('south-sea-inset');
+        if (!el) return;
+        if (this.insetChart) {
+            this.insetChart.dispose();
+            this.insetChart = null;
+        }
+        this.insetChart = echarts.init(el);
+
+        const dashes = [];
+        if (this.chinaMap && this.chinaMap.features) {
+            this.chinaMap.features
+                .filter(f => f.properties && f.properties.name === '南海诸岛')
+                .forEach(f => {
+                    (f.geometry.coordinates || []).forEach(poly => {
+                        if (poly && poly[0]) dashes.push({ coords: poly[0] });
+                    });
+                });
+        }
+
+        this.insetChart.setOption({
+            backgroundColor: '#f4f8fb',
+            geo: {
+                map: 'china',
+                boundingCoords: [[105, 3], [123, 23]],
+                roam: false,
+                silent: true,
+                itemStyle: { areaColor: '#efe6d2', borderColor: '#b9c4cc', borderWidth: 0.6 },
+                emphasis: { disabled: true },
+                regions: [
+                    { name: '南海诸岛', itemStyle: { areaColor: 'transparent', borderColor: 'transparent' } }
+                ]
+            },
+            series: [
+                {
+                    type: 'lines',
+                    coordinateSystem: 'geo',
+                    polyline: true,
+                    silent: true,
+                    lineStyle: { color: '#8c2f1f', width: 1.4, type: 'dashed', opacity: 1 },
+                    data: dashes
+                },
+                {
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    symbolSize: 3,
+                    itemStyle: { color: '#8c2f1f' },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        fontSize: 8,
+                        color: '#5a2b20',
+                        formatter: '{b}',
+                        distance: 2
+                    },
+                    data: [
+                        { name: '东沙群岛', value: [116.7, 20.7] },
+                        { name: '西沙群岛', value: [112.3, 16.8] },
+                        { name: '中沙群岛', value: [114.4, 15.7] },
+                        { name: '南沙群岛', value: [114.0, 10.0] },
+                        { name: '曾母暗沙', value: [112.3, 3.97] }
+                    ]
+                }
+            ]
         });
     }
 
     /**
-     * 省份名称规范化（四川省→四川，用于匹配产地数据）
+     * 依据当前投影估算 500km 比例尺长度
      */
+    densityColor(value) {
+        const palette = ['#efe6d2', '#dfe7c4', '#b7d39a', '#7fb383', '#2f6a4f'];
+        const max = this.densityMax || 1;
+        const t = Math.max(0, Math.min(1, value / max));
+        const pos = t * (palette.length - 1);
+        const i = Math.min(palette.length - 2, Math.floor(pos));
+        const f = pos - i;
+        const hexToRgb = (hex) => {
+            const n = parseInt(hex.slice(1), 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        };
+        const a = hexToRgb(palette[i]);
+        const b = hexToRgb(palette[i + 1]);
+        const c = a.map((v, idx) => Math.round(v + (b[idx] - v) * f));
+        return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+    }
+
+    updateDensityUI() {
+        const max = this.densityMax || 1;
+        const maxHandle = document.getElementById('map-density-handle-max');
+        const minHandle = document.getElementById('map-density-handle-min');
+        const topLabel = document.getElementById('map-density-top');
+        const bottomLabel = document.getElementById('map-density-bottom');
+        if (maxHandle) maxHandle.style.top = (1 - this.densityRange.max / max) * 100 + '%';
+        if (minHandle) minHandle.style.top = (1 - this.densityRange.min / max) * 100 + '%';
+        if (topLabel) topLabel.textContent = '多 · ' + this.densityRange.max;
+        if (bottomLabel) bottomLabel.textContent = '少 · ' + this.densityRange.min;
+    }
+
+    applyDensityFilter() {
+        if (!this.chart || !this.regionValues) return;
+        const min = this.densityRange.min;
+        const max = this.densityRange.max;
+        const regions = this.regionValues.map(r => ({
+            name: r.name,
+            itemStyle: {
+                areaColor: r.value >= min && r.value <= max ? this.densityColor(r.value) : '#d7dde2'
+            }
+        }));
+        this.chart.setOption({ geo: { regions: regions } });
+    }
+
+    bindDensityHandles() {
+        const bar = document.getElementById('map-density-bar');
+        if (!bar || bar.dataset.bound === '1') return;
+        bar.dataset.bound = '1';
+
+        const startDrag = (which) => (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const rect = bar.getBoundingClientRect();
+            const onMove = (ev) => {
+                const y = Math.min(Math.max(ev.clientY - rect.top, 0), rect.height);
+                let value = Math.round((1 - y / rect.height) * (this.densityMax || 0));
+                if (which === 'max') {
+                    this.densityRange.max = Math.min(this.densityMax, Math.max(value, this.densityRange.min + 1));
+                } else {
+                    this.densityRange.min = Math.max(0, Math.min(value, this.densityRange.max - 1));
+                }
+                this.updateDensityUI();
+                this.applyDensityFilter();
+            };
+            const onUp = () => {
+                document.removeEventListener('pointermove', onMove);
+                document.removeEventListener('pointerup', onUp);
+            };
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
+        };
+
+        document.getElementById('map-density-handle-max')?.addEventListener('pointerdown', startDrag('max'));
+        document.getElementById('map-density-handle-min')?.addEventListener('pointerdown', startDrag('min'));
+        bar.addEventListener('dblclick', () => {
+            this.densityRange = { min: 0, max: this.densityMax };
+            this.updateDensityUI();
+            this.applyDensityFilter();
+        });
+    }
+
+    updateScaleBar() {
+        if (!this.chart) return;
+        const fill = document.getElementById('map-scalebar-fill');
+        if (!fill) return;
+        try {
+            const p1 = this.chart.convertToPixel({ geoIndex: 0 }, [100, 35]);
+            const p2 = this.chart.convertToPixel({ geoIndex: 0 }, [105, 35]);
+            if (!p1 || !p2) return;
+            const pxPerDeg = Math.abs(p2[0] - p1[0]) / 5;
+            const kmPerDeg = 111.32 * Math.cos(35 * Math.PI / 180);
+            const px = Math.round((1000 / kmPerDeg) * pxPerDeg);
+            fill.style.width = Math.max(28, px) + 'px';
+        } catch (error) {
+            // 比例尺为示意值，计算失败时保留默认宽度
+        }
+    }
+
     normalizeProvinceName(name) {
         if (!name) return '';
         return name.replace(/省$/, '').replace(/市$/, '')

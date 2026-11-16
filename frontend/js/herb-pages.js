@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const PAGE_MAP = {
     'index.html': 'home',
     'herb-search.html': 'search',
@@ -684,15 +684,8 @@
     return `
       <div class="region-details-panel" id="regionDetailsPanel">
         <div class="panel-header">
+          <h3 class="panel-heading"><i class="fas fa-leaf"></i> <span id="panelRegionCn">省份</span><span class="panel-sub" id="panelRegionEn">Province</span></h3>
           <button type="button" class="panel-close js-map-panel-close" aria-label="关闭">✕</button>
-          <div class="panel-title">
-            <div class="title-stamp">🌿</div>
-            <div class="title-text">
-              <h2 id="panelRegionCn">省份</h2>
-              <span id="panelRegionEn">Province</span>
-            </div>
-          </div>
-          <div class="header-ornament">⚕</div>
         </div>
         <div class="panel-body" id="regionPanelBody">
           <div class="panel-loading">点击地图省份，查看该省药材分布详情。</div>

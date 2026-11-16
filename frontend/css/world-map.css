@@ -841,3 +841,463 @@
     cursor: pointer;
 }
 
+/* ==================== 地图叠加层（图例/比例尺/指北针/南海小图/编制信息） ==================== */
+.map-inset-wrap {
+    position: absolute;
+    right: 12px;
+    bottom: 44px;
+    width: 132px;
+    z-index: 6;
+    pointer-events: none;
+}
+
+.map-inset-title {
+    margin-bottom: 4px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #33473c;
+    text-align: center;
+}
+
+.map-inset {
+    width: 132px;
+    height: 168px;
+    background: #f4f8fb;
+    border: 1px solid #8c9aa5;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(27, 67, 50, 0.12);
+    pointer-events: auto;
+}
+
+.map-furniture {
+    position: absolute;
+    right: 156px;
+    bottom: 44px;
+    z-index: 6;
+    width: 54px;
+    padding: 5px 8px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(140, 154, 165, 0.5);
+    border-radius: 6px;
+    font-size: 11px;
+    color: #33473c;
+    pointer-events: auto;
+    overflow: hidden;
+    transition: width 0.22s ease, padding 0.22s ease, box-shadow 0.22s ease;
+}
+
+.map-furniture-label {
+    text-align: center;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.map-furniture-body {
+    display: none;
+    margin-top: 8px;
+}
+
+.map-furniture:hover,
+.map-furniture:focus-within {
+    width: 158px;
+    padding: 8px 10px;
+    box-shadow: 0 8px 22px rgba(27, 67, 50, 0.16);
+}
+
+.map-furniture:hover .map-furniture-label,
+.map-furniture:focus-within .map-furniture-label {
+    text-align: left;
+}
+
+.map-furniture:hover .map-furniture-body,
+.map-furniture:focus-within .map-furniture-body {
+    display: block;
+}
+
+.map-key-title {
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.map-key-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.7;
+}
+
+.k-line {
+    display: inline-block;
+    width: 22px;
+    height: 0;
+}
+
+.k-border {
+    border-top: 2.2px solid #8c2f1f;
+}
+
+.k-coast {
+    border-top: 1.3px solid #2f6fa3;
+}
+
+.k-prov {
+    border-top: 1px dashed #9fa9b3;
+}
+
+.k-swatch {
+    display: inline-block;
+    width: 30px;
+    height: 8px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #efe6d2, #b7d39a, #2f6a4f);
+}
+
+.map-tools {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.map-north {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+    font-weight: 600;
+}
+
+.map-north-arrow {
+    font-size: 13px;
+    color: #8c2f1f;
+}
+
+.map-scale {
+    min-width: 88px;
+}
+
+.map-scale-bar {
+    height: 5px;
+    background: #ffffff;
+    border: 1px solid #33473c;
+    border-top: none;
+}
+
+.map-scale-bar i {
+    display: block;
+    width: 60px;
+    height: 100%;
+    background: #33473c;
+}
+
+.map-scale-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+    font-size: 10px;
+}
+
+.map-credit {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    left: 12px;
+    z-index: 6;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 2px 14px;
+    font-size: 10px;
+    color: #5b6b62;
+    text-align: right;
+    pointer-events: none;
+}
+
+@media (max-width: 900px) {
+    .map-inset-wrap {
+        right: 8px;
+        bottom: 40px;
+        width: 104px;
+    }
+
+    .map-inset {
+        width: 104px;
+        height: 132px;
+    }
+
+    .map-furniture {
+        display: none;
+    }
+
+    .map-credit {
+        font-size: 9px;
+    }
+}
+/* ==================== 右侧省份面板：对齐 AI 问答药材详情（亮色主题） ==================== */
+.region-details-panel {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: none;
+    color: var(--text);
+}
+
+.region-details-panel .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 18px;
+    background: var(--primary-soft);
+    border-bottom: 1px solid var(--line);
+    overflow: visible;
+}
+
+.region-details-panel .panel-header::before { display: none; }
+
+.region-details-panel .panel-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+    min-width: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.region-details-panel .panel-heading i {
+    align-self: center;
+    font-size: 15px;
+}
+
+.region-details-panel .panel-heading #panelRegionCn {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.region-details-panel .panel-sub {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--muted);
+}
+
+.region-details-panel .panel-close {
+    position: static;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.region-details-panel .panel-close:hover {
+    color: var(--text);
+    background: var(--surface-muted);
+    transform: none;
+}
+
+.region-details-panel .panel-body {
+    padding: 16px 18px 24px;
+    scrollbar-color: rgba(47, 118, 81, 0.35) transparent;
+}
+
+.region-details-panel .panel-body::-webkit-scrollbar { width: 6px; }
+.region-details-panel .panel-body::-webkit-scrollbar-thumb {
+    background: rgba(47, 118, 81, 0.3);
+    border-radius: 3px;
+}
+
+.region-details-panel .panel-loading,
+.region-details-panel .panel-error,
+.region-details-panel .panel-empty {
+    padding: 40px 12px;
+    color: var(--muted);
+}
+
+/* 统计卡片 */
+.region-details-panel .herb-stats { gap: 8px; }
+
+.region-details-panel .stat-card {
+    min-height: 68px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.region-details-panel .stat-card::before { display: none; }
+.region-details-panel .stat-num { color: var(--primary-dark); font-size: 22px; }
+.region-details-panel .stat-label {
+    color: var(--muted);
+    letter-spacing: 0.5px;
+}
+
+/* 区块标题 */
+.region-details-panel .section-title,
+.region-details-panel .herb-detail-title {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--primary-dark);
+    border-bottom: 1px solid var(--line);
+}
+
+.region-details-panel .star-title { color: #b7791f; }
+
+/* 标签 */
+.region-details-panel .category-tag {
+    background: var(--primary-soft);
+    border-color: rgba(47, 118, 81, 0.2);
+    color: var(--primary-dark);
+}
+
+.region-details-panel .category-tag b {
+    background: rgba(47, 118, 81, 0.14);
+    color: var(--primary-dark);
+}
+
+.region-details-panel .herb-tag {
+    background: var(--surface-soft);
+    border-color: var(--line);
+    color: var(--text);
+}
+
+.region-details-panel .herb-tag.common {
+    background: rgba(214, 158, 46, 0.12);
+    border-color: rgba(214, 158, 46, 0.3);
+    color: #8a5a00;
+}
+
+.region-details-panel .herb-tag-expand {
+    background: var(--primary-soft);
+    border-color: rgba(47, 118, 81, 0.3);
+    color: var(--primary-dark);
+}
+
+.region-details-panel .herb-tag-expand:hover {
+    background: rgba(47, 118, 81, 0.18);
+    color: var(--primary-dark);
+}
+
+/* 药材详情卡片 */
+.region-details-panel .herb-card {
+    padding: 12px 14px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid #2f7651;
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.region-details-panel .herb-card::after { display: none; }
+.region-details-panel .herb-card:hover { border-color: rgba(47, 118, 81, 0.35); }
+
+.region-details-panel .herb-icon { font-size: 15px; }
+.region-details-panel .herb-name { color: var(--primary-dark); font-size: 15px; }
+
+.region-details-panel .herb-category {
+    font-size: 12px;
+    color: var(--muted);
+    border-bottom-color: var(--line);
+}
+
+.region-details-panel .herb-common-badge {
+    background: rgba(214, 158, 46, 0.14);
+    border: 1px solid rgba(214, 158, 46, 0.3);
+    color: #8a5a00;
+}
+
+.region-details-panel .detail-label {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.region-details-panel .detail-value { color: var(--text); }
+/* ==================== 左侧药材密度色阶（透明 + 可拖动筛选） ==================== */
+.map-density {
+    position: absolute;
+    left: 16px;
+    bottom: 96px;
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #33505f;
+    pointer-events: auto;
+    user-select: none;
+    overflow: visible;
+}
+
+.map-density-title {
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.map-density-label {
+    font-size: 10px;
+    line-height: 1;
+    white-space: nowrap;
+    color: #33505f;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.map-density-bar {
+    position: relative;
+    width: 12px;
+    height: 118px;
+    border: 1px solid rgba(90, 107, 98, 0.45);
+    border-radius: 6px;
+    background: linear-gradient(to top, #efe6d2, #dfe7c4, #b7d39a, #7fb383, #2f6a4f);
+    cursor: pointer;
+    overflow: visible;
+    touch-action: none;
+}
+
+.map-density-handle {
+    position: absolute;
+    left: 50%;
+    width: 20px;
+    height: 10px;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border: 1px solid #6f7d85;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    cursor: ns-resize;
+    pointer-events: auto;
+}
+
+.map-density-handle::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 3px;
+    height: 1px;
+    background: #9aa5ab;
+    box-shadow: 0 3px 0 #9aa5ab;
+}
+
+@media (max-width: 900px) {
+    .map-density { left: 8px; bottom: 76px; }
+    .map-density-bar { width: 10px; height: 90px; }
+    .map-density-title { font-size: 10px; }
+    .map-density-label { font-size: 9px; }
+}
