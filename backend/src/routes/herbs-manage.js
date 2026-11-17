@@ -8,6 +8,7 @@ const express = require("express");
 const neo4jManager = require("../config/neo4j-simple");
 const neo4j = require("neo4j-driver");
 const embeddingService = require("../services/embeddingService");
+const herbsRoutes = require("./herbs");
 const databaseManager = require("../config/database-simple");
 const router = express.Router();
 
@@ -439,9 +440,19 @@ router.post("/", async (req, res) => {
     }
 
     await tx.commit();
+
+    let sqliteSynced = false;
+    try {
+      const synced = await syncHerbFromNeo4j(trimmedName);
+      sqliteSynced = Boolean(synced);
+    } catch (syncError) {
+      console.error("[herbs-manage] 创建后同步 SQLite 失败:", syncError.message);
+    }
+    if (herbsRoutes.clearRouteCache) herbsRoutes.clearRouteCache();
+
     // 异步更新语义检索向量（不阻塞响应）
     embeddingService.updateOne(trimmedName);
-    res.status(201).json({ success: true, data: { name: trimmedName }, message: "药材创建成功" });
+    res.status(201).json({ success: true, data: { name: trimmedName, sqliteSynced }, message: "药材创建成功" });
   } catch (error) {
     await tx.rollback();
     console.error("[herbs-manage] create error:", error);
@@ -564,6 +575,19 @@ router.put("/:name", async (req, res) => {
     }
 
     await tx.commit();
+
+    let sqliteSynced = false;
+    try {
+      if (targetName !== oldName) {
+        const db = databaseManager.getDatabase();
+        await sqliteRun(db, "DELETE FROM herbs WHERE name = ?", [oldName]);
+      }
+      sqliteSynced = Boolean(await syncHerbFromNeo4j(targetName));
+    } catch (syncError) {
+      console.error("[herbs-manage] 更新后同步 SQLite 失败:", syncError.message);
+    }
+    if (herbsRoutes.clearRouteCache) herbsRoutes.clearRouteCache();
+
     // 异步更新语义检索向量（改名需删旧补新）
     if (targetName !== oldName) {
       embeddingService.deleteOne(oldName);
@@ -571,7 +595,7 @@ router.put("/:name", async (req, res) => {
     } else {
       embeddingService.updateOne(targetName);
     }
-    res.json({ success: true, data: { name: targetName }, message: "药材更新成功" });
+    res.json({ success: true, data: { name: targetName, sqliteSynced }, message: "药材更新成功" });
   } catch (error) {
     await tx.rollback();
     console.error("[herbs-manage] update error:", error);
@@ -624,10 +648,20 @@ router.delete("/:name", async (req, res) => {
       { name: herbName }
     );
 
+    let sqliteDeleted = false;
+    try {
+      const db = databaseManager.getDatabase();
+      const result = await sqliteRun(db, "DELETE FROM herbs WHERE name = ?", [herbName]);
+      sqliteDeleted = result.changes > 0;
+    } catch (syncError) {
+      console.error("[herbs-manage] 删除后同步 SQLite 失败:", syncError.message);
+    }
+    if (herbsRoutes.clearRouteCache) herbsRoutes.clearRouteCache();
+
     // 异步删除语义检索向量
     embeddingService.deleteOne(herbName);
 
-    res.json({ success: true, message: "药材删除成功" });
+    res.json({ success: true, data: { name: herbName, sqliteDeleted }, message: "药材删除成功" });
   } catch (error) {
     console.error("[herbs-manage] delete error:", error);
     res.status(500).json({ success: false, message: error.message });

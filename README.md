@@ -53,7 +53,7 @@
 - 删除前有软确认，并检查是否被方剂引用
 - 新增/修改/删除药材后，向量检索自动更新（全文索引自动同步，无需手动重建）
 
-> **新增药材说明**：通过药材管理面板正常新增即可，后端自动完成 Neo4j 写入、全文索引更新、向量更新。若用脚本**批量导入 Neo4j**（不走 herbs-manage API），导入后需手动执行 `embeddingService.syncAll()` 补齐向量。
+> **新增药材说明**：通过药材管理面板正常新增即可，后端会自动完成 Neo4j 写入、SQLite 同步（列表 / 搜索 / 详情）、全文索引与向量更新；修改和删除同样会自动同步两个库。若用脚本**批量导入 Neo4j**（不走 herbs-manage API），需手动执行 `embeddingService.syncAll()` 补齐向量，并调用 `POST /api/herbs-manage/sync-sqlite` 同步 SQLite。
 
 ### 3. Agentic RAG 智能问答
 

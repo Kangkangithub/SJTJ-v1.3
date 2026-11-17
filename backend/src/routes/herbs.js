@@ -1061,3 +1061,4 @@ router.put('/direct-update/:id', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.clearRouteCache = clearCache;
