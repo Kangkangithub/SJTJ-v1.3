@@ -274,6 +274,26 @@ class SimpleDatabaseManager {
           FOREIGN KEY (user_id) REFERENCES users(id)
         )`,
 
+        // ===== 访问统计事件表 =====
+        `CREATE TABLE IF NOT EXISTS traffic_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          ts DATETIME NOT NULL,
+          kind TEXT NOT NULL,
+          path TEXT NOT NULL,
+          method TEXT,
+          status INTEGER,
+          duration_ms REAL,
+          user_id INTEGER,
+          session_id TEXT,
+          ip_hash TEXT,
+          ua TEXT,
+          referer TEXT,
+          query TEXT
+        )`,
+        `CREATE INDEX IF NOT EXISTS idx_traffic_ts ON traffic_events(ts)`,
+        `CREATE INDEX IF NOT EXISTS idx_traffic_kind ON traffic_events(kind, ts)`,
+        `CREATE INDEX IF NOT EXISTS idx_traffic_path ON traffic_events(path, ts)`,
+
         // ===== 知识图谱缓存表 =====
         `CREATE TABLE IF NOT EXISTS knowledge_graph_cache (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -318,24 +338,24 @@ class SimpleDatabaseManager {
         )`
       ];
 
-      let completed = 0;
-      const total = tables.length;
-
-      tables.forEach((sql, index) => {
-        this.db.run(sql, (err) => {
-          if (err) {
-            logger.error(`创建表失败 (${index}):`, err);
-            reject(err);
-            return;
+      // 串行执行：索引语句依赖前面的建表语句。并发 run() 会在全新数据库上
+      // 出现 "no such table" 竞争（首次部署必现）。
+      (async () => {
+        try {
+          for (let index = 0; index < tables.length; index++) {
+            await new Promise((res, rej) => {
+              this.db.run(tables[index], (err) => (err ? rej(err) : res()));
+            });
           }
-
-          completed++;
-          if (completed === total) {
-            logger.info('所有数据表初始化完成');
-            this.migrateDatabase().then(() => this.insertReferenceData()).then(resolve).catch(reject);
-          }
-        });
-      });
+          logger.info('所有数据表初始化完成');
+          await this.migrateDatabase();
+          await this.insertReferenceData();
+          resolve();
+        } catch (err) {
+          logger.error('创建表失败:', err);
+          reject(err);
+        }
+      })();
     });
   }
 

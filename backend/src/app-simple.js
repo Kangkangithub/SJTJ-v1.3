@@ -50,6 +50,7 @@ const herbsManageRoutes = require('./routes/herbs-manage');
 const conversationsRoutes = require('./routes/conversations');
 const knowledgeGraphRoutes = require('./routes/knowledge-graph');
 const recommendationRoutes = require('./routes/recommendations');
+const trafficAnalytics = require('./services/trafficAnalytics');
 
 class SimpleApp {
   constructor() {
@@ -106,6 +107,9 @@ class SimpleApp {
     // 解析JSON和URL编码的请求体
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+    // 访问统计：异步缓冲，不阻塞请求
+    this.app.use(trafficAnalytics.middleware());
 
     // 静态文件服务
     // 前端页面（项目根目录下的 HTML 文件）
@@ -191,6 +195,7 @@ class SimpleApp {
     this.app.use('/api/ai-gateway', require('./routes/ai-gateway'));
     this.app.use('/api/ai-engine', require('./routes/ai-engine')); // 6合1 AI 引擎
     this.app.use('/api/mock', require('./routes/mock'));
+    this.app.use('/api/analytics', require('./routes/analytics'));
 
     // 手动清缓存（管理员用）
     this.app.post('/api/cache/clear', (req, res) => {
@@ -307,6 +312,7 @@ class SimpleApp {
       // 初始化 SQLite 数据库
       logger.info('正在初始化 SQLite 数据库...');
       await databaseManager.connect();
+      trafficAnalytics.start();
 
       // 🆕 初始化 Neo4j AuraDB 连接
       logger.info('正在初始化 Neo4j AuraDB 连接...');

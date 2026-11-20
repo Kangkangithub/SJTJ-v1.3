@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>访问统计 - 神农AI</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/admin-traffic.css">
+</head>
+<body class="traffic-page">
+  <div class="bg-field" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-dot"></span>
+      <span class="brand-text">神农AI</span>
+      <span class="brand-sub">访问统计</span>
+    </a>
+    <div class="top-actions">
+      <div class="range-tabs" role="tablist" aria-label="时间范围">
+        <button type="button" data-range="1h">1 小时</button>
+        <button type="button" data-range="24h" class="active">24 小时</button>
+        <button type="button" data-range="7d">7 天</button>
+        <button type="button" data-range="30d">30 天</button>
+      </div>
+      <button type="button" class="icon-btn" id="refreshBtn" title="刷新数据" aria-label="刷新数据">↻</button>
+      <button type="button" class="icon-btn" id="themeBtn" title="切换深浅色" aria-label="切换深浅色">◐</button>
+      <a class="icon-btn" href="admin.html" title="返回管理后台" aria-label="返回管理后台">←</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero glass">
+      <div>
+        <h1>访问统计</h1>
+        <p>页面浏览、接口调用与 AI 使用概览</p>
+      </div>
+      <div class="hero-meta">
+        <span class="range-badge" id="rangeBadge">最近 24 小时</span>
+        <span class="updated" id="updatedAt">—</span>
+      </div>
+    </section>
+
+    <section class="stat-grid" id="statGrid">
+      <article class="glass stat-card"><span class="stat-label">页面浏览 PV</span><strong class="stat-value" id="statPv">—</strong><span class="stat-hint">当前区间</span></article>
+      <article class="glass stat-card"><span class="stat-label">独立访客 UV</span><strong class="stat-value" id="statUv">—</strong><span class="stat-hint">按会话去重</span></article>
+      <article class="glass stat-card"><span class="stat-label">接口调用</span><strong class="stat-value" id="statApi">—</strong><span class="stat-hint">含 AI 请求</span></article>
+      <article class="glass stat-card"><span class="stat-label">AI 问答</span><strong class="stat-value" id="statAi">—</strong><span class="stat-hint">ai-engine / gateway</span></article>
+      <article class="glass stat-card"><span class="stat-label">平均响应</span><strong class="stat-value" id="statAvg">—</strong><span class="stat-hint">毫秒</span></article>
+      <article class="glass stat-card"><span class="stat-label">错误率</span><strong class="stat-value" id="statErr">—</strong><span class="stat-hint">状态码 ≥ 400</span></article>
+    </section>
+
+    <section class="grid-2">
+      <article class="glass panel">
+        <header class="panel-head"><h2>访问趋势</h2><span class="panel-note">PV / UV</span></header>
+        <div class="chart" id="trendChart"></div>
+      </article>
+      <article class="glass panel">
+        <header class="panel-head"><h2>热门页面</h2><span class="panel-note">Top 10</span></header>
+        <div class="chart" id="pagesChart"></div>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="glass panel">
+        <header class="panel-head"><h2>热门接口</h2><span class="panel-note">Top 10</span></header>
+        <div class="chart" id="apisChart"></div>
+      </article>
+      <article class="glass panel">
+        <header class="panel-head"><h2>热门搜索</h2><span class="panel-note">药材关键词</span></header>
+        <div class="rank-list" id="searchList"><p class="empty">暂无搜索数据</p></div>
+      </article>
+    </section>
+
+    <section class="glass panel">
+      <header class="panel-head"><h2>最近错误</h2><span class="panel-note">状态码 ≥ 400</span></header>
+      <div class="error-table" id="errorTable"><p class="empty">暂无错误记录</p></div>
+    </section>
+  </main>
+
+  <div class="gate" id="loginGate" hidden>
+    <div class="glass gate-card">
+      <h2>需要管理员登录</h2>
+      <p>访问统计仅对管理员开放。</p>
+      <a class="gate-btn" href="login-glass.html">去登录</a>
+    </div>
+  </div>
+
+  <script src="js/vendor/echarts.min.js"></script>
+  <script src="js/admin-traffic.js"></script>
+</body>
+</html>
